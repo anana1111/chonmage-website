@@ -1,38 +1,18 @@
 [
   {
-    "url": "https://tjniigata.jp/assets/uploads/2025/07/8052d1738c672faf63a7cccd37d1ee84-760x507.jpg",
-    "file": "interior.jpg",
-    "bytes": 78120,
-    "downloaded": true
+    "file": "images/interior-wide.png",
+    "source": "repository upload"
   },
   {
-    "url": "https://tjniigata.jp/assets/uploads/2025/07/7a63b66b1466bef678b554bf324cd8d2-760x507.jpg",
-    "file": "poker-table.jpg",
-    "bytes": 73574,
-    "downloaded": true
+    "file": "images/storefront-night.png",
+    "source": "repository upload"
   },
   {
-    "url": "https://tjniigata.jp/assets/uploads/2025/07/cf51d9d4c5b565747aef5e6d39ec5b8a-760x507.jpg",
-    "file": "storefront.jpg",
-    "bytes": 93279,
-    "downloaded": true
+    "file": "images/poker-table-detail.png",
+    "source": "repository upload"
   },
   {
-    "url": "https://pbs.twimg.com/media/HSEhsmLaQAEegtM?format=webp&name=small",
-    "file": "event-today.webp",
-    "bytes": 33996,
-    "downloaded": true
-  },
-  {
-    "url": "https://pbs.twimg.com/media/HSBG1snbMAADpg1?format=webp&name=medium",
-    "file": "silver-week.webp",
-    "bytes": 201218,
-    "downloaded": true
-  },
-  {
-    "url": "https://pbs.twimg.com/media/HSBDswkbUAAD7Nu?format=webp&name=medium",
-    "file": "tournament-result.webp",
-    "bytes": 142248,
-    "downloaded": true
+    "file": "images/chonmage-character.png",
+    "source": "repository upload"
   }
 ]
