@@ -188,7 +188,7 @@
 @media (min-width: 521px) and (max-width: 900px) {
   .hero.hero-v2, .hero-v2 .hero-copy { min-height: max(100svh, calc(min(75vw, 520px) + 32rem)); }
 }
-@media (max-width: 390px) {
+@media (max-width: 400px) {
   .hero-v2 .hero-message { margin-top: max(7rem, calc(75vw - 6rem)); flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
   .hero-v2 h1 { font-size: clamp(2.9rem, 15.2vw, 5rem); }
 }
