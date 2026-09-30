@@ -112,6 +112,10 @@
   .news-card:last-child .news-image { grid-column: 1; grid-row: 1 / 5; }
 }
 
+@media (min-width: 901px) and (max-width: 1100px) {
+  .price h2 { font-size: clamp(6rem, 13vw, 9rem); }
+}
+
 @media (max-width: 620px) {
   .site-header { padding: 0 1rem; }
   .brand { font-size: .58rem; }
@@ -121,6 +125,10 @@
   .first-character { width: 116px; }
   .cta h2 { font-size: clamp(2.9rem, 12vw, 4rem); overflow-wrap: anywhere; }
   .news-image strong { font-size: clamp(3rem, 14vw, 5rem); }
+  .price h2 { font-size: clamp(4.5rem, 18vw, 6rem); }
+  .price h2 small { margin-right: .5rem; }
+  .space h2 { font-size: clamp(3.4rem, 14vw, 4rem); }
+  .footer-word { font-size: clamp(2.65rem, 11vw, 3.5rem); }
   .hero-v2 h1 { font-size: clamp(3.05rem, 15.2vw, 5rem); }
   .hero-v2 .eyebrow { font-size: .6rem; }
   .hero-v2 .hero-bottom { align-items: flex-end; gap: 1rem; margin-top: 1.7rem; }
@@ -144,7 +152,7 @@
   .ring-banner { grid-template-columns: 1fr auto; gap: .8rem; padding: 1.2rem; }
   .ring-banner strong { grid-column: 1 / -1; grid-row: 2; }
   .ring-banner p { grid-row: 3; }
-  .ring-banner a { grid-column: 2; grid-row: 3; align-self: end; }
+  .ring-banner a { grid-column: 1 / -1; grid-row: 4; align-self: start; justify-self: start; }
   .news-heading { align-items: start; flex-direction: column; }
   .all-news-link { gap: 2rem; }
   .news-grid { grid-template-columns: 1fr; }
