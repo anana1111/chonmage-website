@@ -182,6 +182,8 @@
 /* Keep Japanese headline phrases together at intentional break points. */
 .hero-v2 h1 .accent-word { white-space: nowrap; }
 .news-name, .first-lead, .first-question, .cta-question { word-break: keep-all; overflow-wrap: normal; }
+.news-name { white-space: nowrap; }
+@media (max-width: 350px) { .news h2 { font-size: 2.9rem; } }
 @media (max-width: 900px) {
   .hero-v2 h1 { max-width: none; }
 }
