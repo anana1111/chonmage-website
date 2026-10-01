@@ -96,3 +96,49 @@ if ('IntersectionObserver' in window && !window.matchMedia?.('(prefers-reduced-m
     observer.observe(item);
   });
 }
+
+
+// Replace expired one-day event details with a safe link to the current official X feed.
+const eventExpiry = document.querySelector('[data-event-expiry]')?.dataset.eventExpiry;
+if (eventExpiry) {
+  const expiryTime = Date.parse(eventExpiry);
+  if (Number.isFinite(expiryTime) && Date.now() >= expiryTime) {
+    const schedule = document.querySelector('.hero-schedule[data-event-expiry]');
+    if (schedule) {
+      schedule.classList.add('is-stale');
+      [...schedule.children].forEach((item) => {
+        if (!item.classList.contains('schedule-date') && !item.classList.contains('schedule-x')) {
+          item.hidden = true;
+        }
+      });
+
+      const dateLabel = schedule.querySelector('.schedule-date span');
+      const dateStatus = schedule.querySelector('.schedule-date strong');
+      const latestLink = schedule.querySelector('.schedule-x');
+      if (dateLabel) dateLabel.textContent = 'LATEST';
+      if (dateStatus) dateStatus.textContent = '最新情報';
+      if (latestLink) {
+        latestLink.href = 'https://x.com/ChonmageNiigata';
+        const latestStrong = latestLink.querySelector('strong');
+        if (latestStrong) latestStrong.textContent = '公式Xで確認 ↗';
+      }
+      schedule.setAttribute('aria-label', '最新の営業・イベント情報');
+    }
+
+    const today = document.querySelector('.today[data-event-expiry]');
+    if (today) {
+      today.querySelector('.event-list')?.setAttribute('hidden', '');
+      today.querySelector('.ring-banner')?.setAttribute('hidden', '');
+      today.querySelector('.schedule-note')?.setAttribute('hidden', '');
+      const notice = today.querySelector('.stale-event-notice');
+      if (notice) notice.hidden = false;
+
+      const summaryDate = today.querySelector('.today-summary span');
+      const summaryOpen = today.querySelector('.today-summary strong');
+      const summaryText = today.querySelector('.today-summary p');
+      if (summaryDate) summaryDate.textContent = '最新情報';
+      if (summaryOpen) summaryOpen.textContent = '公式Xで確認';
+      if (summaryText) summaryText.innerHTML = '当日のゲーム・営業時間・空席状況は<br />公式Xで随時更新しています。';
+    }
+  }
+}
