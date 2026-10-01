@@ -195,83 +195,6 @@
   .hero-v2 h1 { font-size: clamp(2.9rem, 15.2vw, 5rem); }
 }
 
-
-/* Mobile polish: compact hero and readable schedule on narrow phones. */
-.hero-schedule [hidden],
-.today [hidden] {
-  display: none !important;
-}
-
-.hero-schedule.is-stale {
-  grid-template-columns: 1.18fr .82fr;
-}
-
-.today-stale-message {
-  padding: clamp(2.5rem, 6vw, 5rem) 0 0;
-  max-width: 900px;
-}
-
-.today-stale-message[hidden] {
-  display: none !important;
-}
-
-.today-stale-label {
-  margin: 0 0 1.25rem;
-  font-size: .65rem;
-  font-weight: 800;
-  letter-spacing: .15em;
-  color: var(--orange);
-}
-
-.today-stale-message h2 {
-  margin: 0;
-  max-width: 12ch;
-  font-family: "Archivo Black", "Noto Sans JP", sans-serif;
-  font-size: clamp(2.7rem, 7vw, 6.5rem);
-  line-height: .98;
-  letter-spacing: -.055em;
-}
-
-.today-stale-message > p:not(.today-stale-label) {
-  max-width: 36rem;
-  margin: 2rem 0 0;
-  font-size: .95rem;
-  line-height: 1.9;
-  opacity: .72;
-}
-
-.today-stale-x {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 3rem;
-  margin-top: 2rem;
-  padding: 1rem 1.25rem;
-  min-width: min(100%, 320px);
-  border: 1px solid currentColor;
-  color: inherit;
-  text-decoration: none;
-  font-size: .72rem;
-  font-weight: 800;
-  letter-spacing: .08em;
-  transition:
-    background .25s ease,
-    color .25s ease;
-}
-
-.today-stale-x:hover {
-  background: var(--ink);
-  color: #fff;
-}
-
-.today-stale-x span {
-  font-size: 1.1rem;
-}
-
-.today.is-stale {
-  min-height: 70svh;
-}
-
 @media (max-width: 480px) {
   .site-header {
     min-height: 64px;
@@ -420,3 +343,19 @@
     padding-top: 4.25rem;
   }
 }
+
+
+/* Date fallback: preserve the live layout until JavaScript checks Japan time. */
+.today-live-content[hidden], .hero-event-detail[hidden] { display: none !important; }
+#hero-business-status-text { font: inherit; letter-spacing: inherit; opacity: 1; }
+.hero-schedule.is-stale { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-flow: row; grid-auto-columns: auto; }
+.hero-schedule.is-stale .schedule-date { min-width: 0; }
+.today-stale-message { padding: clamp(2.5rem, 6vw, 5rem) 0 0; max-width: 900px; }
+.today-stale-message[hidden] { display: none !important; }
+.today-stale-label { margin: 0 0 1.25rem; font-size: .65rem; font-weight: 800; letter-spacing: .15em; color: var(--orange); }
+.today-stale-message h2 { margin: 0; max-width: 12ch; font-family: "Archivo Black", "Noto Sans JP", sans-serif; font-size: clamp(2.7rem, 7vw, 6.5rem); line-height: .98; letter-spacing: -.055em; word-break: keep-all; }
+.today-stale-message > p:not(.today-stale-label) { max-width: 36rem; margin: 2rem 0 0; font-size: .95rem; line-height: 1.9; opacity: .72; }
+.today-stale-x { display: inline-flex; align-items: center; justify-content: space-between; gap: 3rem; margin-top: 2rem; padding: 1rem 1.25rem; min-width: min(100%, 320px); max-width: 100%; border: 1px solid currentColor; color: inherit; text-decoration: none; font-size: .72rem; font-weight: 800; letter-spacing: .08em; transition: background .25s ease, color .25s ease; }
+.today-stale-x:hover { background: var(--ink); color: #fff; }
+.today-stale-x span { font-size: 1.1rem; }
+.today.is-stale { min-height: 70svh; }

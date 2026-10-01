@@ -102,7 +102,9 @@ if ('IntersectionObserver' in window && !window.matchMedia?.('(prefers-reduced-m
 // Uses Japan Standard Time regardless of visitor timezone.
 // --------------------------------------------------
 
-const todaySection = document.querySelector('#today[data-event-date]');
+const todaySection = document.querySelector(
+  '#today[data-event-date]'
+);
 
 if (todaySection) {
   const getJapanDate = () => {
@@ -125,47 +127,64 @@ if (todaySection) {
   const eventDate = todaySection.dataset.eventDate;
   const japanToday = getJapanDate();
 
-  const liveContent = todaySection.querySelector('.today-live-content');
-  const staleMessage = todaySection.querySelector('.today-stale-message');
-  const heroStatusText = document.getElementById('hero-business-status-text');
-  const heroScheduleDate = document.getElementById('hero-schedule-date');
-  const heroSchedule = document.querySelector('.hero-schedule');
-  const heroEventDetails = document.querySelectorAll('.hero-event-detail');
+  const liveContent =
+    todaySection.querySelector('.today-live-content');
 
-  const isCurrentEventDay = eventDate === japanToday;
+  const staleMessage =
+    todaySection.querySelector('.today-stale-message');
+
+  const heroStatusText =
+    document.getElementById('hero-business-status-text');
+
+  const heroScheduleDate =
+    document.getElementById('hero-schedule-date');
+
+  const heroEventDetails =
+    document.querySelectorAll('.hero-event-detail');
+
+  const heroSchedule = document.querySelector('.hero-schedule');
+  const heroLatestLink = document.querySelector('.hero-schedule .schedule-x');
+
+  const isCurrentEventDay =
+    eventDate === japanToday;
 
   if (!isCurrentEventDay) {
-    if (liveContent) liveContent.hidden = true;
-    if (staleMessage) staleMessage.hidden = false;
+    if (liveContent) {
+      liveContent.hidden = true;
+    }
+
+    if (staleMessage) {
+      staleMessage.hidden = false;
+    }
 
     todaySection.classList.add('is-stale');
     todaySection.setAttribute('aria-labelledby', 'today-stale-title');
+    heroSchedule?.classList.add('is-stale');
+    heroSchedule?.setAttribute('aria-label', '最新の営業・イベント情報');
+    if (heroLatestLink) heroLatestLink.href = 'https://x.com/ChonmageNiigata';
 
-    if (heroStatusText) heroStatusText.textContent = '最新情報はXで確認';
-    if (heroScheduleDate) heroScheduleDate.textContent = 'LATEST INFO';
+    if (heroStatusText) {
+      heroStatusText.textContent = '最新情報はXで確認';
+    }
+
+    if (heroScheduleDate) {
+      heroScheduleDate.textContent = 'LATEST INFO';
+    }
 
     heroEventDetails.forEach((item) => {
       item.hidden = true;
     });
-
-    if (heroSchedule) {
-      heroSchedule.classList.add('is-stale');
-      heroSchedule.setAttribute('aria-label', '最新の営業・イベント情報');
-    }
   } else {
-    if (liveContent) liveContent.hidden = false;
-    if (staleMessage) staleMessage.hidden = true;
+    if (liveContent) {
+      liveContent.hidden = false;
+    }
+
+    if (staleMessage) {
+      staleMessage.hidden = true;
+    }
 
     todaySection.classList.remove('is-stale');
     todaySection.setAttribute('aria-labelledby', 'today-title');
-
-    heroEventDetails.forEach((item) => {
-      item.hidden = false;
-    });
-
-    if (heroSchedule) {
-      heroSchedule.classList.remove('is-stale');
-      heroSchedule.setAttribute('aria-label', '本日の営業とイベント');
-    }
+    heroSchedule?.classList.remove('is-stale');
   }
 }
