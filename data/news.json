@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "date": "2026-09-13",
+      "category": "SCHEDULE",
+      "visualLabel": "TODAY",
+      "theme": "schedule",
+      "title": "本日のゲームと営業時間",
+      "description": "13:00オープン。フリーロール、ランキング王者決定戦、リングゲームを開催します。",
+      "url": "https://x.com/ChonmageNiigata/status/2098995956872278516"
+    },
+    {
+      "date": "2026-09-12",
+      "category": "EVENT",
+      "visualLabel": "SPECIAL",
+      "theme": "event",
+      "title": "Silver Week Special Games",
+      "description": "9月19日から23日まで、日替わりのスペシャルリングゲームを開催予定です。",
+      "url": "https://x.com/ChonmageNiigata/status/2098755322307633453"
+    },
+    {
+      "date": "2026-09-12",
+      "category": "RESULT",
+      "visualLabel": "RESULT",
+      "theme": "result",
+      "title": "ふるまちトーナメントdeep 結果",
+      "description": "入賞者を発表しました。ご参加いただいた皆さま、ありがとうございました。",
+      "url": "https://x.com/ChonmageNiigata/status/2098751869904670888"
+    }
+  ]
+}
+

@@ -97,94 +97,263 @@ if ('IntersectionObserver' in window && !window.matchMedia?.('(prefers-reduced-m
   });
 }
 
-// --------------------------------------------------
-// Today's event freshness check
-// Uses Japan Standard Time regardless of visitor timezone.
-// --------------------------------------------------
+// JSON content enhances the static HTML; an unknown date is never advertised as today.
+const officialXUrl = 'https://x.com/ChonmageNiigata';
+const todaySection = document.getElementById('today');
 
-const todaySection = document.querySelector(
-  '#today[data-event-date]'
-);
+function getJapanDate(now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
 
-if (todaySection) {
-  const getJapanDate = () => {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Tokyo',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).formatToParts(new Date());
+function dateValue(iso) {
+  if (typeof iso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) throw new Error('Invalid date');
+  const value = new Date(`${iso}T12:00:00+09:00`);
+  if (!Number.isFinite(value.getTime()) || getJapanDate(value) !== iso) throw new Error('Invalid date');
+  return value;
+}
 
-    const values = Object.fromEntries(
-      parts
-        .filter((part) => part.type !== 'literal')
-        .map((part) => [part.type, part.value])
-    );
+function formatJapaneseDate(iso) {
+  const date = dateValue(iso);
+  const day = new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo', month: 'long', day: 'numeric',
+  }).format(date);
+  const weekday = new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo', weekday: 'short',
+  }).format(date);
+  return `${day}（${weekday}）`;
+}
 
-    return `${values.year}-${values.month}-${values.day}`;
-  };
+function requireText(value) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error('Missing text');
+}
 
-  const eventDate = todaySection.dataset.eventDate;
-  const japanToday = getJapanDate();
+function requireTime(value) {
+  if (typeof value !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)) throw new Error('Invalid time');
+}
 
-  const liveContent =
-    todaySection.querySelector('.today-live-content');
+function safeUrl(value, allowTelephone = false) {
+  if (typeof value !== 'string') throw new Error('Missing URL');
+  const url = new URL(value);
+  if (url.protocol === 'https:' && !url.username && !url.password) return url.href;
+  if (allowTelephone && /^tel:\+?[\d -]+$/.test(value)) return value;
+  throw new Error('Unsupported URL');
+}
 
-  const staleMessage =
-    todaySection.querySelector('.today-stale-message');
-
-  const heroStatusText =
-    document.getElementById('hero-business-status-text');
-
-  const heroScheduleDate =
-    document.getElementById('hero-schedule-date');
-
-  const heroEventDetails =
-    document.querySelectorAll('.hero-event-detail');
-
-  const heroSchedule = document.querySelector('.hero-schedule');
-  const heroLatestLink = document.querySelector('.hero-schedule .schedule-x');
-
-  const isCurrentEventDay =
-    eventDate === japanToday;
-
-  if (!isCurrentEventDay) {
-    if (liveContent) {
-      liveContent.hidden = true;
+function validateEvents(data) {
+  dateValue(data.date);
+  requireTime(data.open);
+  if (!['open', 'closed'].includes(data.status)) throw new Error('Invalid status');
+  safeUrl(data.latestXUrl);
+  if (data.schedulePostUrl) safeUrl(data.schedulePostUrl);
+  if (data.summary !== undefined) {
+    if (!Array.isArray(data.summary)) throw new Error('Invalid summary');
+    data.summary.forEach(requireText);
+  }
+  if (data.ringGame) {
+    if (typeof data.ringGame.enabled !== 'boolean') throw new Error('Invalid ring game');
+    if (data.ringGame.enabled) {
+      requireText(data.ringGame.title);
+      requireText(data.ringGame.description);
     }
+  }
+  if (!Array.isArray(data.events)) throw new Error('Missing events');
+  data.events.forEach((event) => {
+    requireTime(event.time);
+    requireText(event.title);
+    requireText(event.description);
+    if (!['blue', 'orange'].includes(event.theme)) throw new Error('Invalid event theme');
+    if (event.heroTitle !== undefined) requireText(event.heroTitle);
+    if (event.tags !== undefined && !Array.isArray(event.tags)) throw new Error('Invalid tags');
+    (event.tags || []).forEach(requireText);
+    if (event.facts !== undefined && !Array.isArray(event.facts)) throw new Error('Invalid facts');
+    (event.facts || []).forEach((fact) => { requireText(fact.label); requireText(fact.value); });
+    if (event.link) { requireText(event.link.label); safeUrl(event.link.url, true); }
+  });
+  return data;
+}
 
-    if (staleMessage) {
-      staleMessage.hidden = false;
+function validateNews(data) {
+  if (!Array.isArray(data.items)) throw new Error('Missing news items');
+  data.items.forEach((item) => {
+    dateValue(item.date);
+    ['category', 'visualLabel', 'title', 'description'].forEach((key) => requireText(item[key]));
+    if (!['schedule', 'event', 'result'].includes(item.theme)) throw new Error('Invalid news theme');
+    safeUrl(item.url);
+  });
+  return data;
+}
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function contentLink(className, label, url, allowTelephone = false) {
+  const link = element('a', className, label);
+  link.setAttribute('href', safeUrl(url, allowTelephone));
+  if (link.getAttribute('href').startsWith('https:')) {
+    link.target = '_blank';
+    link.rel = 'noreferrer';
+  }
+  return link;
+}
+
+function renderEvents(data) {
+  const list = todaySection?.querySelector('.event-list');
+  if (!list) return;
+  const cards = document.createDocumentFragment();
+  data.events.forEach((event) => {
+    const card = element('article', `event-card event-card--${event.theme} reveal in`);
+    const time = element('div', 'event-time');
+    time.append(element('span', '', 'START'), element('time', '', event.time));
+    const main = element('div', 'event-main');
+    const tags = element('div', 'event-tags');
+    (event.tags || []).forEach((tag) => tags.append(element('span', '', tag)));
+    main.append(tags, element('h3', '', event.title), element('p', '', event.description));
+    if (event.facts?.length) {
+      const facts = element('dl', 'event-facts');
+      event.facts.forEach((fact) => {
+        const row = element('div');
+        row.append(element('dt', '', fact.label), element('dd', '', fact.value));
+        facts.append(row);
+      });
+      main.append(facts);
     }
+    card.append(time, main);
+    if (event.link) card.append(contentLink('event-link', event.link.label, event.link.url, true));
+    cards.append(card);
+  });
+  list.replaceChildren(cards);
 
-    todaySection.classList.add('is-stale');
-    todaySection.setAttribute('aria-labelledby', 'today-stale-title');
-    heroSchedule?.classList.add('is-stale');
-    heroSchedule?.setAttribute('aria-label', '最新の営業・イベント情報');
-    if (heroLatestLink) heroLatestLink.href = 'https://x.com/ChonmageNiigata';
-
-    if (heroStatusText) {
-      heroStatusText.textContent = '最新情報はXで確認';
-    }
-
-    if (heroScheduleDate) {
-      heroScheduleDate.textContent = 'LATEST INFO';
-    }
-
-    heroEventDetails.forEach((item) => {
-      item.hidden = true;
+  const summary = todaySection.querySelector('.today-summary');
+  if (summary) {
+    summary.querySelector('span').textContent = formatJapaneseDate(data.date);
+    summary.querySelector('strong').textContent = data.status === 'closed' ? '本日休業' : `${data.open} OPEN`;
+    const copy = summary.querySelector('p');
+    copy.replaceChildren();
+    (data.summary || ['当日の開催情報は公式Xをご確認ください。']).forEach((line, index) => {
+      if (index) copy.append(element('br'));
+      copy.append(document.createTextNode(line));
     });
-  } else {
-    if (liveContent) {
-      liveContent.hidden = false;
+  }
+  const ring = todaySection.querySelector('.ring-banner');
+  if (ring) {
+    // Explicit display is needed because this component's existing CSS uses grid.
+    ring.hidden = !data.ringGame?.enabled;
+    ring.style.display = ring.hidden ? 'none' : '';
+    if (!ring.hidden) {
+      ring.querySelector('strong').textContent = data.ringGame.title;
+      ring.querySelector('p').textContent = data.ringGame.description;
+      ring.querySelector('a').setAttribute('href', safeUrl(data.latestXUrl));
     }
-
-    if (staleMessage) {
-      staleMessage.hidden = true;
-    }
-
-    todaySection.classList.remove('is-stale');
-    todaySection.setAttribute('aria-labelledby', 'today-title');
-    heroSchedule?.classList.remove('is-stale');
   }
 }
+
+function renderHeroSchedule(data) {
+  const schedule = document.querySelector('.hero-schedule');
+  if (!schedule) return;
+  const date = document.getElementById('hero-schedule-date');
+  const status = document.getElementById('hero-business-status-text');
+  if (date) date.textContent = formatJapaneseDate(data.date);
+  if (status) status.textContent = data.status === 'closed' ? '本日休業' : '本日営業';
+  let detailCount = 0;
+  ['open', 'next', 'main'].forEach((name, index) => {
+    const item = schedule.querySelector(`[data-hero-event="${name}"]`);
+    if (!item) return;
+    const event = data.events[index - 1];
+    item.hidden = data.status === 'closed' || (name !== 'open' && !event);
+    if (!item.hidden) {
+      item.querySelector('strong').textContent = name === 'open'
+        ? data.open : `${event.time} ${event.heroTitle || event.title}`;
+      detailCount += 1;
+    }
+  });
+  schedule.dataset.detailCount = String(detailCount);
+  schedule.querySelector('.schedule-x')?.setAttribute('href', safeUrl(data.latestXUrl));
+}
+
+function applyStaleState(isStale, latestXUrl = officialXUrl) {
+  if (!todaySection) return;
+  const live = todaySection.querySelector('.today-live-content');
+  const message = todaySection.querySelector('.today-stale-message');
+  if (live) live.hidden = isStale;
+  if (message) message.hidden = !isStale;
+  todaySection.classList.toggle('is-stale', isStale);
+  todaySection.setAttribute('aria-labelledby', isStale ? 'today-stale-title' : 'today-title');
+  todaySection.querySelector('.today-stale-x')?.setAttribute('href', latestXUrl);
+  const schedule = document.querySelector('.hero-schedule');
+  schedule?.classList.toggle('is-stale', isStale);
+  schedule?.setAttribute('aria-label', isStale ? '最新の営業・イベント情報' : '本日の営業とイベント');
+  schedule?.querySelector('.schedule-x')?.setAttribute('href', latestXUrl);
+  if (isStale) {
+    document.querySelectorAll('.hero-event-detail').forEach((item) => { item.hidden = true; });
+    const date = document.getElementById('hero-schedule-date');
+    const status = document.getElementById('hero-business-status-text');
+    if (date) date.textContent = 'LATEST INFO';
+    if (status) status.textContent = '最新情報はXで確認';
+  }
+}
+
+function renderNews(data) {
+  const grid = document.querySelector('.news-grid');
+  if (!grid) return;
+  const cards = document.createDocumentFragment();
+  data.items.forEach((item) => {
+    const card = element('article', 'news-card reveal in');
+    const image = contentLink(`news-image news-image--${item.theme}`, '', item.url);
+    image.setAttribute('aria-label', `${item.title}を公式Xで見る`);
+    const arrow = element('span', 'news-image-arrow', '↗');
+    arrow.setAttribute('aria-hidden', 'true');
+    image.append(element('span', 'news-image-category', item.category), element('strong', '', item.visualLabel), arrow);
+    const meta = element('div', 'news-meta');
+    const time = element('time', '', item.date.replaceAll('-', '.'));
+    time.setAttribute('datetime', item.date);
+    meta.append(time, element('span', '', item.category));
+    const title = element('h3');
+    title.append(contentLink('', item.title, item.url));
+    card.append(image, meta, title, element('p', '', item.description));
+    cards.append(card);
+  });
+  grid.replaceChildren(cards);
+}
+
+async function fetchData(path) {
+  const response = await fetch(`${path}?v=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+async function loadEvents() {
+  if (!todaySection) return;
+  // Prevent old static times appearing as today's schedule while loading or on failure.
+  applyStaleState(true);
+  try {
+    const data = validateEvents(await fetchData('./data/events.json'));
+    const isCurrent = data.date === getJapanDate();
+    if (isCurrent) {
+      renderEvents(data);
+      renderHeroSchedule(data);
+    }
+    applyStaleState(!isCurrent, safeUrl(data.latestXUrl));
+  } catch (error) {
+    applyStaleState(true);
+    console.warn('開催情報を読み込めません。公式Xをご確認ください。', error);
+  }
+}
+
+async function loadNews() {
+  try {
+    renderNews(validateNews(await fetchData('./data/news.json')));
+  } catch (error) {
+    console.warn('ニュースを読み込めません。表示中の情報または公式Xをご確認ください。', error);
+  }
+}
+
+loadEvents();
+loadNews();

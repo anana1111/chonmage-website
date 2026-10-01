@@ -1,0 +1,77 @@
+{
+  "date": "2026-09-13",
+  "open": "13:00",
+  "status": "open",
+  "latestXUrl": "https://x.com/ChonmageNiigata",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2098995956872278516",
+  "summary": [
+    "トーナメントもリングゲームも開催。",
+    "当日の変更は公式Xでお知らせします。"
+  ],
+  "ringGame": {
+    "enabled": true,
+    "title": "リングゲームも終日開催",
+    "description": "空席・進行状況はお気軽にお問い合わせください。"
+  },
+  "events": [
+    {
+      "time": "13:30",
+      "title": "フリーロールトーナメント",
+      "heroTitle": "フリーロール",
+      "theme": "blue",
+      "tags": [
+        "BEGINNER OK",
+        "1 DRINK"
+      ],
+      "description": "まずは気軽に参加したい方へ。初めての方にはスタッフが遊び方をご案内します。",
+      "facts": [
+        {
+          "label": "ENTRY",
+          "value": "¥0"
+        },
+        {
+          "label": "施設利用料",
+          "value": "¥500"
+        },
+        {
+          "label": "最終受付",
+          "value": "公式Xで確認"
+        }
+      ],
+      "link": {
+        "label": "最新情報 ↗",
+        "url": "https://x.com/ChonmageNiigata/status/2098995956872278516"
+      }
+    },
+    {
+      "time": "18:00",
+      "title": "ランキング王者決定戦",
+      "heroTitle": "王者決定戦",
+      "theme": "orange",
+      "tags": [
+        "RANKING EVENT",
+        "TOURNAMENT"
+      ],
+      "description": "ランキング上位を目指す特別トーナメント。置きバケをご希望の方は事前にご連絡ください。",
+      "facts": [
+        {
+          "label": "参加料金",
+          "value": "公式Xで確認"
+        },
+        {
+          "label": "置きバケ連絡",
+          "value": "17:00まで"
+        },
+        {
+          "label": "最終受付",
+          "value": "店舗へ確認"
+        }
+      ],
+      "link": {
+        "label": "置きバケ連絡 ↗",
+        "url": "tel:08014700011"
+      }
+    }
+  ]
+}
+

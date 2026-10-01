@@ -359,3 +359,12 @@
 .today-stale-x:hover { background: var(--ink); color: #fff; }
 .today-stale-x span { font-size: 1.1rem; }
 .today.is-stale { min-height: 70svh; }
+
+/* JSON-driven Hero variants use only the tracks that are present. */
+.hero-event-detail strong { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+@media (min-width: 901px) {
+  .hero-schedule:not(.is-stale)[data-detail-count="2"] { grid-template-columns: 1.18fr .62fr 1.16fr .82fr; }
+  .hero-schedule:not(.is-stale)[data-detail-count="1"] { grid-template-columns: 1.18fr .62fr .82fr; }
+  .hero-schedule:not(.is-stale)[data-detail-count="0"] { grid-template-columns: 1.18fr .82fr; }
+}
+
