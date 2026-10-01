@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
-    <link rel="stylesheet" href="./v2.css?v=responsive3" />
+    <link rel="stylesheet" href="./v2.css?v=responsive4" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23273870'/%3E%3Cpath d='M12 38c8-17 32-17 40 0' fill='none' stroke='%23f4f1e8' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='30' r='4' fill='%23f26b38'/%3E%3Ccircle cx='41' cy='30' r='4' fill='%23f26b38'/%3E%3C/svg%3E" />
   </head>
   <body>
@@ -58,7 +58,7 @@
             </div>
           </div>
         </div>
-        <div class="hero-schedule" aria-label="本日の営業とイベント">
+        <div class="hero-schedule" aria-label="本日の営業とイベント" data-event-expiry="2026-09-14T00:00:00+09:00">
           <div class="schedule-date"><span>2026.09.13 · SUN</span><strong><i></i> 本日営業</strong></div>
           <div><span>OPEN</span><strong>13:00</strong></div>
           <a href="#today"><span>NEXT</span><strong>13:30 フリーロール</strong></a>
@@ -67,11 +67,15 @@
         </div>
       </section>
 
-      <section class="today section-pad" id="today" aria-labelledby="today-title">
+      <section class="today section-pad" id="today" aria-labelledby="today-title" data-event-expiry="2026-09-14T00:00:00+09:00">
         <div class="section-kicker reveal"><span>01</span><span>WHAT'S ON TODAY</span></div>
         <div class="today-heading">
           <h2 id="today-title" class="reveal">今日の<br />ゲーム。</h2>
           <div class="today-summary reveal"><span>9月13日（日）</span><strong>13:00 OPEN</strong><p>トーナメントもリングゲームも開催。<br />当日の変更は公式Xでお知らせします。</p></div>
+        </div>
+        <div class="stale-event-notice" hidden>
+          <p>掲載していたイベントは終了しました。今日のゲーム・営業時間・空席状況は公式Xで最新情報をご確認ください。</p>
+          <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">公式Xで最新情報を見る ↗</a>
         </div>
         <div class="event-list">
           <article class="event-card event-card--blue reveal">
@@ -217,6 +221,6 @@
       <div class="footer-word">CHONMAGE</div>
       <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><span>© 2026</span></div>
     </footer>
-    <script src="./script.js"></script>
+    <script src="./script.js?v=responsive4"></script>
   </body>
 </html>
