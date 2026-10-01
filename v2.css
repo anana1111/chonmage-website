@@ -57,7 +57,7 @@
 .ring-banner strong { font-size: 1rem; }
 .ring-banner p { margin: 0; font-size: .78rem; opacity: .68; }
 .ring-banner a { color: #fff; text-decoration: none; font-size: .66rem; font-weight: 800; letter-spacing: .08em; border-bottom: 1px solid currentColor; padding-bottom: .3rem; }
-.today > .schedule-note { margin-top: 1.35rem; line-height: 1.75; }
+.today-live-content > .schedule-note { margin-top: 1.35rem; line-height: 1.75; }
 
 .news { background: #fff; }
 .news-heading { display: flex; justify-content: space-between; align-items: end; gap: 2rem; }
@@ -202,26 +202,74 @@
   display: none !important;
 }
 
-.stale-event-notice {
-  margin-top: clamp(2rem, 6vw, 3rem);
-  padding: 1.25rem;
-  background: var(--blue);
-  color: #fff;
+.hero-schedule.is-stale {
+  grid-template-columns: 1.18fr .82fr;
 }
 
-.stale-event-notice p {
+.today-stale-message {
+  padding: clamp(2.5rem, 6vw, 5rem) 0 0;
+  max-width: 900px;
+}
+
+.today-stale-message[hidden] {
+  display: none !important;
+}
+
+.today-stale-label {
+  margin: 0 0 1.25rem;
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .15em;
+  color: var(--orange);
+}
+
+.today-stale-message h2 {
   margin: 0;
-  line-height: 1.8;
+  max-width: 12ch;
+  font-family: "Archivo Black", "Noto Sans JP", sans-serif;
+  font-size: clamp(2.7rem, 7vw, 6.5rem);
+  line-height: .98;
+  letter-spacing: -.055em;
 }
 
-.stale-event-notice a {
+.today-stale-message > p:not(.today-stale-label) {
+  max-width: 36rem;
+  margin: 2rem 0 0;
+  font-size: .95rem;
+  line-height: 1.9;
+  opacity: .72;
+}
+
+.today-stale-x {
   display: inline-flex;
-  margin-top: 1rem;
-  color: #fff;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  min-width: min(100%, 320px);
+  border: 1px solid currentColor;
+  color: inherit;
+  text-decoration: none;
   font-size: .72rem;
   font-weight: 800;
   letter-spacing: .08em;
-  text-underline-offset: .25em;
+  transition:
+    background .25s ease,
+    color .25s ease;
+}
+
+.today-stale-x:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
+.today-stale-x span {
+  font-size: 1.1rem;
+}
+
+.today.is-stale {
+  min-height: 70svh;
 }
 
 @media (max-width: 480px) {

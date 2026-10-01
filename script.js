@@ -97,48 +97,75 @@ if ('IntersectionObserver' in window && !window.matchMedia?.('(prefers-reduced-m
   });
 }
 
+// --------------------------------------------------
+// Today's event freshness check
+// Uses Japan Standard Time regardless of visitor timezone.
+// --------------------------------------------------
 
-// Replace expired one-day event details with a safe link to the current official X feed.
-const eventExpiry = document.querySelector('[data-event-expiry]')?.dataset.eventExpiry;
-if (eventExpiry) {
-  const expiryTime = Date.parse(eventExpiry);
-  if (Number.isFinite(expiryTime) && Date.now() >= expiryTime) {
-    const schedule = document.querySelector('.hero-schedule[data-event-expiry]');
-    if (schedule) {
-      schedule.classList.add('is-stale');
-      [...schedule.children].forEach((item) => {
-        if (!item.classList.contains('schedule-date') && !item.classList.contains('schedule-x')) {
-          item.hidden = true;
-        }
-      });
+const todaySection = document.querySelector('#today[data-event-date]');
 
-      const dateLabel = schedule.querySelector('.schedule-date span');
-      const dateStatus = schedule.querySelector('.schedule-date strong');
-      const latestLink = schedule.querySelector('.schedule-x');
-      if (dateLabel) dateLabel.textContent = 'LATEST';
-      if (dateStatus) dateStatus.textContent = '最新情報';
-      if (latestLink) {
-        latestLink.href = 'https://x.com/ChonmageNiigata';
-        const latestStrong = latestLink.querySelector('strong');
-        if (latestStrong) latestStrong.textContent = '公式Xで確認 ↗';
-      }
-      schedule.setAttribute('aria-label', '最新の営業・イベント情報');
+if (todaySection) {
+  const getJapanDate = () => {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(new Date());
+
+    const values = Object.fromEntries(
+      parts
+        .filter((part) => part.type !== 'literal')
+        .map((part) => [part.type, part.value])
+    );
+
+    return `${values.year}-${values.month}-${values.day}`;
+  };
+
+  const eventDate = todaySection.dataset.eventDate;
+  const japanToday = getJapanDate();
+
+  const liveContent = todaySection.querySelector('.today-live-content');
+  const staleMessage = todaySection.querySelector('.today-stale-message');
+  const heroStatusText = document.getElementById('hero-business-status-text');
+  const heroScheduleDate = document.getElementById('hero-schedule-date');
+  const heroSchedule = document.querySelector('.hero-schedule');
+  const heroEventDetails = document.querySelectorAll('.hero-event-detail');
+
+  const isCurrentEventDay = eventDate === japanToday;
+
+  if (!isCurrentEventDay) {
+    if (liveContent) liveContent.hidden = true;
+    if (staleMessage) staleMessage.hidden = false;
+
+    todaySection.classList.add('is-stale');
+    todaySection.setAttribute('aria-labelledby', 'today-stale-title');
+
+    if (heroStatusText) heroStatusText.textContent = '最新情報はXで確認';
+    if (heroScheduleDate) heroScheduleDate.textContent = 'LATEST INFO';
+
+    heroEventDetails.forEach((item) => {
+      item.hidden = true;
+    });
+
+    if (heroSchedule) {
+      heroSchedule.classList.add('is-stale');
+      heroSchedule.setAttribute('aria-label', '最新の営業・イベント情報');
     }
+  } else {
+    if (liveContent) liveContent.hidden = false;
+    if (staleMessage) staleMessage.hidden = true;
 
-    const today = document.querySelector('.today[data-event-expiry]');
-    if (today) {
-      today.querySelector('.event-list')?.setAttribute('hidden', '');
-      today.querySelector('.ring-banner')?.setAttribute('hidden', '');
-      today.querySelector('.schedule-note')?.setAttribute('hidden', '');
-      const notice = today.querySelector('.stale-event-notice');
-      if (notice) notice.hidden = false;
+    todaySection.classList.remove('is-stale');
+    todaySection.setAttribute('aria-labelledby', 'today-title');
 
-      const summaryDate = today.querySelector('.today-summary span');
-      const summaryOpen = today.querySelector('.today-summary strong');
-      const summaryText = today.querySelector('.today-summary p');
-      if (summaryDate) summaryDate.textContent = '最新情報';
-      if (summaryOpen) summaryOpen.textContent = '公式Xで確認';
-      if (summaryText) summaryText.innerHTML = '当日のゲーム・営業時間・空席状況は<br />公式Xで随時更新しています。';
+    heroEventDetails.forEach((item) => {
+      item.hidden = false;
+    });
+
+    if (heroSchedule) {
+      heroSchedule.classList.remove('is-stale');
+      heroSchedule.setAttribute('aria-label', '本日の営業とイベント');
     }
   }
 }
