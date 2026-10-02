@@ -355,5 +355,43 @@ async function loadNews() {
   }
 }
 
-loadEvents();
-loadNews();
+// Drafts are accepted only by the opt-in preview document from its same-origin parent.
+const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === '1';
+if (isPreviewMode) {
+  applyStaleState(true);
+  let previewSection = null;
+  const tellParent = (message) => window.parent.postMessage(message, window.location.origin);
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin || event.source !== window.parent) return;
+    const message = event.data;
+    if (!message || typeof message !== 'object') return;
+    if (message.type === 'CHONMAGE_PREVIEW_REQUEST_READY') {
+      tellParent({ type: 'CHONMAGE_PREVIEW_READY' });
+      return;
+    }
+    if (message.type !== 'CHONMAGE_PREVIEW') return;
+    try {
+      const events = validateEvents(message.events);
+      const news = validateNews(message.news);
+      if (!['selected', 'actual'].includes(message.dateMode)) throw new Error('Invalid preview date mode');
+      // Both datasets are validated before replacing any content.
+      renderEvents(events);
+      renderHeroSchedule(events);
+      renderNews(news);
+      applyStaleState(message.dateMode === 'actual' && events.date !== getJapanDate(), safeUrl(events.latestXUrl));
+      if (previewSection !== message.section) {
+        previewSection = message.section;
+        const target = document.getElementById(previewSection === 'news' ? 'news' : 'top');
+        if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
+      }
+      tellParent({ type: 'CHONMAGE_PREVIEW_RENDERED', requestId: message.requestId });
+    } catch (error) {
+      console.warn('下書きのプレビューを更新できません。', error);
+      tellParent({ type: 'CHONMAGE_PREVIEW_ERROR', requestId: message.requestId });
+    }
+  });
+  tellParent({ type: 'CHONMAGE_PREVIEW_READY' });
+} else {
+  loadEvents();
+  loadNews();
+}
