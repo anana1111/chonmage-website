@@ -1,6 +1,6 @@
 {
-  "date": "2026-09-13",
-  "open": "13:00",
+  "date": "2026-10-02",
+  "open": "17:00",
   "status": "open",
   "latestXUrl": "https://x.com/ChonmageNiigata",
   "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2098995956872278516",
@@ -12,11 +12,11 @@
     "enabled": true,
     "title": "リングゲームも終日開催",
     "description": "空席・進行状況はお気軽にお問い合わせください。",
-    "start": "13:00"
+    "start": "17:00"
   },
   "events": [
     {
-      "time": "13:30",
+      "time": "18:00",
       "title": "フリーロールトーナメント",
       "heroTitle": "フリーロール",
       "theme": "blue",
@@ -48,18 +48,18 @@
     },
     {
       "time": "18:00",
-      "title": "ランキング王者決定戦",
+      "title": "2-7",
       "heroTitle": "王者決定戦",
       "theme": "orange",
       "tags": [
         "RANKING EVENT",
         "TOURNAMENT"
       ],
-      "description": "ランキング上位を目指す特別トーナメント。置きバケをご希望の方は事前にご連絡ください。",
+      "description": "test",
       "facts": [
         {
           "label": "参加料金",
-          "value": "公式Xで確認"
+          "value": "2,500/2,500pt"
         },
         {
           "label": "置きバケ連絡",
@@ -84,6 +84,7 @@
   "source": {
     "type": "x",
     "url": "https://x.com/ChonmageNiigata/status/2098995956872278516",
-    "mode": "seed"
-  }
+    "mode": "manual"
+  },
+  "close": "23:30"
 }
