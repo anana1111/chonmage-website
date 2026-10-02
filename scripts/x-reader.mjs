@@ -78,6 +78,33 @@ function plainXml(value) {
     .replace(/<[^>]+>/g, ' ')));
 }
 
+function jstIso(date) {
+  if (!(date instanceof Date) || !Number.isFinite(date.getTime())) return '';
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  return values.year + '-' + values.month + '-' + values.day;
+}
+
+function inferDayOnlyDate(text, published) {
+  if (DATE_HINT.test(text)) return '';
+  const day = Number(text.match(/(?:^|\D)(\d{1,2})日(?:\s*[（(][月火水木金土日][）)])?/)?.[1]);
+  const pub = new Date(published);
+  if (!day || !Number.isFinite(pub.getTime())) return '';
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  const values = Object.fromEntries(formatter.formatToParts(pub).filter((part) => part.type !== 'literal').map((part) => [part.type, Number(part.value)]));
+  const candidates = [-1, 0, 1].map((offset) => {
+    const candidate = new Date(Date.UTC(values.year, values.month - 1 + offset, day, 3));
+    return { date: candidate, distance: Math.abs(candidate.getTime() - pub.getTime()) };
+  }).filter(({ date }) => Number(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', day: '2-digit' }).format(date)) === day)
+    .sort((a, b) => a.distance - b.distance);
+  if (!candidates.length || candidates[0].distance > 8 * 24 * 60 * 60 * 1000) return '';
+  return jstIso(candidates[0].date);
+}
+
 export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
   const xml = String(rawText || '');
   const out = [];
@@ -86,8 +113,11 @@ export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
     const item = match[0];
     const title = plainXml(xmlTag(item, 'title'));
     const description = plainXml(xmlTag(item, 'description') || xmlTag(item, 'content:encoded'));
-    const text = cleanBlock([title, description].filter(Boolean).join('\n'));
+    const published = plainXml(xmlTag(item, 'pubDate'));
+    let text = cleanBlock([title, description].filter(Boolean).join('\n'));
     if (!SCHEDULE_HINT.test(text) || !TIME_HINT.test(text)) continue;
+    const inferredDate = inferDayOnlyDate(text, published);
+    if (inferredDate) text = inferredDate + '\n' + text;
     const link = plainXml(xmlTag(item, 'link') || xmlTag(item, 'guid'));
     const id = link.match(/\/status\/(\d+)/)?.[1] || '';
     const key = id || text;

@@ -44,7 +44,7 @@ OPEN / RING / CLOSE は公開時に timeline card として生成するため、
 
 X が HTTP 403 / 429、タイムアウト、形式変更、当日の Schedule を十分な確度で識別できない場合は **既存の events.auto.json / events.json を消しません**。当日データが作れなければ、公開サイト側の日本時間 stale fallback が公式 X への案内を表示します。
 
-自動取得は ① X syndication、② X profile HTML、③ Jina Reader 経由の公開ページ、④ Twiiit が案内する Nitter RSS、の順で best-effort に試します。X Developer API key は使いません。Jina Reader と Twiiit/Nitter は第三者サービスの無料 fallback としてだけ使い、API key は保存しません。どの取得元でも当日の Schedule を十分な確度で識別できない場合は既存データを保持します。
+自動取得は ① X syndication、② X profile HTML、③ Jina Reader 経由の公開ページ、④ Twiiit が案内する Nitter RSS、の順で best-effort に試します。X Developer API key は使いません。Jina Reader と Twiiit/Nitter は第三者サービスの無料 fallback としてだけ使い、API key は保存しません。どの取得元でも当日の Schedule を十分な確度で識別できない場合は既存データを保持します。店の投稿で使われる `2日(金)17時OPEN` のような月省略日付と日本語時刻も、RSS の公開日時と照合して保守的に正規化します。
 
 ## 手動更新
 

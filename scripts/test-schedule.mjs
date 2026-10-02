@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { validateSchedule } from './validate-events.mjs';
 import { mergeSchedule } from './merge-events.mjs';
+import { normalizeScheduleText } from './normalize-events.mjs';
 import { readerCandidatesFromText, rssCandidatesFromText } from './x-reader.mjs';
 
 const base = {
@@ -74,5 +75,23 @@ assert.equal(rssRows.length, 1);
 assert.equal(rssRows[0].url, 'https://x.com/ChonmageNiigata/status/9876543210');
 assert.match(rssRows[0].text, /19:10 ふるまちトーナメント/);
 assert.deepEqual(rssCandidatesFromText('<rss><item><title>hello</title></item></rss>'), []);
+
+
+const dayOnlyRss = `<?xml version="1.0"?><rss><channel><item><title><![CDATA[2日(金)17時OPEN✨]]></title><pubDate>Fri, 02 Oct 2026 08:05:00 GMT</pubDate><link>https://nitter.example/ChonmageNiigata/status/2468135790</link><description><![CDATA[🕠 フリーロール 18:00 ～<br>参加費無料＆1ドリンク付き🥤<br>※別途、施設利用料500円が必要です。<br>🕠 ふるまちトーナメント 19:10〜<br>Entry ¥2,500/ 25,000pt<br>リングゲームもOPENから参加者募集中🔥]]></description></item></channel></rss>`;
+const dayOnlyRows = rssCandidatesFromText(dayOnlyRss);
+assert.equal(dayOnlyRows.length, 1);
+assert.match(dayOnlyRows[0].text, /^2026-10-02\n/);
+const normalizedRealPost = normalizeScheduleText(dayOnlyRows[0].text, {
+  now: new Date('2026-10-02T11:30:00Z'),
+  profileUrl: 'https://x.com/ChonmageNiigata',
+  sourceUrl: dayOnlyRows[0].url
+});
+assert.equal(normalizedRealPost.open, '17:00');
+assert.equal(normalizedRealPost.events.length, 2);
+assert.equal(normalizedRealPost.events[0].type, 'free');
+assert.equal(normalizedRealPost.events[0].facts.find((row) => row.label === 'ENTRY').value, '¥0');
+assert.equal(normalizedRealPost.events[0].facts.find((row) => row.label === '施設利用料').value, '500円');
+assert.equal(normalizedRealPost.events[1].facts.find((row) => row.label === 'STARTING STACK').value, '25,000pt');
+assert.equal(normalizedRealPost.ringGame.enabled, true);
 
 console.log('schedule data tests passed');

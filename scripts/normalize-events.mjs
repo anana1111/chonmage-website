@@ -12,6 +12,19 @@ function clean(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 
+function normalizeClockText(value) {
+  return String(value || '')
+    .replace(/([0-2]?\d)時半/g, (_, hour) => String(hour).padStart(2, '0') + ':30')
+    .replace(/([0-2]?\d)時\s*([0-5]?\d)分/g, (_, hour, minute) => String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0'))
+    .replace(/([0-2]?\d)時/g, (_, hour) => String(hour).padStart(2, '0') + ':00')
+    .replace(/([0-2]?\d)：([0-5]\d)/g, (_, hour, minute) => String(hour).padStart(2, '0') + ':' + minute);
+}
+
+function firstTime(value) {
+  const match = String(value || '').match(/([0-2]?\d:[0-5]\d)/);
+  return match ? match[1].padStart(5, '0') : '';
+}
+
 function slug(value) {
   const ascii = clean(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32);
   return ascii || 'event';
@@ -29,39 +42,52 @@ function detectDate(text, now) {
 function eventType(title) {
   if (/free\s*roll|フリー ?ロール/i.test(title)) return 'free';
   if (/special|スペシャル/i.test(title)) return 'special';
-  if (/tournament|トーナメント|王者/i.test(title)) return 'tournament';
+  if (/tournament|トーナメント|トナメ|王者/i.test(title)) return 'tournament';
   return 'event';
 }
 
-function parseFacts(line) {
+function parseFacts(block) {
   const rows = [];
-  const matches = [
-    ['ENTRY', line.match(/(?:ENTRY|参加費|参加料金)\s*[:：]?\s*(¥?\s*[\d,]+(?:円)?|FREE|無料)/i)?.[1]],
-    ['STARTING STACK', line.match(/(?:STARTING\s*STACK|STACK|持ち点)\s*[:：]?\s*([\d,]+\s*(?:pt|pts|点)?)/i)?.[1]],
-    ['最終受付', line.match(/(?:LATE\s*REG(?:ISTRATION)?|最終受付)\s*[:：]?\s*([0-2]?\d:[0-5]\d)/i)?.[1]],
-  ];
-  matches.forEach(([label, value]) => { if (value) rows.push({ label, value: clean(value) }); });
+  const entry = block.match(/(?:ENTRY|エントリー|参加費|参加料金)\s*[:：]?\s*(¥?\s*[\d,]+(?:円)?|FREE|無料)/i)?.[1];
+  const explicitStack = block.match(/(?:STARTING\s*STACK|STACK|持ち点)\s*[:：]?\s*([\d,]+\s*(?:pt|pts|点)?)/i)?.[1];
+  const slashStack = block.match(/(?:ENTRY|エントリー|参加費|参加料金)[^/\n]{0,50}\/\s*([\d,]+\s*(?:pt|pts|点))/i)?.[1];
+  const facility = block.match(/施設利用料\s*[:：]?\s*(¥?\s*[\d,]+(?:円)?)/i)?.[1];
+  const late = block.match(/(?:LATE\s*REG(?:ISTRATION)?|最終受付)\s*[:：]?\s*([0-2]?\d:[0-5]\d)/i)?.[1];
+  if (entry) rows.push({ label: 'ENTRY', value: /FREE|無料/i.test(entry) ? '¥0' : clean(entry) });
+  if (explicitStack || slashStack) rows.push({ label: 'STARTING STACK', value: clean(explicitStack || slashStack) });
+  if (facility) rows.push({ label: '施設利用料', value: clean(facility) });
+  if (late) rows.push({ label: '最終受付', value: clean(late) });
   return rows;
 }
 
+function eventTitle(line, time) {
+  return clean(line.replace(time, ' ')
+    .replace(/(?:ENTRY|エントリー|参加費|参加料金|STARTING\s*STACK|STACK|持ち点|LATE\s*REG(?:ISTRATION)?|最終受付).*$/i, '')
+    .replace(/^[^\p{L}\p{N}]+/u, '')
+    .replace(/[～〜\-–—]+$/u, ''));
+}
+
 export function normalizeScheduleText(rawText, options = {}) {
-  const text = String(rawText || '').replace(/\\n/g, '\n');
+  const text = normalizeClockText(String(rawText || '').replace(/\\n/g, '\n'));
   const now = options.now || new Date();
   const today = jstParts(now);
   const date = detectDate(text, now);
   if (!date || date !== today.iso) return null;
-  if (!/(OPEN|オープン|営業|トーナメント|フリー ?ロール|RING|リング)/i.test(text)) return null;
+  if (!/(OPEN|オープン|営業|トーナメント|トナメ|フリー ?ロール|RING|リング)/i.test(text)) return null;
 
   const lines = text.split(/\n|\r|[｜|]/).map(clean).filter(Boolean);
   let open = '';
   let close = '';
-  let ringLine = '';
+  const ringLine = lines.find((line) => /RING|リング/i.test(line)) || '';
   const events = [];
 
-  lines.forEach((line) => {
-    const match = line.match(/(?:^|\s)([0-2]?\d:[0-5]\d)(?:\s|$)/);
-    if (!match) return;
-    const time = match[1].padStart(5, '0');
+  const timedIndexes = lines.map((line, index) => firstTime(line) ? index : -1).filter((index) => index >= 0);
+  timedIndexes.forEach((lineIndex, position) => {
+    const line = lines[lineIndex];
+    const time = firstTime(line);
+    const nextIndex = position + 1 < timedIndexes.length ? timedIndexes[position + 1] : lines.length;
+    const block = lines.slice(lineIndex, nextIndex).join(' ');
+
     if (/OPEN|オープン|営業開始/i.test(line)) {
       if (!open) open = time;
       return;
@@ -71,15 +97,16 @@ export function normalizeScheduleText(rawText, options = {}) {
       return;
     }
     if (/RING|リング/i.test(line)) {
-      if (!ringLine) ringLine = line;
       if (!open) open = time;
       return;
     }
 
-    let title = clean(line.replace(match[0], ' ').replace(/(?:ENTRY|参加費|参加料金|STARTING\s*STACK|STACK|持ち点|LATE\s*REG(?:ISTRATION)?|最終受付).*$/i, ''));
+    let title = eventTitle(line, time);
     if (!title || title.length < 2) title = 'EVENT';
     const type = eventType(title);
     const id = slug(title) + '-' + time.replace(':', '');
+    const tags = [];
+    if (type === 'free' && /1\s*DRINK|1ドリンク/i.test(block)) tags.push('1 DRINK');
     events.push({
       id,
       time,
@@ -87,9 +114,9 @@ export function normalizeScheduleText(rawText, options = {}) {
       title,
       heroTitle: type === 'free' ? 'FREE ROLL' : title.slice(0, 24),
       theme: type === 'free' ? 'blue' : 'orange',
-      tags: type === 'free' ? ['BEGINNER OK'] : [],
+      tags,
       description: '詳細は公式Xで確認してください。',
-      facts: parseFacts(line),
+      facts: parseFacts(block),
       link: options.sourceUrl ? { label: '最新情報 ↗', url: options.sourceUrl } : undefined,
     });
   });
@@ -113,9 +140,9 @@ export function normalizeScheduleText(rawText, options = {}) {
     summary: ['本日の開催情報です。', '当日の変更は公式Xでお知らせします。'],
     ringGame: {
       enabled: Boolean(ringLine),
-      start: ringLine?.match(/([0-2]?\d:[0-5]\d)/)?.[1]?.padStart(5, '0') || open,
+      start: firstTime(ringLine) || open,
       title: 'RING GAME',
-      description: ringLine ? clean(ringLine.replace(/([0-2]?\d:[0-5]\d)/, '')) : '公式Xで確認'
+      description: ringLine ? clean(ringLine.replace(firstTime(ringLine), '')) : '公式Xで確認'
     },
     events,
   };
