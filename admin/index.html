@@ -4,65 +4,108 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>CHONMAGE — Daily Schedule Manager</title>
-    <link rel="stylesheet" href="./admin.css?v=1" />
-    <link rel="stylesheet" href="./schedule.css?v=1" />
+    <meta name="theme-color" content="#f5f5f7" />
+    <title>ちょんまげ 管理画面</title>
+    <link rel="stylesheet" href="./admin.css?v=5" />
   </head>
   <body>
-    <header class="app-header">
-      <div class="identity"><span class="app-mark" aria-hidden="true">C</span><div><h1>CHONMAGE</h1><p>DAILY SCHEDULE MANAGER</p></div></div>
-      <div class="header-meta"><span id="save-state" class="state" role="status">読み込み中</span><a href="../" target="_blank" rel="noreferrer">公開サイト ↗</a></div>
-    </header>
-    <div class="tab-bar">
-      <div class="tabs" role="tablist" aria-label="編集する内容">
-        <button id="today-tab" type="button" role="tab" aria-selected="true" aria-controls="today-panel">TODAY <span id="events-count">—</span></button>
-        <button id="news-tab" type="button" role="tab" aria-selected="false" aria-controls="news-panel" tabindex="-1">NEWS <span id="news-count">—</span></button>
-      </div>
-      <p>ブラウザ内の下書き · 公開データは変更されません</p>
-    </div>
-    <div id="notice" class="notice" role="status" hidden></div>
-    <div id="load-error" class="load-error" role="alert" hidden><p id="load-error-text"></p><button id="retry" type="button">再読み込み</button></div>
-    <main class="workspace">
-      <section class="editor" aria-label="コンテンツエディター">
-        <div id="loading" class="loading"><h2>公開中のデータを読み込んでいます</h2><p>開催情報とニュースを確認しています。</p></div>
-        <form id="editor-form" novalidate hidden>
-          <section id="today-panel" role="tabpanel" aria-labelledby="today-tab"></section>
-          <section id="news-panel" role="tabpanel" aria-labelledby="news-tab" hidden></section>
-        </form>
-        <div class="editor-tools"><button id="reset" type="button" disabled>公開中のデータに戻す</button><button id="restore-auto" type="button" disabled>自動データに戻す</button><button id="export-json" type="button" disabled>JSONを書き出す</button><p>「公開用ファイルを作成」はJSONを検証してダウンロード用に用意するだけです。サイトへの反映は、GitHubの data/ にアップロードして commit したときに行われます。Tokenはブラウザに保存しません。</p></div>
-      </section>
-      <section id="preview-panel" class="preview-panel" aria-labelledby="preview-title">
-        <div class="preview-toolbar">
-          <div class="preview-heading"><h2 id="preview-title">プレビュー</h2><span id="preview-size">390px</span></div>
-          <div class="size-controls" role="group" aria-label="プレビューの幅">
-            <button type="button" data-width="390" aria-pressed="true">Mobile 390</button>
-            <button type="button" data-width="768" aria-pressed="false">Tablet 768</button>
-            <button type="button" data-width="1440" aria-pressed="false">Desktop 1440</button>
-            <button type="button" data-width="full" aria-pressed="false">Full</button>
+    <a class="skip-link" href="#main">本文へ移動</a>
+    <div class="app">
+      <aside class="sidebar" aria-label="管理メニュー">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">ちょ</span><span><strong>ちょんまげ</strong><small>管理画面</small></span></div>
+        <nav class="nav" aria-label="ページ">
+          <a href="#home" data-view-link="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg></span>ホーム</a>
+          <a href="#schedule" data-view-link="schedule"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg></span>今日の予定<span class="nav-count" id="events-count">—</span></a>
+          <a href="#news" data-view-link="news"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg></span>News<span class="nav-count" id="news-count">—</span></a>
+          <a href="#settings" data-view-link="settings"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h9M18 7h1M5 17h3M12 17h7"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>設定</a>
+        </nav>
+        <p class="data-status" id="data-status" role="status"><span class="dot" aria-hidden="true"></span><span id="data-status-text">読み込み中</span></p>
+      </aside>
+
+      <div class="main-column">
+        <header class="topbar">
+          <div class="topbar-title"><h1 id="page-title">ホーム</h1><span id="save-state" class="chip" role="status">読み込み中</span></div>
+          <div class="topbar-actions">
+            <a class="button ghost site-link" href="../" target="_blank" rel="noreferrer">サイトを見る <span aria-hidden="true">↗</span></a>
+            <button id="toggle-preview" class="button ghost" type="button" aria-expanded="false" aria-controls="preview-panel">プレビュー</button>
+            <button id="save-draft" class="button secondary" type="button" disabled>下書き保存</button>
+            <button id="prepare-publish" class="button primary" type="button" disabled>公開用ファイルを作成</button>
           </div>
-          <div class="date-mode"><label for="date-mode">表示状態</label><select id="date-mode"><option value="selected">開催日として表示</option><option value="actual">実際の日付判定</option></select></div>
+        </header>
+
+        <div id="notice" class="notice" role="status" hidden><p id="notice-text"></p><button id="close-notice" class="icon-button" type="button" aria-label="お知らせを閉じる">×</button></div>
+
+        <main id="main" class="content" tabindex="-1">
+          <div id="loading" class="loading" aria-live="polite">
+            <p class="sr-only">公開中のデータを読み込んでいます。</p>
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+            <div class="skeleton skeleton-block"></div>
+          </div>
+          <div id="load-error" class="state-card error-card" role="alert" hidden>
+            <h2>データを読み込めませんでした</h2>
+            <p>通信状態を確認して、もう一度お試しください。空のデータで編集を始めることはありません。</p>
+            <details><summary>詳しい情報</summary><p id="load-error-text"></p></details>
+            <button id="retry" class="button primary" type="button">再読み込み</button>
+          </div>
+          <form id="editor-form" novalidate hidden>
+            <section id="view-home" class="view" aria-labelledby="page-title"></section>
+            <section id="view-schedule" class="view" aria-labelledby="page-title" hidden></section>
+            <section id="view-news" class="view" aria-labelledby="page-title" hidden></section>
+            <section id="view-settings" class="view" aria-labelledby="page-title" hidden></section>
+          </form>
+        </main>
+      </div>
+
+      <aside id="preview-panel" class="preview-panel" aria-labelledby="preview-title" hidden>
+        <div class="preview-toolbar">
+          <div class="preview-heading"><h2 id="preview-title">プレビュー</h2><button id="close-preview" class="icon-button" type="button" aria-label="プレビューを閉じる">×</button></div>
+          <div class="segmented" role="group" aria-label="プレビューの幅">
+            <button type="button" data-width="390" aria-pressed="true">スマホ</button>
+            <button type="button" data-width="768" aria-pressed="false">タブレット</button>
+            <button type="button" data-width="1440" aria-pressed="false">PC</button>
+          </div>
+          <label class="preview-mode" for="date-mode">日付<select id="date-mode"><option value="selected">編集中の日付で表示</option><option value="actual">今日の日付で判定（実際の表示）</option></select></label>
           <p id="preview-feedback" role="status">プレビューを準備しています。</p>
         </div>
-        <div class="preview-scroll"><div id="preview-canvas" class="preview-canvas"><iframe id="website-preview" title="下書きの公開サイトプレビュー" src="about:blank"></iframe></div></div>
-      </section>
-    </main>
-    <footer class="actions">
-      <div class="action-buttons">
-        <button id="save-draft" type="button" disabled>下書きを保存</button>
-        <button id="jump-preview" class="mobile-only" type="button">Preview</button>
-        <button id="prepare-publish" class="primary" type="button" disabled>公開用ファイルを作成</button>
+        <div class="preview-scroll"><div id="preview-canvas" class="preview-canvas"><iframe id="website-preview" title="下書きの公開サイトプレビュー" src="about:blank"></iframe></div><span id="preview-size" class="sr-only">390px</span></div>
+      </aside>
+    </div>
+
+    <nav class="tabbar" aria-label="ページ（モバイル）">
+      <a href="#home" data-view-link="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg></span>ホーム</a>
+      <a href="#schedule" data-view-link="schedule"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg></span>予定</a>
+      <a href="#news" data-view-link="news"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg></span>News</a>
+      <a href="#settings" data-view-link="settings"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h9M18 7h1M5 17h3M12 17h7"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>設定</a>
+    </nav>
+
+    <dialog id="drawer" class="drawer" aria-labelledby="drawer-title">
+      <form id="drawer-form" class="drawer-form" novalidate>
+        <header class="drawer-header"><h2 id="drawer-title">編集</h2><button id="close-drawer" class="button secondary" type="button">完了</button></header>
+        <div id="drawer-body" class="drawer-body"></div>
+      </form>
+    </dialog>
+
+    <dialog id="draft-dialog" class="modal" aria-labelledby="draft-title">
+      <h2 id="draft-title">保存された下書きがあります</h2><p>前回の下書きから続けるか、公開中の内容から始めるかを選んでください。</p><p id="draft-warning" class="error-text" hidden></p>
+      <div class="dialog-actions"><button id="use-live" class="button secondary" type="button" autofocus>公開中の内容から始める</button><button id="restore-draft" class="button primary" type="button">下書きを開く</button></div>
+    </dialog>
+
+    <dialog id="export-dialog" class="modal modal-wide" aria-labelledby="export-title">
+      <div class="dialog-heading"><h2 id="export-title">公開用ファイルを作成</h2><button id="close-export" class="icon-button" type="button" aria-label="閉じる">×</button></div>
+      <div id="publish-summary">
+        <p class="callout"><strong>この時点ではまだ公開されていません。</strong>次の手順でサイトに反映されます。</p>
+        <dl id="summary-list" class="summary-list"></dl>
+        <ol class="steps">
+          <li><strong>ファイルを保存</strong><span>3つのファイルをまとめてダウンロードします。</span><button id="download-publish-files" class="button primary" type="button">3ファイルを保存</button></li>
+          <li><strong>GitHubを開く</strong><span>アップロード画面で data フォルダの同名ファイルを置き換えます。</span><a class="button secondary" href="https://github.com/anana1111/chonmage-website/upload/main/data" target="_blank" rel="noreferrer">アップロード画面 ↗</a></li>
+          <li><strong>commit する</strong><span>数分でサイトに反映されます。</span></li>
+        </ol>
       </div>
-    </footer>
-    <dialog id="draft-dialog" aria-labelledby="draft-title">
-      <h2 id="draft-title">保存された下書きがあります。</h2><p>下書きを開くか、公開中のデータから編集を始めてください。</p><p id="draft-warning" class="error-text" hidden></p>
-      <div class="dialog-actions"><button id="use-live" type="button" autofocus>公開中のデータを読み込む</button><button id="restore-draft" class="primary" type="button">下書きを開く</button></div>
+      <details id="export-details" class="export-details"><summary>ファイルの中身を見る（上級者向け）</summary><div id="export-files"></div></details>
+      <p id="export-status" role="status"></p>
     </dialog>
-    <dialog id="export-dialog" aria-labelledby="export-title">
-      <div class="dialog-heading"><h2 id="export-title">JSONを書き出す</h2><button id="close-export" type="button" aria-label="書き出し画面を閉じる">閉じる</button></div>
-      <div id="publish-summary" hidden><h3>公開用ファイルの内容</h3><dl id="summary-list"></dl><p><strong>この時点ではまだ公開されていません。</strong>3ファイルを保存してから GitHub のアップロード画面へ進み、data/ の同名ファイルを置き換えて commit すると公開されます。</p><div class="dialog-actions"><button id="download-publish-files" type="button">3ファイルを一括保存</button><a class="button-link" href="https://github.com/anana1111/chonmage-website/upload/main/data" target="_blank" rel="noreferrer">GitHubアップロード画面 ↗</a></div></div>
-      <div id="export-files"></div><p id="export-status" role="status"></p>
-    </dialog>
-    <noscript><p class="load-error">管理画面での編集には JavaScript が必要です。公開サイトはそのまま閲覧できます。</p></noscript>
-    <script src="./admin.js?v=4"></script>
+    <noscript><p class="state-card">管理画面での編集には JavaScript が必要です。公開サイトはそのまま閲覧できます。</p></noscript>
+    <script src="./admin.js?v=5"></script>
   </body>
 </html>

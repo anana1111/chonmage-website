@@ -325,22 +325,47 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   const { page, context, errors } = await openPage({ width: 1280, url: '/admin/', time: jst('18:00') });
   page.on('dialog', (dialog) => dialog.accept());
   await page.waitForSelector('#editor-form:not([hidden])', { timeout: 20000 });
+  const bodyText = await page.locator('body').innerText();
   ok(await page.locator('#prepare-publish').textContent() === '公開用ファイルを作成', 'admin: publish button renamed');
-  ok(!(await page.locator('body').innerText()).includes('GitHubに公開'), 'admin: misleading label removed');
+  ok(!bodyText.includes('GitHubに公開'), 'admin: misleading label removed');
+  // Home answers "what needs attention": the published data (9/13) is not today.
+  ok(/要確認/.test(bodyText) && /9月13日/.test(bodyText), 'admin home: stale published data is flagged');
+  ok(await page.locator('.stat').count() === 4, 'admin home: four summary cards');
+
+  await page.click('a[data-view-link="schedule"] >> visible=true');
+  await page.waitForSelector('#view-schedule:not([hidden]) .event-card');
+  ok(await page.locator('.field-source:visible').count() === 0, 'admin: no 手動編集 marks while nothing was changed');
+  const before = await page.locator('.event-card').count();
+
+  // Editing an automatic value shows 手動編集 and can be restored.
+  await page.locator('.event-card[data-index="0"] .item-actions > .button').click();
+  await page.fill('#field-events-events-0-title', 'フリーロール（手動）');
+  ok(await page.locator('#drawer .field-source:visible').count() === 1, 'admin: 手動編集 appears on the changed field only');
+  await page.locator('#drawer .field-source:visible .text-button').click();
+  ok(await page.inputValue('#field-events-events-0-title') === 'フリーロールトーナメント', 'admin: 自動の値に戻す restores the automatic value');
+  await page.click('#close-drawer');
 
   // A new event cannot be published with the placeholder text.
-  const before = await page.locator('#today-panel .item-card').count();
-  await page.getByRole('button', { name: '＋ EVENT' }).click();
+  await page.getByText('＋ イベントを追加').click();
+  await page.getByRole('button', { name: 'EVENT', exact: true }).click();
   const index = before;
+  await page.waitForSelector('#drawer[open]');
   await page.fill(`#field-events-events-${index}-time`, '20:30');
   await page.fill(`#field-events-events-${index}-description`, '詳細を入力してください。');
+  await page.fill(`#field-events-events-${index}-new-参加費`, '¥3,000');
+  ok(await page.inputValue(`#field-events-events-${index}-facts-0-value`) === '¥3,000', 'admin: 参加費 field creates a detail row');
+  await page.click('#close-drawer');
   await page.click('#prepare-publish');
   ok(!(await page.locator('#export-dialog').evaluate((dialog) => dialog.open)), 'admin: placeholder text blocked export');
+  ok(await page.locator('#drawer').evaluate((dialog) => dialog.open), 'admin: blocked export opens the item that needs fixing');
   ok(/仮の文言/.test(await page.locator(`#field-events-events-${index}-description-error`).textContent()), 'admin: placeholder error message shown');
 
   await page.fill(`#field-events-events-${index}-title`, 'ナイトトーナメント');
   await page.fill(`#field-events-events-${index}-description`, '20時半スタートです。');
-  await page.check('#field-events-events-0-hidden');
+  await page.click('#close-drawer');
+  await page.locator('.event-card[data-index="0"] details.menu summary').click();
+  await page.getByRole('button', { name: 'サイトで非表示' }).click();
+  ok(await page.locator('.event-card[data-index="0"]').evaluate((card) => card.classList.contains('is-hidden')), 'admin: hidden event is marked in the list');
   await page.click('#prepare-publish');
   await page.waitForSelector('#export-dialog[open]');
   const exported = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('#export-files textarea')].map((area) => [area.id, area.value])));
@@ -352,11 +377,40 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   ok(!finalEvents.events.some((event) => event.hidden !== undefined), 'admin: hidden flag leaked into events.json');
   ok(!finalEvents.events.some((event) => event.id === auto.events[0].id), 'admin: hidden auto event still published');
   ok(manual.events[auto.events[0].id]?.hidden === true, 'admin: hidden override missing in manual');
-  ok(finalEvents.events.some((event) => event.title === 'ナイトトーナメント'), 'admin: added event missing');
+  ok(finalEvents.events.some((event) => event.title === 'ナイトトーナメント' && event.facts.some((fact) => fact.value === '¥3,000')), 'admin: added event missing');
   ok(!exported['export-events'].includes('詳細を入力してください'), 'admin: placeholder exported');
   ok(/まだ公開されていません/.test(await page.locator('#publish-summary').innerText()), 'admin: dialog says nothing is published yet');
+  ok(!(await page.locator('#export-details').evaluate((details) => details.open)), 'admin: JSON stays folded away by default');
   ok(!errors.length, 'admin: console errors ' + errors.join(' | '));
   await context.close();
+}
+
+// --- admin layout at each width ------------------------------------------------------------
+for (const width of [320, 375, 390, 768, 1024, 1440]) {
+  for (const view of ['home', 'schedule', 'news', 'settings']) {
+    const { page, context, errors } = await openPage({ width, url: '/admin/#' + view, time: jst('18:00') });
+    await page.waitForSelector('#editor-form:not([hidden])', { timeout: 20000 });
+    if (view === 'schedule') {
+      await page.locator('.event-card .item-actions > .button').first().click();
+      await page.locator('#drawer .advanced summary').click();
+    }
+    const report = await page.evaluate(() => {
+      const small = [];
+      document.querySelectorAll('button, a, summary, input, select, textarea').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (!rect.width || el.closest('[hidden]') || getComputedStyle(el).visibility === 'hidden' || ['checkbox', 'radio'].includes(el.type) || el.classList.contains('skip-link')) return;
+        if (el.closest('dialog') && !el.closest('dialog').open) return;
+        if (document.querySelector('dialog[open]') && !el.closest('dialog[open]')) return;
+        if (Math.min(rect.width, rect.height) < 44) small.push((el.id || el.textContent.trim().slice(0, 12) || el.tagName) + ' ' + Math.round(rect.width) + 'x' + Math.round(rect.height));
+      });
+      return { overflow: document.documentElement.scrollWidth - window.innerWidth, small };
+    });
+    ok(report.overflow <= 0, 'admin ' + view + ' ' + width + 'px: horizontal overflow ' + report.overflow);
+    ok(!report.small.length, 'admin ' + view + ' ' + width + 'px: small targets ' + report.small.join(', '));
+    ok(!errors.length, 'admin ' + view + ' ' + width + 'px: console errors ' + errors.join(' | '));
+    if (shotDir) await page.screenshot({ path: path.join(shotDir, 'admin-' + view + '-' + width + '.png') });
+    await context.close();
+  }
 }
 
 await browser.close();

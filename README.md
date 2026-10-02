@@ -60,7 +60,7 @@ Google Fonts、X、Google Maps 的链接需要联网。
 
 ## 管理画面 `/admin/`
 
-浏览器内编辑 TODAY / NEWS，可预览真实页面。“公開用ファイルを作成”只会生成并下载 `events.json`、`events.manual.json`、`news.json`，**不会自动上传**。需要在 GitHub 的 `data/` 上传并 commit 同名文件后才会公开。导出的 `events.json` 与 `scripts/merge-events.mjs` 的结果一致（同一份合并代码 `scripts/schedule-core.mjs`）。详见 [`admin/README.md`](admin/README.md)。
+分为 ホーム / 今日の予定 / News / 設定 四页。ホーム集中显示需要处理的事项（例如公开中的数据不是今天的）；事件用卡片列表加右侧编辑面板，常用字段在前、其余放在「詳細設定」里。“公開用ファイルを作成”只会生成并下载 `events.json`、`events.manual.json`、`news.json`，**不会自动上传**，需要在 GitHub 的 `data/` 上传并 commit 同名文件后才会公开。导出的 `events.json` 与 `scripts/merge-events.mjs` 的结果一致（同一份合并代码 `scripts/schedule-core.mjs`）。详见 [`admin/README.md`](admin/README.md)。
 
 ## 测试
 
@@ -70,7 +70,7 @@ node scripts/validate-events.mjs data/events.json data/events.auto.json data/new
 node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地安装 Playwright；Actions 不运行）
 ```
 
-浏览器测试覆盖：固定日本时间下的 NOW / NEXT / 本日終了 / 休業 / 跨午夜、无 JS 时的安全 fallback、前台与 Node 校验规则一致性、320–1440px 布局（横向溢出、标题孤字、触控区域）、图片清晰度、Admin 导出与 merge 一致性，以及 console error。
+浏览器测试覆盖：固定日本时间下的 NOW / NEXT / 本日終了 / 休業 / 跨午夜、无 JS 时的安全 fallback、前台与 Node 校验规则一致性、320–1440px 布局（横向溢出、标题孤字、触控区域）、图片清晰度、Admin 导出与 merge 一致性、Admin 在 320–1440px 的布局与触控区域，以及 console error。
 
 ## 图片
 
