@@ -8,6 +8,7 @@
   overflow: hidden;
 }
 .timeline-rail {
+  position: relative;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: clamp(290px, 31vw, 380px);
@@ -71,6 +72,9 @@
 .timeline-status--next { background: var(--orange); color: #151613; border-color: var(--orange); }
 .timeline-card__title {
   margin: auto 0 1rem;
+  /* No single leftover character on the last line (e.g. 「スター/ト」). */
+  text-wrap: balance;
+  line-break: strict;
   font-size: clamp(1.65rem, 2.4vw, 2.35rem);
   line-height: 1.08;
   letter-spacing: -.045em;
@@ -110,20 +114,34 @@
 .timeline-card__facts > div { display: flex; justify-content: space-between; gap: .75rem; padding: .65rem 0; border-top: 1px solid var(--line); }
 .timeline-card__facts dd { text-align: right; }
 .timeline-card__link { display: inline-flex; margin-top: .9rem; color: inherit; font-size: .68rem; font-weight: 800; text-underline-offset: .25em; }
-.timeline-controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .9rem; }
-.timeline-dots { display: flex; flex-wrap: wrap; gap: .42rem; min-width: 0; }
+.timeline-controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .45rem; margin-left: -8px; }
+.timeline-dots { display: flex; flex-wrap: wrap; gap: 0; min-width: 0; }
+/* The button is the touch target (24×44px); the visible dot is drawn by ::before. */
 .timeline-dot {
-  width: 8px;
-  height: 8px;
-  min-width: 8px;
+  position: relative;
+  width: 24px;
+  height: 44px;
+  min-width: 24px;
   padding: 0;
   border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: width .2s ease;
+}
+.timeline-dot::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
   border-radius: 99px;
   background: #c4c8cf;
-  cursor: pointer;
+  transform: translate(-50%, -50%);
   transition: width .2s ease, background .2s ease;
 }
-.timeline-dot.is-active { width: 28px; background: var(--blue); }
+.timeline-dot.is-active { width: 40px; }
+.timeline-dot.is-active::before { width: 28px; background: var(--blue); }
 .timeline-dot:focus-visible,
 .timeline-arrow:focus-visible,
 .timeline-card__details summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
@@ -139,8 +157,25 @@
   cursor: pointer;
 }
 .timeline-arrow:disabled { opacity: .3; cursor: default; }
+.timeline-ended {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .35rem .8rem;
+  margin: 0 0 1rem;
+  padding: .9rem 1.1rem;
+  border: 1px solid var(--line);
+  border-left: 5px solid #8c918d;
+  border-radius: 14px;
+  background: #fffdf8;
+  font-size: .8rem;
+  line-height: 1.7;
+}
+.timeline-ended strong { font-size: .95rem; font-weight: 900; letter-spacing: .04em; }
+#hero-business-status[data-phase="ended"] i,
+#hero-business-status[data-phase="closed"] i { background: #9aa09c; box-shadow: 0 0 0 5px rgba(154, 160, 156, .18); }
+#hero-business-status[data-phase="before"] i { background: #ffb39b; box-shadow: 0 0 0 5px rgba(255, 179, 155, .16); }
 .timeline-empty { margin: 0; padding: 2rem; border: 1px solid var(--line); border-radius: 18px; background: #fffdf8; }
-.today-live-content > .ring-banner[hidden] { display: none !important; }
 
 @media (max-width: 900px) {
   .timeline-rail { grid-auto-columns: min(58vw, 360px); }
@@ -164,6 +199,11 @@
   .timeline-card__type { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .timeline-card, .timeline-dot { transition: none; }
+  .timeline-card, .timeline-dot, .timeline-dot::before { transition: none; }
   .timeline-rail { scroll-behavior: auto; }
+}
+/* 「何して遊ぶ？」 stays on one line; narrow phones get a slightly smaller size instead. */
+.today-title-phrase { white-space: nowrap; }
+@media (max-width: 380px) {
+  #today-title { font-size: clamp(2.5rem, 14vw, 3.4rem); }
 }

@@ -1,18 +1,22 @@
 [
   {
     "file": "images/interior-wide.png",
-    "source": "repository upload"
+    "source": "repository upload",
+    "published": ["images/interior-wide.webp", "images/interior-wide-800.webp"]
   },
   {
     "file": "images/storefront-night.png",
-    "source": "repository upload"
+    "source": "repository upload",
+    "published": ["images/storefront-night.webp", "images/storefront-night-800.webp"]
   },
   {
     "file": "images/poker-table-detail.png",
-    "source": "repository upload"
+    "source": "repository upload",
+    "published": ["images/poker-table-detail.webp", "images/poker-table-detail-800.webp"]
   },
   {
     "file": "images/chonmage-character.png",
-    "source": "repository upload"
+    "source": "repository upload",
+    "published": ["images/chonmage-character-800.webp", "images/chonmage-character-400.webp"]
   }
 ]

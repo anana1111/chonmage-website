@@ -4,7 +4,7 @@
   const frame = $('website-preview');
   const keys = ['chonmage-admin-events-draft', 'chonmage-admin-news-draft'];
   const clone = (value) => JSON.parse(JSON.stringify(value));
-  const state = { data: null, snapshot: '', local: false, tab: 'today', request: 0, api: null, autoEvents: null, manualEvents: null, publishFiles: [] };
+  const state = { data: null, snapshot: '', local: false, tab: 'today', request: 0, api: null, core: null, autoEvents: null, manualEvents: null, publishFiles: [] };
   let timer, readyResolve, readyTimer;
   const controls = new Map();
   const node = (tag, text, className) => {
@@ -161,7 +161,7 @@
     });
     basic.append(
       status,
-      field('events.open', 'OPEN', 'time', { required: true }),
+      field('events.open', 'OPEN', 'time', { required: get('events.status') !== 'closed', hint: get('events.status') === 'closed' ? '休業日は空欄でも公開できます。' : '' }),
       field('events.close', 'CLOSE（任意）', 'time', { hint: '分かる場合だけ入力してください。未入力なら前台のCLOSEカードは表示しません。' }),
       field('events.latestXUrl', '公式X', 'url', { required: true, hint: 'https:// で始まる公式プロフィールURL' }),
       field('events.schedulePostUrl', '本日の告知投稿（任意）', 'url')
@@ -209,7 +209,8 @@
         heroTitle: labels[type] || 'EVENT',
         theme: type === 'free' ? 'blue' : 'orange',
         tags: [],
-        description: '詳細を入力してください。',
+        // Left empty on purpose: the required-field error asks staff to write it.
+        description: '',
         facts: []
       });
       rebuild(`events.events.${get('events.events').length - 1}.time`);
@@ -242,8 +243,12 @@
   function normalized() {
     const data = clone(state.data);
     if (!data.events.schedulePostUrl?.trim()) delete data.events.schedulePostUrl;
+    if (!data.events.close?.trim()) delete data.events.close;
+    if (data.events.status === 'closed' && !data.events.open?.trim()) delete data.events.open;
+    if (data.events.ringGame && !data.events.ringGame.start?.trim()) delete data.events.ringGame.start;
     data.events.events.forEach((event) => {
       if (!event.heroTitle?.trim()) delete event.heroTitle;
+      if (!event.end?.trim()) delete event.end;
       if (event.link && !event.link.label?.trim() && !event.link.url?.trim()) delete event.link;
     }); return data;
   }
@@ -252,11 +257,15 @@
     const errors = new Map(); const api = state.api;
     const check = (path, fn, message) => { try { fn(get(path)); } catch { errors.set(path, message); } };
     check('events.date', api.dateValue, '有効な開催日を入力してください。');
-    check('events.open', api.requireTime, '時刻を HH:MM 形式で入力してください。');
+    if (get('events.status') !== 'closed' || get('events.open')?.trim()) check('events.open', api.requireTime, '時刻を HH:MM 形式で入力してください。');
     if (get('events.close')?.trim()) check('events.close', api.requireTime, '時刻を HH:MM 形式で入力してください。');
     check('events.latestXUrl', api.safeUrl, 'https:// で始まるURLを入力してください。');
     if (get('events.schedulePostUrl')?.trim()) check('events.schedulePostUrl', api.safeUrl, 'https:// で始まるURLを入力してください。');
-    const text = (path) => check(path, api.requireText, '内容を入力してください。');
+    const placeholder = (value) => state.core?.isPlaceholderText(value);
+    const text = (path) => {
+      if (placeholder(get(path))) errors.set(path, '「' + get(path).trim() + '」は仮の文言です。公開する内容に書き換えてください。');
+      else check(path, api.requireText, '内容を入力してください。');
+    };
     (get('events.summary') || []).forEach((_, index) => text(`events.summary.${index}`));
     if (get('events.ringGame.enabled')) {
       if (get('events.ringGame.start')?.trim()) check('events.ringGame.start', api.requireTime, '時刻を HH:MM 形式で入力してください。');
@@ -284,7 +293,11 @@
       }
     });
     let structural = false; const data = normalized();
-    try { api.validateEvents(data.events); api.validateNews(data.news); } catch { structural = true; }
+    // The public page validator and the Node/Actions validator must both accept the draft.
+    try {
+      api.validateEvents(data.events); api.validateNews(data.news);
+      if (state.core) { state.core.validateSchedule(data.events); state.core.validateNews(data.news); }
+    } catch { structural = true; }
     return { valid: !errors.size && !structural, errors, data };
   }
   function sendPreview() {
@@ -309,6 +322,7 @@
     if (input.type === 'radio' && !input.checked) return;
     set(input.dataset.path, input.type === 'checkbox' ? input.checked : input.value);
     if (input.dataset.path === 'events.ringGame.enabled') $('ring-fields').hidden = !input.checked;
+    if (input.dataset.path === 'events.status') { rebuild(); return; }
     refreshSource(input.dataset.path);
     changed();
   };
@@ -402,6 +416,7 @@
   async function load() {
     $('load-error').hidden = true; $('loading').hidden = false;
     try {
+      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=2');
       await prepareFrame(); const live = await fetchPublished(); const choice = await chooseDraft(live);
       state.data = clone(choice.data); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
       render(); $('editor-form').hidden = false; $('loading').hidden = true;
@@ -496,14 +511,26 @@
       notice('書き出し前に、エラーのある項目を修正してください。'); const path = result.errors.keys().next().value;
       if (path) { selectTab(path.startsWith('news.') ? 'news' : 'today'); controls.get(path)?.input.focus(); } return;
     }
+    // events.json is produced by the same mergeSchedule() that GitHub Actions runs
+    // (scripts/merge-events.mjs), so the uploaded file matches what Actions would write.
+    const manual = buildManualOverrides(result.data.events);
+    let finalEvents;
+    try {
+      if (state.autoEvents && result.data.events.date < state.autoEvents.date) {
+        throw new Error(`開催日が自動取得データ（${state.autoEvents.date}）より古いため、この手動データは公開時に使われません。開催日を確認してください。`);
+      }
+      finalEvents = state.core.mergeSchedule(state.autoEvents || result.data.events, manual);
+    } catch (error) {
+      notice(`公開用データを作成できません。${error.message}`); return;
+    }
     if (publish && !saveDraft()) return;
-    $('export-title').textContent = publish ? '公開準備' : 'JSONを書き出す'; $('publish-summary').hidden = !publish; $('export-status').textContent = '';
+    $('export-title').textContent = publish ? '公開用ファイルを作成' : 'JSONを書き出す'; $('publish-summary').hidden = !publish; $('export-status').textContent = '';
     $('summary-list').replaceChildren();
-    [['開催日', state.api.formatJapaneseDate(result.data.events.date)], ['営業状態 / OPEN', `${result.data.events.status === 'open' ? '営業' : '休業'} / ${result.data.events.open}`], ['イベント数', result.data.events.events.length], ['ニュース数', result.data.news.items.length]].forEach(([label, value]) => $('summary-list').append(node('dt', label), node('dd', String(value))));
+    [['開催日', state.api.formatJapaneseDate(finalEvents.date)], ['営業状態 / OPEN', `${finalEvents.status === 'open' ? '営業' : '休業'} / ${finalEvents.open || '—'}`], ['公開イベント数', finalEvents.events.length], ['ニュース数', result.data.news.items.length]].forEach(([label, value]) => $('summary-list').append(node('dt', label), node('dd', String(value))));
     $('export-files').replaceChildren();
     const exportFiles = [
-      ['events', result.data.events, 'events.json'],
-      ['events-manual', buildManualOverrides(result.data.events), 'events.manual.json'],
+      ['events', finalEvents, 'events.json'],
+      ['events-manual', manual, 'events.manual.json'],
       ['news', result.data.news, 'news.json']
     ];
     state.publishFiles = exportFiles.map(([name, payload, filename]) => ({
@@ -544,7 +571,7 @@
     state.publishFiles.forEach((file, index) => setTimeout(() => downloadFile(file.filename, file.text), index * 250));
     const commitMessage = 'Update schedule data for ' + (state.data?.events?.date || 'today');
     try { await navigator.clipboard.writeText(commitMessage); } catch { /* clipboard is optional */ }
-    $('export-status').textContent = '3ファイルを保存しました。GitHubで同名ファイルを置き換えてcommitしてください。コミット文もコピーしました。';
+    $('export-status').textContent = '3ファイルを保存しました。まだ公開されていません。GitHubのアップロード画面で data/ の同名ファイルを置き換えて commit すると公開されます（コミット文はコピー済み）。';
   });
 
   $('export-json').addEventListener('click', () => exportData()); $('prepare-publish').addEventListener('click', () => exportData(true));

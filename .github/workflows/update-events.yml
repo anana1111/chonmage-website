@@ -6,9 +6,16 @@ on:
       - main
     paths:
       - 'scripts/**'
+      - 'data/events.manual.json'
       - '.github/workflows/update-events.yml'
   schedule:
-    - cron: '0 0,3,6,8 * * *'
+    # Cron is UTC (JST = UTC+9). Minutes are offset from :00 to avoid the busiest slot.
+    # Every day: JST 09:07 / 12:07 / 13:07 / 15:07
+    - cron: '7 0,3,4,6 * * *'
+    # Weekdays: daily posts appear around the 17:00 OPEN -> JST 16:17 – 19:47 every 30 min
+    - cron: '17,47 7-10 * * 1-5'
+    # Weekends: 13:00 OPEN -> JST 11:17 – 13:47 every 30 min
+    - cron: '17,47 2-4 * * 0,6'
   workflow_dispatch:
 
 permissions:
@@ -23,8 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -40,19 +45,38 @@ jobs:
         run: node scripts/merge-events.mjs
 
       - name: Validate final public schedule
-        run: node scripts/validate-events.mjs data/events.json
+        run: node scripts/validate-events.mjs data/events.json data/news.json
 
       - name: Commit only real data changes
         if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
-          if git diff --quiet -- data/events.auto.json data/events.json; then
-            echo "No schedule data changes."
-            exit 0
-          fi
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          AUTO_TMP="$(mktemp)"
+          cp data/events.auto.json "$AUTO_TMP"
           DATE="$(node -e "const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const o=Object.fromEntries(p.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));process.stdout.write(o.year+'-'+o.month+'-'+o.day)")"
-          git add data/events.auto.json data/events.json
-          git commit -m "Update daily events for $DATE"
-          git push
+          for attempt in 1 2 3; do
+            # main may have changed while this job ran (e.g. staff uploaded events.manual.json).
+            # Start from the latest main, keep only this run's auto data, and merge again so
+            # the newest manual overrides are never overwritten.
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+            cp "$AUTO_TMP" data/events.auto.json
+            node scripts/merge-events.mjs
+            node scripts/validate-events.mjs data/events.json
+            if git diff --quiet -- data/events.auto.json data/events.json; then
+              echo "No schedule data changes."
+              exit 0
+            fi
+            git add data/events.auto.json data/events.json
+            git commit --quiet -m "Update daily events for $DATE"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push rejected (main moved); retrying ($attempt/3)."
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not push schedule data after 3 attempts."
+          exit 1

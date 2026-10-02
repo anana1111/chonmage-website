@@ -1,6 +1,8 @@
-const SCHEDULE_HINT = /(OPEN|オープン|営業|トーナメント|フリー ?ロール|RING|リング)/i;
-const DATE_HINT = /(20\d{2}[/.\-年]\s*\d{1,2}[/.\-月]\s*\d{1,2}日?|(?:^|\D)\d{1,2}月\s*\d{1,2}日)/;
-const TIME_HINT = /(?:^|\D)[0-2]?\d:[0-5]\d(?:\D|$)/;
+const SCHEDULE_HINT = /(OPEN|オープン|営業|休業|定休日|臨時休|お休み|トーナメント|フリー ?ロール|RING|リング)/i;
+const DATE_HINT = /(20\d{2}[/.\-年]\s*\d{1,2}[/.\-月]\s*\d{1,2}日?|(?:^|\D)\d{1,2}月\s*\d{1,2}日|(?:^|\D)\d{1,2}日\s*[（(][月火水木金土日][）)])/;
+const MONTH_DATE_HINT = /(20\d{2}[/.\-年]\s*\d{1,2}[/.\-月]\s*\d{1,2}日?|(?:^|\D)\d{1,2}月\s*\d{1,2}日)/;
+const TIME_HINT = /(?:(?:^|\D)[0-2]?\d[:：][0-5]\d(?:\D|$)|(?:^|\D)[0-2]?\d時(?!間))/;
+const CLOSED_HINT = /(休業|定休日|臨時休|お休み)/;
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -17,7 +19,7 @@ function cleanBlock(value) {
 }
 
 function useful(text) {
-  return SCHEDULE_HINT.test(text) && DATE_HINT.test(text) && TIME_HINT.test(text);
+  return SCHEDULE_HINT.test(text) && DATE_HINT.test(text) && (TIME_HINT.test(text) || CLOSED_HINT.test(text));
 }
 
 export function readerCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
@@ -88,7 +90,7 @@ function jstIso(date) {
 }
 
 function inferDayOnlyDate(text, published) {
-  if (DATE_HINT.test(text)) return '';
+  if (MONTH_DATE_HINT.test(text)) return '';
   const day = Number(text.match(/(?:^|\D)(\d{1,2})日(?:\s*[（(][月火水木金土日][）)])?/)?.[1]);
   const pub = new Date(published);
   if (!day || !Number.isFinite(pub.getTime())) return '';
@@ -115,7 +117,7 @@ export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
     const description = plainXml(xmlTag(item, 'description') || xmlTag(item, 'content:encoded'));
     const published = plainXml(xmlTag(item, 'pubDate'));
     let text = cleanBlock([title, description].filter(Boolean).join('\n'));
-    if (!SCHEDULE_HINT.test(text) || !TIME_HINT.test(text)) continue;
+    if (!SCHEDULE_HINT.test(text) || !(TIME_HINT.test(text) || CLOSED_HINT.test(text))) continue;
     const inferredDate = inferDayOnlyDate(text, published);
     if (inferredDate) text = inferredDate + '\n' + text;
     const link = plainXml(xmlTag(item, 'link') || xmlTag(item, 'guid'));

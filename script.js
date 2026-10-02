@@ -127,8 +127,12 @@ function formatJapaneseDate(iso) {
   return `${day}（${weekday}）`;
 }
 
+// Same rules as scripts/schedule-core.mjs (checked by scripts/test-browser.mjs).
+const PLACEHOLDER_TEXTS = ['詳細を入力してください。', '詳細を入力してください'];
+
 function requireText(value) {
   if (typeof value !== 'string' || !value.trim()) throw new Error('Missing text');
+  if (PLACEHOLDER_TEXTS.includes(value.trim())) throw new Error('Placeholder text');
 }
 
 function requireTime(value) {
@@ -137,25 +141,29 @@ function requireTime(value) {
 
 function safeUrl(value, allowTelephone = false) {
   if (typeof value !== 'string') throw new Error('Missing URL');
+  if (allowTelephone && /^tel:\+?[\d -]+$/.test(value)) return value;
   const url = new URL(value);
   if (url.protocol === 'https:' && !url.username && !url.password) return url.href;
-  if (allowTelephone && /^tel:\+?[\d -]+$/.test(value)) return value;
   throw new Error('Unsupported URL');
 }
 
+const filled = (value) => value !== undefined && value !== '';
+
 function validateEvents(data) {
+  if (!data || typeof data !== 'object') throw new Error('Invalid schedule');
   dateValue(data.date);
-  requireTime(data.open);
-  if (data.close) requireTime(data.close);
   if (!['open', 'closed'].includes(data.status)) throw new Error('Invalid status');
+  // A closed day may omit OPEN; an open day always needs it.
+  if (data.status === 'open' || filled(data.open)) requireTime(data.open);
+  if (filled(data.close)) requireTime(data.close);
   safeUrl(data.latestXUrl);
-  if (data.schedulePostUrl) safeUrl(data.schedulePostUrl);
+  if (filled(data.schedulePostUrl)) safeUrl(data.schedulePostUrl);
   if (data.summary !== undefined) {
     if (!Array.isArray(data.summary)) throw new Error('Invalid summary');
     data.summary.forEach(requireText);
   }
-  if (data.ringGame) {
-    if (typeof data.ringGame.enabled !== 'boolean') throw new Error('Invalid ring game');
+  if (data.ringGame !== undefined) {
+    if (!data.ringGame || typeof data.ringGame !== 'object' || typeof data.ringGame.enabled !== 'boolean') throw new Error('Invalid ring game');
     if (data.ringGame.start) requireTime(data.ringGame.start);
     if (data.ringGame.enabled) {
       requireText(data.ringGame.title);
@@ -164,33 +172,39 @@ function validateEvents(data) {
   }
   if (!Array.isArray(data.events)) throw new Error('Missing events');
   const eventIds = new Set();
-  data.events.filter((event) => !event.hidden).forEach((event) => {
+  data.events.forEach((event) => {
+    if (!event || typeof event !== 'object') throw new Error('Invalid event');
     if (event.id !== undefined) {
       requireText(event.id);
       if (eventIds.has(event.id)) throw new Error('Duplicate event id');
       eventIds.add(event.id);
     }
     requireTime(event.time);
-    if (event.end) requireTime(event.end);
+    if (filled(event.end)) requireTime(event.end);
     requireText(event.title);
     requireText(event.description);
     if (event.type !== undefined && !['free', 'tournament', 'special', 'event'].includes(event.type)) throw new Error('Invalid event type');
-    if (!['blue', 'orange'].includes(event.theme)) throw new Error('Invalid event theme');
+    if (event.theme !== undefined && !['blue', 'orange'].includes(event.theme)) throw new Error('Invalid event theme');
     if (event.hidden !== undefined && typeof event.hidden !== 'boolean') throw new Error('Invalid hidden flag');
     if (event.isMain !== undefined && typeof event.isMain !== 'boolean') throw new Error('Invalid main flag');
     if (event.heroTitle !== undefined) requireText(event.heroTitle);
     if (event.tags !== undefined && !Array.isArray(event.tags)) throw new Error('Invalid tags');
     (event.tags || []).forEach(requireText);
     if (event.facts !== undefined && !Array.isArray(event.facts)) throw new Error('Invalid facts');
-    (event.facts || []).forEach((fact) => { requireText(fact.label); requireText(fact.value); });
-    if (event.link) { requireText(event.link.label); safeUrl(event.link.url, true); }
+    (event.facts || []).forEach((fact) => { requireText(fact?.label); requireText(fact?.value); });
+    if (event.link !== undefined && event.link !== null) {
+      if (typeof event.link !== 'object') throw new Error('Invalid link');
+      requireText(event.link.label); safeUrl(event.link.url, true);
+    }
   });
+  if (data.source?.url) safeUrl(data.source.url);
   return data;
 }
 
 function validateNews(data) {
-  if (!Array.isArray(data.items)) throw new Error('Missing news items');
+  if (!data || !Array.isArray(data.items)) throw new Error('Missing news items');
   data.items.forEach((item) => {
+    if (!item || typeof item !== 'object') throw new Error('Invalid news item');
     dateValue(item.date);
     ['category', 'visualLabel', 'title', 'description'].forEach((key) => requireText(item[key]));
     if (!['schedule', 'event', 'result'].includes(item.theme)) throw new Error('Invalid news theme');
@@ -216,87 +230,25 @@ function contentLink(className, label, url, allowTelephone = false) {
   return link;
 }
 
-function renderEvents(data) {
-  if (typeof window.renderChonmageTimeline === 'function') {
-    window.renderChonmageTimeline(data);
-    return;
-  }
-  const list = todaySection?.querySelector('.event-list');
-  if (!list) return;
-  const cards = document.createDocumentFragment();
-  data.events.forEach((event) => {
-    const card = element('article', `event-card event-card--${event.theme} reveal in`);
-    const time = element('div', 'event-time');
-    time.append(element('span', '', 'START'), element('time', '', event.time));
-    const main = element('div', 'event-main');
-    const tags = element('div', 'event-tags');
-    (event.tags || []).forEach((tag) => tags.append(element('span', '', tag)));
-    main.append(tags, element('h3', '', event.title), element('p', '', event.description));
-    if (event.facts?.length) {
-      const facts = element('dl', 'event-facts');
-      event.facts.forEach((fact) => {
-        const row = element('div');
-        row.append(element('dt', '', fact.label), element('dd', '', fact.value));
-        facts.append(row);
-      });
-      main.append(facts);
-    }
-    card.append(time, main);
-    if (event.link) card.append(contentLink('event-link', event.link.label, event.link.url, true));
-    cards.append(card);
-  });
-  list.replaceChildren(cards);
+// timeline.js renders TODAY and the Hero schedule. Without it the page stays in
+// the safe "check official X" state instead of showing unverified times.
+const timelineReady = () => typeof window.renderChonmageTimeline === 'function' && typeof window.renderChonmageTimelineHero === 'function';
 
-  const summary = todaySection.querySelector('.today-summary');
-  if (summary) {
-    summary.querySelector('span').textContent = formatJapaneseDate(data.date);
-    summary.querySelector('strong').textContent = data.status === 'closed' ? '本日休業' : `${data.open} OPEN`;
-    const copy = summary.querySelector('p');
-    copy.replaceChildren();
-    (data.summary || ['当日の開催情報は公式Xをご確認ください。']).forEach((line, index) => {
-      if (index) copy.append(element('br'));
-      copy.append(document.createTextNode(line));
-    });
-  }
-  const ring = todaySection.querySelector('.ring-banner');
-  if (ring) {
-    // Explicit display is needed because this component's existing CSS uses grid.
-    ring.hidden = !data.ringGame?.enabled;
-    ring.style.display = ring.hidden ? 'none' : '';
-    if (!ring.hidden) {
-      ring.querySelector('strong').textContent = data.ringGame.title;
-      ring.querySelector('p').textContent = data.ringGame.description;
-      ring.querySelector('a').setAttribute('href', safeUrl(data.latestXUrl));
-    }
-  }
+function renderEvents(data) {
+  if (!timelineReady()) throw new Error('timeline.js is not available');
+  window.renderChonmageTimeline(data);
 }
 
 function renderHeroSchedule(data) {
-  if (typeof window.renderChonmageTimelineHero === 'function') {
-    window.renderChonmageTimelineHero(data);
-    return;
-  }
-  const schedule = document.querySelector('.hero-schedule');
-  if (!schedule) return;
-  const date = document.getElementById('hero-schedule-date');
-  const status = document.getElementById('hero-business-status-text');
-  if (date) date.textContent = formatJapaneseDate(data.date);
-  if (status) status.textContent = data.status === 'closed' ? '本日休業' : '本日営業';
-  const visibleEvents = data.events.filter((event) => !event.hidden);
-  let detailCount = 0;
-  ['open', 'next', 'main'].forEach((name, index) => {
-    const item = schedule.querySelector(`[data-hero-event="${name}"]`);
-    if (!item) return;
-    const event = visibleEvents[index - 1];
-    item.hidden = data.status === 'closed' || (name !== 'open' && !event);
-    if (!item.hidden) {
-      item.querySelector('strong').textContent = name === 'open'
-        ? data.open : `${event.time} ${event.heroTitle || event.title}`;
-      detailCount += 1;
-    }
-  });
-  schedule.dataset.detailCount = String(detailCount);
-  schedule.querySelector('.schedule-x')?.setAttribute('href', safeUrl(data.latestXUrl));
+  if (!timelineReady()) throw new Error('timeline.js is not available');
+  window.renderChonmageTimelineHero(data);
+}
+
+// Today in Japan, or the previous day until a past-midnight CLOSE (25時CLOSE).
+function isCurrentSchedule(data, now = new Date()) {
+  const clock = window.ChonmageSchedule?.businessClock;
+  if (typeof clock === 'function') return clock(data, now).current;
+  return data.date === getJapanDate(now);
 }
 
 function applyStaleState(isStale, latestXUrl = officialXUrl) {
@@ -350,22 +302,39 @@ async function fetchData(path) {
   return response.json();
 }
 
+let liveEvents = null;
+let liveSignature = '';
+
+const signatureOf = (data) => window.ChonmageSchedule?.scheduleSignature?.(data) || '';
+
+function showEvents(data) {
+  liveSignature = signatureOf(data);
+  const isCurrent = isCurrentSchedule(data);
+  if (isCurrent) {
+    renderEvents(data);
+    renderHeroSchedule(data);
+  }
+  applyStaleState(!isCurrent, safeUrl(data.latestXUrl));
+}
+
 async function loadEvents() {
   if (!todaySection) return;
   // Prevent old static times appearing as today's schedule while loading or on failure.
   applyStaleState(true);
   try {
-    const data = validateEvents(await fetchData('./data/events.json'));
-    const isCurrent = data.date === getJapanDate();
-    if (isCurrent) {
-      renderEvents(data);
-      renderHeroSchedule(data);
-    }
-    applyStaleState(!isCurrent, safeUrl(data.latestXUrl));
+    liveEvents = validateEvents(await fetchData('./data/events.json'));
+    showEvents(liveEvents);
   } catch (error) {
+    liveEvents = null;
     applyStaleState(true);
     console.warn('開催情報を読み込めません。公式Xをご確認ください。', error);
   }
+}
+
+// NOW / NEXT / 本日終了 and the date check follow the clock while the page stays open.
+function refreshEvents() {
+  if (!liveEvents || signatureOf(liveEvents) === liveSignature) return;
+  try { showEvents(liveEvents); } catch (error) { applyStaleState(true); console.warn('開催情報を更新できません。', error); }
 }
 
 async function loadNews() {
@@ -399,7 +368,7 @@ if (isPreviewMode) {
       renderEvents(events);
       renderHeroSchedule(events);
       renderNews(news);
-      applyStaleState(message.dateMode === 'actual' && events.date !== getJapanDate(), safeUrl(events.latestXUrl));
+      applyStaleState(message.dateMode === 'actual' && !isCurrentSchedule(events), safeUrl(events.latestXUrl));
       if (previewSection !== message.section) {
         previewSection = message.section;
         const target = document.getElementById(previewSection === 'news' ? 'news' : 'top');
@@ -415,4 +384,6 @@ if (isPreviewMode) {
 } else {
   loadEvents();
   loadNews();
+  setInterval(refreshEvents, 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshEvents(); });
 }

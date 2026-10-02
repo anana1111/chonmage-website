@@ -36,8 +36,18 @@ async function getText(url) {
   }
 }
 
+const SCHEDULE_WORDS = /(OPEN|オープン|営業|休業|定休日|臨時休|お休み|トーナメント|フリー ?ロール|RING|リング)/i;
+
+// Keep line breaks: normalizeScheduleText() reads one schedule row per line.
 function clean(value) {
-  return String(value || '').replace(/\\n/g, '\n').replace(/\s+/g, ' ').trim();
+  return String(value || '')
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((line) => line.replace(/[\s\u3000]+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 function candidateFromObject(value, out, seen = new Set()) {
@@ -48,7 +58,7 @@ function candidateFromObject(value, out, seen = new Set()) {
     const text = typeof value.full_text === 'string' ? value.full_text :
       typeof value.text === 'string' ? value.text :
       typeof value.note_tweet?.text === 'string' ? value.note_tweet.text : null;
-    if (text && /(OPEN|オープン|営業|トーナメント|フリー ?ロール|RING|リング)/i.test(text)) {
+    if (text && SCHEDULE_WORDS.test(text)) {
       const id = value.id_str || value.rest_id || value.id || value.tweet_id || null;
       out.push({
         text: clean(text),
@@ -72,8 +82,9 @@ async function syndicationCandidates() {
   return out;
 }
 
+// `value` is the raw body of a JSON string literal, so its quotes are already escaped.
 function decodeJsonString(value) {
-  try { return JSON.parse('"' + value.replace(/"/g, '\\"') + '"'); }
+  try { return JSON.parse('"' + value + '"'); }
   catch { return value; }
 }
 
@@ -88,7 +99,7 @@ async function profileCandidates() {
     let match;
     while ((match = pattern.exec(html))) {
       const text = clean(decodeJsonString(match[1]));
-      if (text && /(OPEN|オープン|営業|トーナメント|フリー ?ロール|RING|リング)/i.test(text)) {
+      if (text && SCHEDULE_WORDS.test(text)) {
         out.push({ text, url: PROFILE_URL });
       }
       if (out.length > 500) break;
@@ -160,26 +171,57 @@ async function loadCandidates() {
   return [];
 }
 
-const candidates = await loadCandidates();
-let normalized = null;
-for (const candidate of candidates) {
-  normalized = normalizeScheduleText(candidate.text, {
-    profileUrl: PROFILE_URL,
-    sourceUrl: candidate.url || PROFILE_URL
-  });
-  if (normalized) break;
+// One malformed post must not stop the run or hide the other posts.
+export function pickSchedule(candidates, options = {}) {
+  const seen = new Set();
+  for (const candidate of candidates) {
+    if (!candidate || typeof candidate.text !== 'string') continue;
+    const key = candidate.url + '\n' + candidate.text;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    try {
+      const normalized = normalizeScheduleText(candidate.text, {
+        now: options.now,
+        profileUrl: PROFILE_URL,
+        sourceUrl: candidate.url || PROFILE_URL
+      });
+      if (normalized) return validateSchedule(normalized);
+    } catch (error) {
+      (options.warn || warn)('skipped a post that could not be parsed (' + (candidate.url || PROFILE_URL) + '): ' + (error?.message || String(error)));
+    }
+  }
+  return null;
 }
 
-if (!normalized) {
-  warn('公式Xから当日のScheduleを十分な確度で識別できませんでした。既存のevents.auto.jsonを保持します。');
-} else {
-  validateSchedule(normalized);
+export function writeSchedule(normalized, output = OUTPUT) {
   const text = JSON.stringify(normalized, null, 2) + '\n';
-  const old = fs.existsSync(OUTPUT) ? fs.readFileSync(OUTPUT, 'utf8') : '';
+  const old = fs.existsSync(output) ? fs.readFileSync(output, 'utf8') : '';
   if (old === text) {
     console.log('events.auto.json unchanged');
-  } else {
-    fs.writeFileSync(OUTPUT, text);
-    console.log('updated events.auto.json for ' + normalized.date + ' from ' + normalized.source.url);
+    return false;
   }
+  fs.writeFileSync(output, text);
+  console.log('updated ' + output + ' for ' + normalized.date + ' from ' + normalized.source.url);
+  return true;
+}
+
+async function main() {
+  let candidates = [];
+  try {
+    candidates = await loadCandidates();
+  } catch (error) {
+    warn('candidate loading failed: ' + (error?.message || String(error)));
+  }
+  const normalized = pickSchedule(candidates);
+  if (!normalized) {
+    warn('公式Xから当日のScheduleを十分な確度で識別できませんでした。既存のevents.auto.jsonを保持します。');
+    return;
+  }
+  writeSchedule(normalized);
+}
+
+export { clean as cleanPostText, candidateFromObject, decodeJsonString };
+
+if (process.argv[1] && process.argv[1].endsWith('fetch-events.mjs')) {
+  await main();
 }

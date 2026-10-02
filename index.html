@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-    <link rel="stylesheet" href="./v2.css?v=json1" />
-    <link rel="stylesheet" href="./timeline.css?v=1" />
+    <link rel="stylesheet" href="./styles.css?v=20261002" />
+    <link rel="stylesheet" href="./v2.css?v=20261002" />
+    <link rel="stylesheet" href="./timeline.css?v=20261002" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23273870'/%3E%3Cpath d='M12 38c8-17 32-17 40 0' fill='none' stroke='%23f4f1e8' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='30' r='4' fill='%23f26b38'/%3E%3Ccircle cx='41' cy='30' r='4' fill='%23f26b38'/%3E%3C/svg%3E" />
   </head>
   <body>
@@ -46,7 +46,7 @@
     <main id="top">
       <section class="hero hero-v2" aria-labelledby="hero-title">
         <div class="hero-slides" aria-hidden="true">
-          <figure class="hero-slide hero-slide--one"><img src="./images/interior-wide.png" alt="" width="1448" height="1086" fetchpriority="high" decoding="async" /></figure>
+          <figure class="hero-slide hero-slide--one"><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="" width="1448" height="1086" fetchpriority="high" decoding="async" /></figure>
         </div>
         <div class="hero-wash" aria-hidden="true"></div>
         <div class="hero-copy">
@@ -59,58 +59,29 @@
             </div>
           </div>
         </div>
-        <div class="hero-schedule" aria-label="本日の営業とイベント">
-          <div class="schedule-date"><span id="hero-schedule-date">2026.09.13 · SUN</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">本日営業</span></strong></div>
-          <div class="hero-event-detail" data-hero-event="open"><span>OPEN</span><strong>13:00</strong></div>
-          <a class="hero-event-detail" data-hero-event="next" href="#today"><span>NEXT</span><strong>13:30 フリーロール</strong></a>
-          <a class="hero-event-detail" data-hero-event="main" href="#today"><span>MAIN</span><strong>18:00 王者決定戦</strong></a>
-          <a class="schedule-x" href="https://x.com/ChonmageNiigata/status/2098995956872278516" target="_blank" rel="noreferrer"><span>LATEST</span><strong>Xで確認 ↗</strong></a>
+        <!-- Safe default without JavaScript or before data/events.json is checked: no dated schedule is shown. -->
+        <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
+          <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
+          <div class="hero-event-detail" data-hero-event="open" hidden><span>OPEN</span><strong>—</strong></div>
+          <a class="hero-event-detail" data-hero-event="next" href="#today" hidden><span>NEXT</span><strong>—</strong></a>
+          <a class="hero-event-detail" data-hero-event="main" href="#today" hidden><span>MAIN</span><strong>—</strong></a>
+          <a class="schedule-x" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer"><span>LATEST</span><strong>Xで確認 ↗</strong></a>
         </div>
       </section>
 
-      <section class="today section-pad" id="today" aria-labelledby="today-title">
+      <section class="today section-pad is-stale" id="today" aria-labelledby="today-stale-title">
         <div class="section-kicker reveal"><span>01</span><span>WHAT'S ON TODAY</span></div>
-        <!-- Static fallback remains readable without JavaScript. JSON is authoritative after loading. -->
-        <div class="today-live-content">
+        <!-- Filled from data/events.json only when its date is today in Japan. The static default is the official-X message below. -->
+        <div class="today-live-content" hidden>
           <div class="today-heading">
             <h2 id="today-title" class="reveal">今日の<br />ゲーム。</h2>
-            <div class="today-summary reveal"><span>9月13日（日）</span><strong>13:00 OPEN</strong><p>トーナメントもリングゲームも開催。<br />当日の変更は公式Xでお知らせします。</p></div>
+            <div class="today-summary reveal"><span>TODAY</span><strong></strong><p></p></div>
           </div>
-          <div class="event-list">
-            <article class="event-card event-card--blue reveal">
-              <div class="event-time"><span>START</span><time>13:30</time></div>
-              <div class="event-main">
-                <div class="event-tags"><span>BEGINNER OK</span><span>1 DRINK</span></div>
-                <h3>フリーロールトーナメント</h3>
-                <p>まずは気軽に参加したい方へ。初めての方にはスタッフが遊び方をご案内します。</p>
-                <dl class="event-facts">
-                  <div><dt>ENTRY</dt><dd>¥0</dd></div>
-                  <div><dt>施設利用料</dt><dd>¥500</dd></div>
-                  <div><dt>最終受付</dt><dd>公式Xで確認</dd></div>
-                </dl>
-              </div>
-              <a class="event-link" href="https://x.com/ChonmageNiigata/status/2098995956872278516" target="_blank" rel="noreferrer">最新情報 ↗</a>
-            </article>
-            <article class="event-card event-card--orange reveal">
-              <div class="event-time"><span>START</span><time>18:00</time></div>
-              <div class="event-main">
-                <div class="event-tags"><span>RANKING EVENT</span><span>TOURNAMENT</span></div>
-                <h3>ランキング王者決定戦</h3>
-                <p>ランキング上位を目指す特別トーナメント。置きバケをご希望の方は事前にご連絡ください。</p>
-                <dl class="event-facts">
-                  <div><dt>参加料金</dt><dd>公式Xで確認</dd></div>
-                  <div><dt>置きバケ連絡</dt><dd>17:00まで</dd></div>
-                  <div><dt>最終受付</dt><dd>店舗へ確認</dd></div>
-                </dl>
-              </div>
-              <a class="event-link" href="tel:08014700011">置きバケ連絡 ↗</a>
-            </article>
-          </div>
-          <div class="ring-banner reveal"><span>ALL DAY</span><strong>リングゲームも終日開催</strong><p>空席・進行状況はお気軽にお問い合わせください。</p><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">Xで状況を見る ↗</a></div>
+          <div class="event-list"></div>
           <p class="schedule-note reveal">※「置きバケ連絡締切」と「トーナメント最終受付」は異なります。最終受付時間は公式Xまたは店舗へご確認ください。</p>
         </div>
 
-        <div class="today-stale-message" hidden>
+        <div class="today-stale-message">
           <p class="today-stale-label">TODAY'S INFORMATION</p>
           <h2 id="today-stale-title">本日の<wbr />開催情報は<br />公式Xを<wbr />ご確認<wbr />ください。</h2>
           <p>営業時間・トーナメント・リングゲームなどの最新情報は公式Xでお知らせしています。</p>
@@ -160,7 +131,7 @@
           <div class="first-sticky">
             <h2 id="first-title" class="reveal"><span class="first-lead">ポーカー<wbr />の店、</span><br /><em><span class="first-question">初めて<wbr />ですか？</span></em></h2>
             <p class="reveal">ルールを知らなくても、遊び方に自信がなくても大丈夫。スタッフが最初からご案内します。</p>
-            <img class="first-character reveal" src="./images/chonmage-character.png" alt="ちょんまげのキャラクター" width="1350" height="1165" loading="lazy" decoding="async" />
+            <img class="first-character reveal" src="./images/chonmage-character-400.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 620px) 116px, 168px" alt="ちょんまげのキャラクター" width="1350" height="1165" loading="lazy" decoding="async" />
           </div>
           <div class="promise-list">
             <article class="promise reveal"><span>01</span><h3>まずは見るだけ</h3><p>店内の雰囲気を見てから決めても大丈夫です。</p></article>
@@ -177,9 +148,9 @@
           <p class="reveal">“ポーカー店は入りにくい”を、ここでは忘れてください。白く開放的な空間に、3台のテーブル。遊ぶ人の距離も、ちょうどいい。</p>
         </div>
         <div class="photo-rail" data-drag-scroll>
-          <figure class="photo-card photo-card--wide"><img src="./images/interior-wide.png" alt="白を基調とした明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>01</span>3 TABLES · OPEN SPACE</figcaption></figure>
-          <figure class="photo-card"><img src="./images/poker-table-detail.png" alt="ポーカーテーブルと椅子が並ぶ店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>02</span>PLAY TOGETHER</figcaption></figure>
-          <figure class="photo-card"><img src="./images/storefront-night.png" alt="古町モールに面したちょんまげの夜の外観" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>03</span>RIGHT IN FURUMACHI</figcaption></figure>
+          <figure class="photo-card photo-card--wide"><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 84vw, min(75vw, 920px)" alt="白を基調とした明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>01</span>3 TABLES · OPEN SPACE</figcaption></figure>
+          <figure class="photo-card"><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" alt="ポーカーテーブルと椅子が並ぶ店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>02</span>PLAY TOGETHER</figcaption></figure>
+          <figure class="photo-card"><img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" alt="古町モールに面したちょんまげの夜の外観" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>03</span>RIGHT IN FURUMACHI</figcaption></figure>
         </div>
         <p class="drag-hint">DRAG TO EXPLORE <span>→</span></p>
       </section>
@@ -200,7 +171,7 @@
 
       <section class="comfort section-pad" aria-labelledby="comfort-title">
         <div class="section-kicker reveal"><span>06</span><span>STAY COMFORTABLE</span></div>
-        <h2 id="comfort-title" class="reveal">ちゃんと、<br />過ごしやすい。</h2>
+        <h2 id="comfort-title" class="reveal"><span class="comfort-lead">ちゃんと、</span><br /><span class="comfort-phrase">過ごし<wbr />やすい。</span></h2>
         <div class="comfort-grid">
           <div class="comfort-card reveal"><span>☀</span><strong>明るい店内</strong><small>OPEN & BRIGHT</small></div>
           <div class="comfort-card reveal"><span>○</span><strong>清潔なトイレ</strong><small>CLEAN & EASY</small></div>
@@ -210,7 +181,7 @@
       </section>
 
       <section class="cta" id="access" aria-labelledby="cta-title">
-        <img src="./images/storefront-night.png" alt="ふるまちモール6にあるちょんまげの夜の入口" width="1448" height="1086" loading="lazy" decoding="async" />
+        <img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="100vw" alt="ふるまちモール6にあるちょんまげの夜の入口" width="1448" height="1086" loading="lazy" decoding="async" />
         <div class="cta-overlay"></div>
         <div class="cta-inner section-pad">
           <p class="eyebrow reveal">SEE YOU IN FURUMACHI</p>
@@ -229,7 +200,7 @@
       <div class="footer-word">CHONMAGE</div>
       <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><span>© 2026</span></div>
     </footer>
-    <script src="./timeline.js?v=1"></script>
-    <script src="./script.js?v=timeline1"></script>
+    <script src="./timeline.js?v=20261002"></script>
+    <script src="./script.js?v=20261002"></script>
   </body>
 </html>

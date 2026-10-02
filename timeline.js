@@ -1,6 +1,11 @@
 'use strict';
 (() => {
-  const timelineState = { dateMode: 'actual', data: null, rail: null, activeIndex: 0 };
+  const timelineState = { dateMode: 'actual', data: null, rail: null, activeIndex: 0, userScrolled: false };
+  const DAY = 24 * 60;
+  // Times before 06:00 after an evening OPEN belong to the same business day (25時CLOSE = 01:00).
+  const BUSINESS_DAY_START = 6 * 60;
+  // A started event without `end` stays NOW until the next event, CLOSE, or this long.
+  const DEFAULT_EVENT_MINUTES = 180;
   const KIND_ORDER = { open: 0, ring: 1, free: 2, tournament: 3, special: 3, event: 4, close: 9 };
 
   function node(tag, className, text) {
@@ -18,6 +23,55 @@
     if (!validTime(value)) return Number.POSITIVE_INFINITY;
     const parts = value.split(':').map(Number);
     return parts[0] * 60 + parts[1];
+  }
+
+  function scheduleMinutes(value, open) {
+    const result = minutes(value);
+    if (!Number.isFinite(result)) return result;
+    const openMinute = minutes(open);
+    const afterMidnight = result < BUSINESS_DAY_START && (!Number.isFinite(openMinute) || openMinute >= BUSINESS_DAY_START);
+    return afterMidnight ? result + DAY : result;
+  }
+
+  function previousDate(iso) {
+    const date = new Date(iso + 'T12:00:00+09:00');
+    date.setUTCDate(date.getUTCDate() - 1);
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+  }
+
+  // Where "now" falls in this schedule's business day, in Japan time.
+  function businessClock(data, now) {
+    const clock = japanClock(now);
+    if (!data || typeof data.date !== 'string') return { current: false, minute: clock.minute };
+    if (data.date === clock.date) return { current: true, minute: clock.minute };
+    const closeMinute = data.status === 'open' && validTime(data.close) ? scheduleMinutes(data.close, data.open) : NaN;
+    if (closeMinute > DAY && data.date === previousDate(clock.date) && clock.minute + DAY < closeMinute) {
+      return { current: true, minute: clock.minute + DAY };
+    }
+    return { current: false, minute: clock.minute };
+  }
+
+  function isPreviewSelected(data) {
+    return timelineState.dateMode === 'selected' && !businessClock(data).current;
+  }
+
+  function currentMinute(data) {
+    return isPreviewSelected(data) ? -1 : businessClock(data).minute;
+  }
+
+  function businessPhase(data, nowMinute) {
+    if (!data || data.status === 'closed') return 'closed';
+    if (isPreviewSelected(data)) return 'scheduled';
+    if (validTime(data.open) && nowMinute < scheduleMinutes(data.open, data.open)) return 'before';
+    if (validTime(data.close) && nowMinute >= scheduleMinutes(data.close, data.open)) return 'ended';
+    return 'open';
+  }
+
+  function heroDateLabel(iso) {
+    if (typeof iso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return 'TODAY';
+    const date = new Date(iso + 'T12:00:00+09:00');
+    const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', weekday: 'short' }).format(date).toUpperCase();
+    return iso.replaceAll('-', '.') + ' · ' + weekday;
   }
 
   function japanClock(now) {
@@ -119,41 +173,63 @@
       });
     }
     return list.sort((a, b) => {
-      const diff = minutes(a.time) - minutes(b.time);
+      const diff = scheduleMinutes(a.time, data.open) - scheduleMinutes(b.time, data.open);
       if (diff) return diff;
       return (KIND_ORDER[a.kind] ?? 5) - (KIND_ORDER[b.kind] ?? 5);
     });
   }
 
+  function itemWindow(data, items, index) {
+    const item = items[index];
+    const start = scheduleMinutes(item.time, data.open);
+    const close = validTime(data.close) ? scheduleMinutes(data.close, data.open) : null;
+    if (item.kind === 'open' || item.kind === 'close') return { start, end: start };
+    if (validTime(item.end)) {
+      let end = scheduleMinutes(item.end, data.open);
+      if (end <= start) end += DAY;
+      return { start, end };
+    }
+    if (item.kind === 'ring') return { start, end: close !== null ? close : DAY + BUSINESS_DAY_START };
+    // No explicit end: the event is running until the next event starts.
+    const following = items.slice(index + 1).find((other) => !['ring', 'open', 'close'].includes(other.kind) && scheduleMinutes(other.time, data.open) > start);
+    const candidates = [start + DEFAULT_EVENT_MINUTES];
+    if (following) candidates.push(scheduleMinutes(following.time, data.open));
+    if (close !== null && close > start) candidates.push(close);
+    return { start, end: Math.min(...candidates) };
+  }
+
   function statusMap(data, items) {
     const result = new Map();
-    const clock = japanClock();
-    const selectedPreview = timelineState.dateMode === 'selected' && data.date !== clock.date;
-    if (data.date !== clock.date && !selectedPreview) return result;
-    const nowMinute = selectedPreview ? -1 : clock.minute;
-    let nextIndex = -1;
+    if (!businessClock(data).current && !isPreviewSelected(data)) return result;
+    const nowMinute = currentMinute(data);
+    const ended = businessPhase(data, nowMinute) === 'ended';
 
     items.forEach((item, index) => {
-      const start = minutes(item.time);
-      const end = validTime(item.end) ? minutes(item.end) : null;
-      if (item.kind === 'ring') {
-        const ringEnd = end !== null ? end : (validTime(data.close) ? minutes(data.close) : 24 * 60);
-        if (nowMinute >= start && nowMinute < ringEnd) result.set(item.id, 'now');
-        else if (nowMinute > ringEnd) result.set(item.id, 'past');
-      } else if (end !== null && nowMinute >= start && nowMinute < end) {
-        result.set(item.id, 'now');
-      } else if (nowMinute > start || (item.kind === 'open' && nowMinute >= start)) {
+      const { start, end } = itemWindow(data, items, index);
+      if (ended || (item.kind === 'open' && nowMinute >= start) || (item.kind !== 'open' && nowMinute >= end && nowMinute >= start)) {
         result.set(item.id, 'past');
+      } else if (nowMinute >= start && nowMinute < end) {
+        result.set(item.id, 'now');
       }
-      if (nextIndex === -1 && start > nowMinute && item.kind !== 'ring') nextIndex = index;
     });
+    if (ended) return result;
 
-    if (nextIndex === -1) nextIndex = items.findIndex((item) => minutes(item.time) > nowMinute);
-    if (nextIndex >= 0) {
-      const item = items[nextIndex];
-      if (!result.has(item.id)) result.set(item.id, 'next');
-    }
+    let next = items.find((item) => !['ring', 'close'].includes(item.kind) && scheduleMinutes(item.time, data.open) > nowMinute);
+    if (!next) next = items.find((item) => item.kind === 'ring' && scheduleMinutes(item.time, data.open) > nowMinute);
+    if (next && !result.has(next.id)) result.set(next.id, 'next');
     return result;
+  }
+
+  // NOW first (the most recently started event), otherwise NEXT.
+  function focusIndex(items, states) {
+    let target = -1;
+    items.forEach((item, index) => {
+      if (states.get(item.id) === 'now' && item.kind !== 'ring') target = index;
+    });
+    if (target < 0) target = items.findIndex((item) => states.get(item.id) === 'next');
+    if (target < 0) target = items.findIndex((item) => states.get(item.id) === 'now');
+    if (target < 0 && items.length && items.every((item) => states.get(item.id) === 'past')) target = items.length - 1;
+    return Math.max(target, 0);
   }
 
   function highlightFacts(facts) {
@@ -169,6 +245,7 @@
   function createCard(item, stateName, index) {
     const card = node('article', 'timeline-card timeline-card--' + item.kind);
     card.dataset.timelineIndex = String(index);
+    card.dataset.timelineId = item.id;
     card.dataset.state = stateName || '';
     card.setAttribute('aria-label', item.time + ' ' + item.typeLabel + ' ' + item.title);
 
@@ -238,19 +315,26 @@
     const title = document.getElementById('today-title');
     if (title) {
       const br = document.createElement('br');
-      title.replaceChildren(document.createTextNode('今日、'), br, document.createTextNode('何して遊ぶ？'));
+      title.replaceChildren(document.createTextNode('今日、'), br, node('span', 'today-title-phrase', '何して遊ぶ？'));
     }
     const summary = today.querySelector('.today-summary');
     if (summary) {
       const date = summary.querySelector('span');
       const strong = summary.querySelector('strong');
+      const copy = summary.querySelector('p');
       if (date) date.textContent = timelineDateLabel(data.date);
-      if (strong) strong.textContent = validTime(data.close) ? ('営業時間 ' + data.open + '–' + data.close) : (data.open + ' OPEN');
-    }
-    const ring = today.querySelector('.ring-banner');
-    if (ring) {
-      ring.hidden = true;
-      ring.style.display = 'none';
+      if (strong) {
+        if (data.status === 'closed') strong.textContent = '本日休業';
+        else strong.textContent = validTime(data.close) ? ('営業時間 ' + data.open + '–' + data.close) : (data.open + ' OPEN');
+      }
+      if (copy) {
+        const lines = Array.isArray(data.summary) && data.summary.length ? data.summary : ['当日の変更は公式Xでお知らせします。'];
+        copy.replaceChildren();
+        lines.forEach((line, index) => {
+          if (index) copy.append(document.createElement('br'));
+          copy.append(document.createTextNode(line));
+        });
+      }
     }
   }
 
@@ -288,7 +372,10 @@
       const dot = node('button', 'timeline-dot');
       dot.type = 'button';
       dot.setAttribute('aria-label', '時間カード ' + (index + 1) + ' を表示');
-      dot.addEventListener('click', () => card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }));
+      dot.addEventListener('click', () => {
+        timelineState.userScrolled = true;
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+      });
       dots.append(dot);
     });
     controls.append(dots, arrows);
@@ -306,6 +393,7 @@
     }
 
     function move(offset) {
+      timelineState.userScrolled = true;
       const index = Math.max(0, Math.min(cards.length - 1, activeIndexForRail(rail) + offset));
       cards[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
     }
@@ -318,6 +406,10 @@
       move(event.key === 'ArrowRight' ? 1 : -1);
     });
 
+    const markUserScroll = () => { timelineState.userScrolled = true; };
+    rail.addEventListener('wheel', markUserScroll, { passive: true });
+    rail.addEventListener('touchstart', markUserScroll, { passive: true });
+    rail.addEventListener('pointerdown', markUserScroll);
     let ticking = false;
     rail.addEventListener('scroll', () => {
       if (ticking) return;
@@ -328,25 +420,42 @@
       });
     }, { passive: true });
 
+    // Mouse drag scrolls the rail. The pointer is captured only once it really moves,
+    // so a plain click still reaches 「詳細を見る」 and links inside the cards.
+    let pressed = false;
     let dragging = false;
+    let suppressClick = false;
     let startX = 0;
     let startScroll = 0;
     rail.addEventListener('pointerdown', (event) => {
       if (event.button !== 0 || event.pointerType === 'touch') return;
-      dragging = true;
+      pressed = true;
+      dragging = false;
+      suppressClick = false;
       startX = event.clientX;
       startScroll = rail.scrollLeft;
-      rail.classList.add('is-dragging');
-      rail.setPointerCapture?.(event.pointerId);
     });
     rail.addEventListener('pointermove', (event) => {
-      if (!dragging) return;
-      rail.scrollLeft = startScroll - (event.clientX - startX);
+      if (!pressed) return;
+      if (!dragging && Math.abs(event.clientX - startX) > 5) {
+        dragging = true;
+        rail.classList.add('is-dragging');
+        rail.setPointerCapture?.(event.pointerId);
+      }
+      if (dragging) rail.scrollLeft = startScroll - (event.clientX - startX);
     });
     const stop = () => {
+      if (dragging) suppressClick = true;
+      pressed = false;
       dragging = false;
       rail.classList.remove('is-dragging');
     };
+    rail.addEventListener('click', (event) => {
+      if (!suppressClick) return;
+      suppressClick = false;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
     rail.addEventListener('pointerup', stop);
     rail.addEventListener('pointercancel', stop);
     rail.addEventListener('lostpointercapture', stop);
@@ -359,6 +468,11 @@
     if (!container) return;
     const items = buildTimeline(data);
     const states = statusMap(data, items);
+    const previousRail = timelineState.rail;
+    const previousScroll = previousRail && previousRail.isConnected ? previousRail.scrollLeft : 0;
+    // Keep 「詳細を見る」 panels the visitor opened when the clock refresh re-renders.
+    const openIds = new Set([...container.querySelectorAll('.timeline-card')]
+      .filter((card) => card.querySelector('details[open]')).map((card) => card.dataset.timelineId));
     container.classList.add('timeline-enhanced');
     container.replaceChildren();
 
@@ -370,9 +484,15 @@
     rail.setAttribute('aria-roledescription', '時間カード');
 
     const cards = items.map((item, index) => createCard(item, states.get(item.id), index));
+    cards.forEach((card) => { if (openIds.has(card.dataset.timelineId)) card.querySelector('details')?.setAttribute('open', ''); });
     if (!cards.length) {
       wrapper.append(node('p', 'timeline-empty', data.status === 'closed' ? '本日は休業です。' : '本日のイベント情報は公式Xをご確認ください。'));
     } else {
+      if (businessClock(data).current && businessPhase(data, currentMinute(data)) === 'ended') {
+        const ended = node('p', 'timeline-ended');
+        ended.append(node('strong', '', '本日終了'), document.createTextNode('本日の営業は終了しました。次回の営業情報は公式Xでお知らせします。'));
+        wrapper.append(ended);
+      }
       rail.append(...cards);
       wrapper.append(rail);
       attachControls(wrapper, rail, cards);
@@ -380,6 +500,27 @@
     container.append(wrapper);
     timelineState.rail = rail;
     updateSummary(data);
+
+    if (cards.length) {
+      const target = cards[focusIndex(items, states)];
+      const keepUserScroll = timelineState.userScrolled && previousRail;
+      // Positioned after the current task so the section is visible and measurable.
+      requestAnimationFrame(() => {
+        if (!rail.isConnected) return;
+        const left = keepUserScroll ? previousScroll : target.offsetLeft - cards[0].offsetLeft;
+        rail.scrollTo({ left, behavior: 'instant' });
+      });
+    }
+  }
+
+  function setHeroItem(item, label, event) {
+    if (!item) return;
+    item.hidden = !event;
+    if (!event) return;
+    const span = item.querySelector('span');
+    const strong = item.querySelector('strong');
+    if (span) span.textContent = label;
+    if (strong) strong.textContent = event.time + ' ' + (event.heroTitle || event.title);
   }
 
   function renderHero(data) {
@@ -388,28 +529,48 @@
     const openItem = schedule.querySelector('[data-hero-event="open"]');
     const nextItem = schedule.querySelector('[data-hero-event="next"]');
     const mainItem = schedule.querySelector('[data-hero-event="main"]');
-    const events = (data.events || []).filter((event) => !event.hidden && validTime(event.time)).slice().sort((a, b) => minutes(a.time) - minutes(b.time));
-    const clock = japanClock();
-    const selectedPreview = timelineState.dateMode === 'selected' && data.date !== clock.date;
-    const nowMinute = selectedPreview ? -1 : clock.minute;
-    let nextEvent = events.find((event) => minutes(event.time) > nowMinute);
-    if (!nextEvent && selectedPreview) nextEvent = events[0] || null;
-    const mainEvent = events.find((event) => event.isMain) || events.find((event) => ['special', 'tournament'].includes(normalizedType(event))) || events[1] || events[0] || null;
+    const open = data.open;
+    const events = (data.events || []).filter((event) => !event.hidden && validTime(event.time))
+      .slice().sort((a, b) => scheduleMinutes(a.time, open) - scheduleMinutes(b.time, open));
+    const nowMinute = currentMinute(data);
+    const phase = businessPhase(data, nowMinute);
+    const closed = phase === 'closed';
+
+    const dateLabel = document.getElementById('hero-schedule-date');
+    if (dateLabel) dateLabel.textContent = heroDateLabel(data.date);
+    const statusText = document.getElementById('hero-business-status-text');
+    const statusLabels = { closed: '本日休業', scheduled: '本日営業', before: '本日 ' + open + ' OPEN', open: '営業中', ended: '本日終了' };
+    if (statusText) statusText.textContent = statusLabels[phase];
+    const status = document.getElementById('hero-business-status');
+    if (status) status.dataset.phase = phase;
+
+    // NEXT is the next upcoming event; while nothing is upcoming, the running event is shown as NOW.
+    const items = buildTimeline(data);
+    const states = statusMap(data, items);
+    const stateOf = (event) => states.get((items.find((item) => item.sourceEvent === event) || {}).id);
+    let nextEvent = null;
+    let nextLabel = 'NEXT';
+    if (!closed && phase !== 'ended') {
+      nextEvent = events.find((event) => scheduleMinutes(event.time, open) > nowMinute) || null;
+      if (!nextEvent) {
+        nextEvent = events.slice().reverse().find((event) => stateOf(event) === 'now') || null;
+        nextLabel = 'NOW';
+      }
+    }
+    const mainEvent = closed ? null : (events.find((event) => event.isMain) ||
+      events.slice().reverse().find((event) => ['special', 'tournament'].includes(normalizedType(event))) || null);
 
     if (openItem) {
-      openItem.hidden = data.status === 'closed';
+      openItem.hidden = closed || !validTime(open);
       const strong = openItem.querySelector('strong');
-      if (strong) strong.textContent = data.open;
+      if (strong && validTime(open)) strong.textContent = open;
     }
-    if (nextItem) {
-      nextItem.hidden = data.status === 'closed' || !nextEvent;
-      const strong = nextItem.querySelector('strong');
-      if (strong && nextEvent) strong.textContent = nextEvent.time + ' ' + (nextEvent.heroTitle || nextEvent.title);
-    }
-    if (mainItem) {
-      mainItem.hidden = data.status === 'closed' || !mainEvent;
-      const strong = mainItem.querySelector('strong');
-      if (strong && mainEvent) strong.textContent = mainEvent.time + ' ' + (mainEvent.heroTitle || mainEvent.title);
+    if (nextEvent && nextEvent === mainEvent) {
+      setHeroItem(nextItem, nextLabel + ' · MAIN', nextEvent);
+      setHeroItem(mainItem, 'MAIN', null);
+    } else {
+      setHeroItem(nextItem, nextLabel, nextEvent);
+      setHeroItem(mainItem, 'MAIN', mainEvent);
     }
     const count = [openItem, nextItem, mainItem].filter((item) => item && !item.hidden).length;
     schedule.dataset.detailCount = String(count);
@@ -417,6 +578,13 @@
     if (x && data.latestXUrl) x.href = data.latestXUrl;
   }
 
+  // Changes only when something visible changes (date check, phase, NOW / NEXT / past).
+  function scheduleSignature(data) {
+    const items = buildTimeline(data);
+    return JSON.stringify([businessClock(data).current, businessPhase(data, currentMinute(data)), [...statusMap(data, items)]]);
+  }
+
+  window.ChonmageSchedule = { businessClock, scheduleMinutes, scheduleSignature };
   window.renderChonmageTimeline = renderTimeline;
   window.renderChonmageTimelineHero = renderHero;
 
