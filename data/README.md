@@ -1,38 +1,67 @@
-# 開催情報とニュースの更新
+# 開催情報・自動更新・手動上書き
 
-## 毎日の更新
+公開サイトが読む正本は `data/events.json` と `data/news.json` です。フロントエンドはデータベース API を使いません。
 
-通常は `events.json` の `date`、`open`、`events` を変更します。
+## 開催情報の3ファイル
 
-1. `date` を開催日（例：`2026-10-02`）に変更します。
-2. `open` を開店時刻（例：`17:00`）に変更します。
-3. `events` 内の時間・名前・説明・料金を変更します。
-4. 保存して main に反映します。GitHub Pages の公開完了後、サイトを確認します。
+- `events.auto.json`：自動取得の候補データ。
+- `events.manual.json`：スタッフの手動上書きだけを保存する差分。
+- `events.json`：auto と manual を merge した公開用データ。公開サイトはこのファイルだけを読みます。
 
-日付は日本時間で判定します。開催日が日本の今日と一致する日だけ、Today と Hero に開催情報が表示されます。それ以外は公式Xへの案内になります。曜日は自動で表示されます。
+優先順位は **manual > auto > stale fallback** です。
 
-- `events` は活動ごとのまとまりです。必要な数だけ追加・削除できます。開催がない場合は `[]` にします。
-- `time` は開始時刻、`title` は名前、`description` は説明です。
-- `heroTitle` は Hero 用の短い名前です。不要なら項目ごと削除できます。その場合は `title` が使われます。
-- `theme` は `blue` または `orange`。`tags` はカードのラベルです。
-- `facts` に料金などを `label`（項目名）と `value`（内容）で記入します。行数は自由で、省略もできます。
-- `link` の `label` はボタンの文言、`url` はリンク先（HTTPS または `tel:`）です。
+同じ開催日では、`events.manual.json` の指定だけが auto を上書きします。手動で追加したイベントは `extraEvents`、自動イベントを非表示にした場合は event ID に対して `hidden: true` として保存します。
 
-通常 `status` は `open`。休業日は `closed` にすると Hero の開催時刻を隠し「本日休業」と表示します。休業日に活動やリングがない場合は `events: []`、`ringGame.enabled: false` にしてください。
+手動で未来日の完全な予定を作った場合は `replacement` として保持され、auto が同じ日付まで追いついても手動予定を優先します。auto がそれより新しい日付になったときだけ、古い manual は自動的に効かなくなります。
 
-`summary` は Today の説明（配列の各文で改行）。`ringGame` はリングの表示有無・名前・説明です。`latestXUrl` は公式Xプロフィール、`schedulePostUrl` はその日の告知投稿のURLです。告知ボタンの `link.url` も合わせて更新してください。
+## events.json の主な項目
 
-## ニュースの更新
+- `date`：開催日（YYYY-MM-DD）
+- `open` / `close`：OPEN / CLOSE（HH:MM、close は任意）
+- `status`：`open` または `closed`
+- `updatedAt`：自動取得の最終更新時刻。取得できていない場合は null のことがあります。
+- `source`：情報源 URL と mode（seed / auto / merged / manual）
+- `ringGame.start`：リング開始時刻。未指定なら OPEN を使用
+- `events[].id`：auto/manual merge 用の安定 ID
+- `events[].type`：free / tournament / special / event
+- `events[].isMain`：Hero の MAIN 候補
+- `events[].hidden`：管理画面の下書きで非表示にすると manual 差分へ変換
 
-`news.json` の `items` に記事を並べます。上から表示される順です。記事のまとまりをコピーして追加、または削除できます。
+OPEN / RING / CLOSE は公開時に timeline card として生成するため、通常は `events[]` に重複して書きません。
 
-- `date`：投稿日（例：`2026-10-02`）
-- `category`：分類、`visualLabel`：色付き部分の大きな英字
-- `theme`：`schedule`、`event`、`result` のいずれか
-- `title`：見出し、`description`：説明、`url`：公式Xの投稿URL
+## 自動更新
 
-## 保存時の注意
+`.github/workflows/update-events.yml` は日本時間 09:00 / 12:00 / 15:00 / 17:00 相当の cron と `workflow_dispatch` を持ちます。
 
-JSON はコメントを書けません。文字は `" "` で囲み、項目の間にカンマを入れます。最後の項目にはカンマを付けません。時刻は `HH:MM`、日付は `YYYY-MM-DD` の形にします。
+処理順：
 
-HTML の後備情報は自動では更新されません。JavaScript 無効時はその静的情報が表示されます。JSON を読み込めない場合、Today は公式Xへの案内、News は静的な記事を表示します。通常の毎日更新では JSON だけ編集できます。
+1. データロジックのテスト
+2. 公式 X の公開情報を best-effort で取得
+3. 取得できた場合だけ `events.auto.json` を更新
+4. manual を auto より優先して merge
+5. `events.json` を validate
+6. 実データに差分がある場合だけ commit
+
+X が HTTP 403 / 429、タイムアウト、形式変更、当日の Schedule を十分な確度で識別できない場合は **既存の events.auto.json / events.json を消しません**。当日データが作れなければ、公開サイト側の日本時間 stale fallback が公式 X への案内を表示します。
+
+自動取得は X の公開ページ / 埋め込み用公開データへの best-effort アクセスで、X Developer API key は使いません。X 側の rate limit により取得できない回があることを前提に設計しています。
+
+## 手動更新
+
+通常は `/admin/` を開いて編集してください。管理画面は現在の `events.json`、`events.auto.json`、`events.manual.json` を読み、各 events フィールドを AUTO / MANUAL と表示します。
+
+公開準備では次を出力します。
+
+- `events.json`
+- `events.manual.json`
+- `news.json`
+
+GitHub Pages の静的サイトなので、ブラウザには GitHub token を保存しません。ダウンロードした manual / final JSON を GitHub の `data/` に反映して commit してください。
+
+## News
+
+`news.json` は引き続き既存構造を使用します。Schedule / Event / Result の分類を保ち、公開サイトは `data/news.json` のみを読みます。
+
+## 失敗時
+
+JSON 読み込み失敗時も HTML の静的 fallback は残ります。開催日が日本の今日と一致しない場合は昨日のイベントを「今日」として表示せず、公式 X への案内を表示します。

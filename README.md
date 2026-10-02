@@ -48,3 +48,26 @@ Google 字体和 X / Google Maps 跳转仍需要网络。
 
 GitHub 官方上传说明：
 https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository
+
+
+## Schedule data flow
+
+The public site remains a static GitHub Pages site. It fetches only `data/events.json` and `data/news.json`.
+
+```
+official X (best effort) -> events.auto.json
+                              +
+staff overrides ---------> events.manual.json
+                              |
+                              v
+                         events.json
+                              |
+                              v
+                         script.js
+```
+
+`events.manual.json` has priority over auto data. Automatic fetch failure never clears the public schedule; the existing Japan-time stale fallback remains the final safety layer.
+
+The TODAY section is progressively enhanced into a horizontally scrollable time timeline. OPEN / RING / events / CLOSE share one sorted track, while Hero OPEN / NEXT / MAIN uses the same schedule data.
+
+The admin tool at `/admin/` supports drafts, real-site preview, AUTO / MANUAL indicators, restoring automatic values, and JSON export. It never stores a GitHub Personal Access Token.
