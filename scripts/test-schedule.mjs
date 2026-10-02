@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { validateSchedule } from './validate-events.mjs';
 import { mergeSchedule } from './merge-events.mjs';
+import { readerCandidatesFromText } from './x-reader.mjs';
 
 const base = {
   version: 2,
@@ -46,5 +47,24 @@ assert.equal(mergeSchedule(auto, sameDateReplacement).open, '19:00');
 
 const newerAuto = { ...auto, date: '2026-10-04' };
 assert.equal(mergeSchedule(newerAuto, futureManual).date, '2026-10-04');
+
+
+const readerFixture = `Title: CHONMAGE
+
+Markdown Content:
+10月2日（金）
+17:00 OPEN
+18:00 FREE ROLL ENTRY ¥0
+19:10 ふるまちトーナメント ENTRY ¥2,500
+https://x.com/ChonmageNiigata/status/1234567890
+`;
+const readerRows = readerCandidatesFromText(readerFixture);
+assert.equal(readerRows.length, 1);
+assert.equal(readerRows[0].url, 'https://x.com/ChonmageNiigata/status/1234567890');
+assert.match(readerRows[0].text, /17:00 OPEN/);
+assert.deepEqual(
+  readerCandidatesFromText("Title: X\n\nDon't miss what's happening\nPeople on X are the first to know."),
+  []
+);
 
 console.log('schedule data tests passed');

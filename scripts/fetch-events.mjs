@@ -1,10 +1,15 @@
 import fs from 'node:fs';
 import { normalizeScheduleText } from './normalize-events.mjs';
 import { validateSchedule } from './validate-events.mjs';
+import { readerCandidatesFromText } from './x-reader.mjs';
 
 const HANDLE = 'ChonmageNiigata';
 const PROFILE_URL = 'https://x.com/' + HANDLE;
 const SYNDICATION_URL = 'https://syndication.twitter.com/srv/timeline-profile/screen-name/' + HANDLE;
+const READER_URLS = [
+  'https://r.jina.ai/https://x.com/' + HANDLE,
+  'https://r.jina.ai/http://x.com/' + HANDLE,
+];
 const OUTPUT = 'data/events.auto.json';
 
 function warn(message) {
@@ -91,6 +96,24 @@ async function profileCandidates() {
   return out;
 }
 
+
+async function readerCandidates() {
+  for (const url of READER_URLS) {
+    try {
+      const text = await getText(url);
+      const rows = readerCandidatesFromText(text, HANDLE);
+      if (rows.length) {
+        console.log('read ' + rows.length + ' candidate posts via Jina Reader fallback');
+        return rows;
+      }
+      warn('Jina Reader returned no confident schedule candidates for ' + url);
+    } catch (error) {
+      warn('Jina Reader fallback could not be read. ' + (error?.message || String(error)));
+    }
+  }
+  return [];
+}
+
 async function loadCandidates() {
   try {
     const rows = await syndicationCandidates();
@@ -104,11 +127,17 @@ async function loadCandidates() {
   }
 
   try {
-    return await profileCandidates();
+    const rows = await profileCandidates();
+    if (rows.length) {
+      console.log('read ' + rows.length + ' candidate posts from X profile HTML');
+      return rows;
+    }
+    warn('X profile HTML returned no schedule-like posts; trying Jina Reader.');
   } catch (error) {
-    warn('X profile HTML could not be read. ' + (error?.message || String(error)));
-    return [];
+    warn('X profile HTML could not be read; trying Jina Reader. ' + (error?.message || String(error)));
   }
+
+  return await readerCandidates();
 }
 
 const candidates = await loadCandidates();

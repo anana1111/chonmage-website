@@ -44,7 +44,7 @@ OPEN / RING / CLOSE は公開時に timeline card として生成するため、
 
 X が HTTP 403 / 429、タイムアウト、形式変更、当日の Schedule を十分な確度で識別できない場合は **既存の events.auto.json / events.json を消しません**。当日データが作れなければ、公開サイト側の日本時間 stale fallback が公式 X への案内を表示します。
 
-自動取得は X の公開ページ / 埋め込み用公開データへの best-effort アクセスで、X Developer API key は使いません。X 側の rate limit により取得できない回があることを前提に設計しています。
+自動取得は ① X syndication、② X profile HTML、③ Jina Reader 経由の公開ページ、の順で best-effort に試します。X Developer API key は使いません。Jina Reader は第三者サービスの無料 basic Reader を最後の fallback としてだけ使い、API key は保存しません。どの取得元でも当日の Schedule を十分な確度で識別できない場合は既存データを保持します。
 
 ## 手動更新
 
