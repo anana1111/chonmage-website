@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { validateSchedule } from './validate-events.mjs';
 import { mergeSchedule } from './merge-events.mjs';
-import { readerCandidatesFromText } from './x-reader.mjs';
+import { readerCandidatesFromText, rssCandidatesFromText } from './x-reader.mjs';
 
 const base = {
   version: 2,
@@ -66,5 +66,13 @@ assert.deepEqual(
   readerCandidatesFromText("Title: X\n\nDon't miss what's happening\nPeople on X are the first to know."),
   []
 );
+
+
+const rssFixture = `<?xml version="1.0"?><rss><channel><item><title><![CDATA[10月2日 17:00 OPEN / 18:00 FREE ROLL]]></title><link>https://nitter.example/ChonmageNiigata/status/9876543210</link><description><![CDATA[19:10 ふるまちトーナメント ENTRY ¥2,500]]></description></item></channel></rss>`;
+const rssRows = rssCandidatesFromText(rssFixture);
+assert.equal(rssRows.length, 1);
+assert.equal(rssRows[0].url, 'https://x.com/ChonmageNiigata/status/9876543210');
+assert.match(rssRows[0].text, /19:10 ふるまちトーナメント/);
+assert.deepEqual(rssCandidatesFromText('<rss><item><title>hello</title></item></rss>'), []);
 
 console.log('schedule data tests passed');

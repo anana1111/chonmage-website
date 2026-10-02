@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { normalizeScheduleText } from './normalize-events.mjs';
 import { validateSchedule } from './validate-events.mjs';
-import { readerCandidatesFromText } from './x-reader.mjs';
+import { readerCandidatesFromText, rssCandidatesFromText } from './x-reader.mjs';
 
 const HANDLE = 'ChonmageNiigata';
 const PROFILE_URL = 'https://x.com/' + HANDLE;
@@ -10,6 +10,7 @@ const READER_URLS = [
   'https://r.jina.ai/https://x.com/' + HANDLE,
   'https://r.jina.ai/http://x.com/' + HANDLE,
 ];
+const TWIIIT_RSS_URL = 'https://twiiit.com/' + HANDLE + '/rss';
 const OUTPUT = 'data/events.auto.json';
 
 function warn(message) {
@@ -114,6 +115,12 @@ async function readerCandidates() {
   return [];
 }
 
+
+async function twiiitCandidates() {
+  const xml = await getText(TWIIIT_RSS_URL);
+  return rssCandidatesFromText(xml, HANDLE);
+}
+
 async function loadCandidates() {
   try {
     const rows = await syndicationCandidates();
@@ -137,7 +144,20 @@ async function loadCandidates() {
     warn('X profile HTML could not be read; trying Jina Reader. ' + (error?.message || String(error)));
   }
 
-  return await readerCandidates();
+  const readerRows = await readerCandidates();
+  if (readerRows.length) return readerRows;
+
+  try {
+    const rows = await twiiitCandidates();
+    if (rows.length) {
+      console.log('read ' + rows.length + ' candidate posts via Twiiit/Nitter RSS fallback');
+      return rows;
+    }
+    warn('Twiiit/Nitter RSS returned no schedule-like posts.');
+  } catch (error) {
+    warn('Twiiit/Nitter RSS fallback could not be read. ' + (error?.message || String(error)));
+  }
+  return [];
 }
 
 const candidates = await loadCandidates();

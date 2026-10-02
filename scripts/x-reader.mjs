@@ -54,3 +54,49 @@ export function readerCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
   });
   return out.slice(0, 20);
 }
+
+function decodeEntities(value) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)));
+}
+
+function xmlTag(item, tag) {
+  const escaped = tag.replace(':', '\\:');
+  const match = item.match(new RegExp('<' + escaped + '(?:\\s[^>]*)?>([\\s\\S]*?)<\\/' + escaped + '>', 'i'));
+  return match ? match[1].replace(/^<!\[CDATA\[|\]\]>$/g, '') : '';
+}
+
+function plainXml(value) {
+  return cleanBlock(decodeEntities(String(value || '')
+    .replace(/<br\s*\/?\s*>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')));
+}
+
+export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
+  const xml = String(rawText || '');
+  const out = [];
+  const seen = new Set();
+  for (const match of xml.matchAll(/<item\b[\s\S]*?<\/item>/gi)) {
+    const item = match[0];
+    const title = plainXml(xmlTag(item, 'title'));
+    const description = plainXml(xmlTag(item, 'description') || xmlTag(item, 'content:encoded'));
+    const text = cleanBlock([title, description].filter(Boolean).join('\n'));
+    if (!SCHEDULE_HINT.test(text) || !TIME_HINT.test(text)) continue;
+    const link = plainXml(xmlTag(item, 'link') || xmlTag(item, 'guid'));
+    const id = link.match(/\/status\/(\d+)/)?.[1] || '';
+    const key = id || text;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      text,
+      url: id ? ('https://x.com/' + handle + '/status/' + id) : ('https://x.com/' + handle),
+    });
+  }
+  return out.slice(0, 50);
+}
