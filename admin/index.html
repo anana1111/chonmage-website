@@ -29,7 +29,7 @@
           <section id="today-panel" role="tabpanel" aria-labelledby="today-tab"></section>
           <section id="news-panel" role="tabpanel" aria-labelledby="news-tab" hidden></section>
         </form>
-        <div class="editor-tools"><button id="reset" type="button" disabled>公開中のデータに戻す</button><button id="restore-auto" type="button" disabled>自動データに戻す</button><button id="export-json" type="button" disabled>JSONを書き出す</button><p>この管理画面は現在ブラウザ内で編集・プレビューするためのツールです。GitHubへの安全な直接公開機能は別途設定します。</p></div>
+        <div class="editor-tools"><button id="reset" type="button" disabled>公開中のデータに戻す</button><button id="restore-auto" type="button" disabled>自動データに戻す</button><button id="export-json" type="button" disabled>JSONを書き出す</button><p>公開ボタンでJSONを検証・保存し、GitHubのdata/アップロード画面まで進めます。Tokenはブラウザに保存しません。</p></div>
       </section>
       <section id="preview-panel" class="preview-panel" aria-labelledby="preview-title">
         <div class="preview-toolbar">
@@ -50,7 +50,7 @@
       <div class="action-buttons">
         <button id="save-draft" type="button" disabled>下書きを保存</button>
         <button id="jump-preview" class="mobile-only" type="button">Preview</button>
-        <button id="prepare-publish" class="primary" type="button" disabled>公開準備</button>
+        <button id="prepare-publish" class="primary" type="button" disabled>GitHubに公開</button>
       </div>
     </footer>
     <dialog id="draft-dialog" aria-labelledby="draft-title">
@@ -59,10 +59,10 @@
     </dialog>
     <dialog id="export-dialog" aria-labelledby="export-title">
       <div class="dialog-heading"><h2 id="export-title">JSONを書き出す</h2><button id="close-export" type="button" aria-label="書き出し画面を閉じる">閉じる</button></div>
-      <div id="publish-summary" hidden><h3>公開する内容</h3><dl id="summary-list"></dl><p>ダウンロードしたファイルで GitHub の data/ 内を更新し、公開完了を確認してください。</p><a class="button-link" href="https://github.com/anana1111/chonmage-website/tree/main/data" target="_blank" rel="noreferrer">GitHubを開く ↗</a></div>
+      <div id="publish-summary" hidden><h3>公開する内容</h3><dl id="summary-list"></dl><p>3ファイルを保存してから、GitHubのアップロード画面へ進んでください。既存の同名ファイルを置き換えて commit すると公開されます。</p><div class="dialog-actions"><button id="download-publish-files" type="button">3ファイルを一括保存</button><a class="button-link" href="https://github.com/anana1111/chonmage-website/upload/main/data" target="_blank" rel="noreferrer">GitHubアップロード画面 ↗</a></div></div>
       <div id="export-files"></div><p id="export-status" role="status"></p>
     </dialog>
     <noscript><p class="load-error">管理画面での編集には JavaScript が必要です。公開サイトはそのまま閲覧できます。</p></noscript>
-    <script src="./admin.js?v=2"></script>
+    <script src="./admin.js?v=3"></script>
   </body>
 </html>

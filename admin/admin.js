@@ -4,7 +4,7 @@
   const frame = $('website-preview');
   const keys = ['chonmage-admin-events-draft', 'chonmage-admin-news-draft'];
   const clone = (value) => JSON.parse(JSON.stringify(value));
-  const state = { data: null, snapshot: '', local: false, tab: 'today', request: 0, api: null, autoEvents: null, manualEvents: null };
+  const state = { data: null, snapshot: '', local: false, tab: 'today', request: 0, api: null, autoEvents: null, manualEvents: null, publishFiles: [] };
   let timer, readyResolve, readyTimer;
   const controls = new Map();
   const node = (tag, text, className) => {
@@ -506,8 +506,13 @@
       ['events-manual', buildManualOverrides(result.data.events), 'events.manual.json'],
       ['news', result.data.news, 'news.json']
     ];
+    state.publishFiles = exportFiles.map(([name, payload, filename]) => ({
+      name,
+      filename,
+      text: `${JSON.stringify(payload, null, 2)}\n`
+    }));
     exportFiles.forEach(([name, payload, filename]) => {
-      const card = node('section', undefined, 'export-file'); const text = `${JSON.stringify(payload, null, 2)}\n`;
+      const card = node('section', undefined, 'export-file'); const text = state.publishFiles.find((file) => file.name === name).text;
       const label = node('label', filename); label.htmlFor = `export-${name}`;
       const textarea = node('textarea'); textarea.id = label.htmlFor; textarea.readOnly = true; textarea.value = text; textarea.spellcheck = false;
       const actions = node('div', undefined, 'dialog-actions');
@@ -520,6 +525,28 @@
       })); card.append(label, textarea, actions); $('export-files').append(card);
     }); $('export-dialog').showModal();
   }
+  function downloadFile(filename, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json;charset=utf-8' }));
+    const link = node('a');
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
+  $('download-publish-files').addEventListener('click', async () => {
+    if (!state.publishFiles.length) {
+      $('export-status').textContent = '先に公開内容を生成してください。';
+      return;
+    }
+    state.publishFiles.forEach((file, index) => setTimeout(() => downloadFile(file.filename, file.text), index * 250));
+    const commitMessage = 'Update schedule data for ' + (state.data?.events?.date || 'today');
+    try { await navigator.clipboard.writeText(commitMessage); } catch { /* clipboard is optional */ }
+    $('export-status').textContent = '3ファイルを保存しました。GitHubで同名ファイルを置き換えてcommitしてください。コミット文もコピーしました。';
+  });
+
   $('export-json').addEventListener('click', () => exportData()); $('prepare-publish').addEventListener('click', () => exportData(true));
   $('close-export').addEventListener('click', () => $('export-dialog').close());
   load();
