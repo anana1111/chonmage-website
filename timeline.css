@@ -43,7 +43,10 @@
 .timeline-card--tournament,
 .timeline-card--special { border-top-color: var(--orange); }
 .timeline-card--close { border-top-color: #8c918d; }
-.timeline-card[data-state="past"] { opacity: .48; }
+/* Finished cards stay readable (no whole-card fade): muted surface, grey time, 「終了」 badge. */
+.timeline-card[data-state="past"] { background: #f3f1ea; border-top-color: #c3c4bf; }
+.timeline-card[data-state="past"] .timeline-card__time { color: #6a6c68; }
+.timeline-card[data-state="past"] .timeline-card__title { color: #3b3d3a; }
 .timeline-card[data-state="now"] { box-shadow: inset 0 0 0 2px var(--blue), 0 10px 32px rgba(39, 56, 112, .12); }
 .timeline-card[data-state="next"] { box-shadow: inset 0 0 0 2px var(--orange), 0 10px 32px rgba(242, 107, 56, .12); }
 .timeline-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
@@ -70,6 +73,7 @@
 }
 .timeline-status--now { background: var(--blue); color: #fff; border-color: var(--blue); }
 .timeline-status--next { background: var(--orange); color: #151613; border-color: var(--orange); }
+.timeline-status--past { background: transparent; color: #5c5f5b; border-color: #bfc1bc; }
 .timeline-card__title {
   margin: auto 0 1rem;
   /* No single leftover character on the last line (e.g. 「スター/ト」). */

@@ -161,6 +161,19 @@ await scenario('repository data (real events.json) at a later date', { time: jst
   assert.equal(s.stale, true);
 });
 
+// --- finished cards stay readable: no whole-card fade, explicit 「終了」 badge -------------
+{
+  const { page, context, errors } = await openPage({ time: jst('19:30'), events: fixture() });
+  const past = await page.locator('.timeline-card[data-timeline-id="free-1800"]').evaluate((card) => ({
+    state: card.dataset.state, opacity: getComputedStyle(card).opacity,
+    badge: card.querySelector('.timeline-status--past')?.textContent || '',
+  }));
+  ok(past.state === 'past' && past.opacity === '1' && past.badge === '終了', 'past card is readable and marked 終了: ' + JSON.stringify(past));
+  ok(!(await page.locator('.timeline-card[data-timeline-id="open"] .timeline-status--past').count()), 'OPEN card has no 終了 badge');
+  ok(!errors.length, 'past card: console errors ' + errors.join(' | '));
+  await context.close();
+}
+
 // --- page left open: the minute refresh follows the clock without closing open details ---
 {
   const { page, context, errors } = await openPage({ time: jst('18:55'), events: fixture() });

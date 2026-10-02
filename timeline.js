@@ -255,6 +255,8 @@
     const badgeRow = node('div', 'timeline-card__badges');
     if (stateName === 'now') badgeRow.append(node('span', 'timeline-status timeline-status--now', 'NOW'));
     if (stateName === 'next') badgeRow.append(node('span', 'timeline-status timeline-status--next', 'NEXT'));
+    // OPEN only marks the start of the day, so it gets no 「終了」 badge.
+    if (stateName === 'past' && item.kind !== 'open') badgeRow.append(node('span', 'timeline-status timeline-status--past', '終了'));
     badgeRow.append(node('span', 'timeline-card__type', item.typeLabel));
     top.append(time, badgeRow);
 
