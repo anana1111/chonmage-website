@@ -1,0 +1,9 @@
+{
+  "source": "touchine-ojo/OJO-Design-Skills",
+  "ref": "fbd2c2d158e5ebda8930f4bc63ed635a8500d31f",
+  "target": "claude-code",
+  "targetName": "Claude Code",
+  "dest": ".claude/skills",
+  "installedAt": "20261002T130328Z",
+  "skills": ["app-ui-ux-best-practices"]
+}
