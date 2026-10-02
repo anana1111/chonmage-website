@@ -144,7 +144,8 @@ try {
   const before = await rail.evaluate((el) => el.scrollLeft);
   await page.keyboard.press('ArrowRight');
   await page.waitForTimeout(350);
-  assert.ok(await rail.evaluate((el) => el.scrollLeft >= before), 'keyboard navigation regressed');
+  const afterKeyboard = await rail.evaluate((el) => el.scrollLeft);
+  assert.ok(afterKeyboard >= before, 'keyboard navigation regressed');
 
   // Admin layout, source indicators and live iframe preview.
   const admin = await context.newPage();
