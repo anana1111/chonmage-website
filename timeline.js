@@ -393,7 +393,7 @@
     const selectedPreview = timelineState.dateMode === 'selected' && data.date !== clock.date;
     const nowMinute = selectedPreview ? -1 : clock.minute;
     let nextEvent = events.find((event) => minutes(event.time) > nowMinute);
-    if (!nextEvent) nextEvent = events[0] || null;
+    if (!nextEvent && selectedPreview) nextEvent = events[0] || null;
     const mainEvent = events.find((event) => event.isMain) || events.find((event) => ['special', 'tournament'].includes(normalizedType(event))) || events[1] || events[0] || null;
 
     if (openItem) {

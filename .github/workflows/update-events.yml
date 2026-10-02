@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - schedule-upgrade-preview
     paths:
       - 'scripts/**'
       - '.github/workflows/update-events.yml'
@@ -16,7 +15,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: update-daily-events-${{ github.ref }}
+  group: update-daily-events
   cancel-in-progress: false
 
 jobs:
