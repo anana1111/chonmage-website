@@ -121,7 +121,7 @@
     return list.sort((a, b) => {
       const diff = minutes(a.time) - minutes(b.time);
       if (diff) return diff;
-      return (KIND_ORDER[a.kind] || 5) - (KIND_ORDER[b.kind] || 5);
+      return (KIND_ORDER[a.kind] ?? 5) - (KIND_ORDER[b.kind] ?? 5);
     });
   }
 
