@@ -146,6 +146,7 @@ function safeUrl(value, allowTelephone = false) {
 function validateEvents(data) {
   dateValue(data.date);
   requireTime(data.open);
+  if (data.close) requireTime(data.close);
   if (!['open', 'closed'].includes(data.status)) throw new Error('Invalid status');
   safeUrl(data.latestXUrl);
   if (data.schedulePostUrl) safeUrl(data.schedulePostUrl);
@@ -155,17 +156,28 @@ function validateEvents(data) {
   }
   if (data.ringGame) {
     if (typeof data.ringGame.enabled !== 'boolean') throw new Error('Invalid ring game');
+    if (data.ringGame.start) requireTime(data.ringGame.start);
     if (data.ringGame.enabled) {
       requireText(data.ringGame.title);
       requireText(data.ringGame.description);
     }
   }
   if (!Array.isArray(data.events)) throw new Error('Missing events');
-  data.events.forEach((event) => {
+  const eventIds = new Set();
+  data.events.filter((event) => !event.hidden).forEach((event) => {
+    if (event.id !== undefined) {
+      requireText(event.id);
+      if (eventIds.has(event.id)) throw new Error('Duplicate event id');
+      eventIds.add(event.id);
+    }
     requireTime(event.time);
+    if (event.end) requireTime(event.end);
     requireText(event.title);
     requireText(event.description);
+    if (event.type !== undefined && !['free', 'tournament', 'special', 'event'].includes(event.type)) throw new Error('Invalid event type');
     if (!['blue', 'orange'].includes(event.theme)) throw new Error('Invalid event theme');
+    if (event.hidden !== undefined && typeof event.hidden !== 'boolean') throw new Error('Invalid hidden flag');
+    if (event.isMain !== undefined && typeof event.isMain !== 'boolean') throw new Error('Invalid main flag');
     if (event.heroTitle !== undefined) requireText(event.heroTitle);
     if (event.tags !== undefined && !Array.isArray(event.tags)) throw new Error('Invalid tags');
     (event.tags || []).forEach(requireText);
@@ -205,6 +217,10 @@ function contentLink(className, label, url, allowTelephone = false) {
 }
 
 function renderEvents(data) {
+  if (typeof window.renderChonmageTimeline === 'function') {
+    window.renderChonmageTimeline(data);
+    return;
+  }
   const list = todaySection?.querySelector('.event-list');
   if (!list) return;
   const cards = document.createDocumentFragment();
@@ -256,17 +272,22 @@ function renderEvents(data) {
 }
 
 function renderHeroSchedule(data) {
+  if (typeof window.renderChonmageTimelineHero === 'function') {
+    window.renderChonmageTimelineHero(data);
+    return;
+  }
   const schedule = document.querySelector('.hero-schedule');
   if (!schedule) return;
   const date = document.getElementById('hero-schedule-date');
   const status = document.getElementById('hero-business-status-text');
   if (date) date.textContent = formatJapaneseDate(data.date);
   if (status) status.textContent = data.status === 'closed' ? '本日休業' : '本日営業';
+  const visibleEvents = data.events.filter((event) => !event.hidden);
   let detailCount = 0;
   ['open', 'next', 'main'].forEach((name, index) => {
     const item = schedule.querySelector(`[data-hero-event="${name}"]`);
     if (!item) return;
-    const event = data.events[index - 1];
+    const event = visibleEvents[index - 1];
     item.hidden = data.status === 'closed' || (name !== 'open' && !event);
     if (!item.hidden) {
       item.querySelector('strong').textContent = name === 'open'

@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>CHONMAGE ADMIN — Website Content Manager</title>
+    <title>CHONMAGE — Daily Schedule Manager</title>
     <link rel="stylesheet" href="./admin.css?v=1" />
+    <link rel="stylesheet" href="./schedule.css?v=1" />
   </head>
   <body>
     <header class="app-header">
-      <div class="identity"><span class="app-mark" aria-hidden="true">C</span><div><h1>CHONMAGE ADMIN</h1><p>Website Content Manager</p></div></div>
+      <div class="identity"><span class="app-mark" aria-hidden="true">C</span><div><h1>CHONMAGE</h1><p>DAILY SCHEDULE MANAGER</p></div></div>
       <div class="header-meta"><span id="save-state" class="state" role="status">読み込み中</span><a href="../" target="_blank" rel="noreferrer">公開サイト ↗</a></div>
     </header>
     <div class="tab-bar">
@@ -28,7 +29,7 @@
           <section id="today-panel" role="tabpanel" aria-labelledby="today-tab"></section>
           <section id="news-panel" role="tabpanel" aria-labelledby="news-tab" hidden></section>
         </form>
-        <div class="editor-tools"><button id="reset" type="button" disabled>公開中のデータに戻す</button><button id="export-json" type="button" disabled>JSONを書き出す</button><p>この管理画面は現在ブラウザ内で編集・プレビューするためのツールです。GitHubへの安全な直接公開機能は別途設定します。</p></div>
+        <div class="editor-tools"><button id="reset" type="button" disabled>公開中のデータに戻す</button><button id="restore-auto" type="button" disabled>自動データに戻す</button><button id="export-json" type="button" disabled>JSONを書き出す</button><p>この管理画面は現在ブラウザ内で編集・プレビューするためのツールです。GitHubへの安全な直接公開機能は別途設定します。</p></div>
       </section>
       <section id="preview-panel" class="preview-panel" aria-labelledby="preview-title">
         <div class="preview-toolbar">
@@ -62,6 +63,6 @@
       <div id="export-files"></div><p id="export-status" role="status"></p>
     </dialog>
     <noscript><p class="load-error">管理画面での編集には JavaScript が必要です。公開サイトはそのまま閲覧できます。</p></noscript>
-    <script src="./admin.js?v=1"></script>
+    <script src="./admin.js?v=2"></script>
   </body>
 </html>
