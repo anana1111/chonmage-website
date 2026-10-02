@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - schedule-upgrade-preview
     paths:
       - 'scripts/**'
       - '.github/workflows/update-events.yml'
@@ -15,7 +16,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: update-daily-events
+  group: update-daily-events-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -43,6 +44,7 @@ jobs:
         run: node scripts/validate-events.mjs data/events.json
 
       - name: Commit only real data changes
+        if: github.ref == 'refs/heads/main'
         shell: bash
         run: |
           if git diff --quiet -- data/events.auto.json data/events.json; then
