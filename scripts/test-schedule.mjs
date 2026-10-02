@@ -36,4 +36,15 @@ assert.equal(mergeSchedule(auto, oldManual).events[0].title, 'AUTO');
 const futureManual = { version: 1, date: '2026-10-03', replacement: { ...base, date: '2026-10-03', events: [] } };
 assert.equal(mergeSchedule(auto, futureManual).date, '2026-10-03');
 
+
+const sameDateReplacement = {
+  version: 1,
+  date: auto.date,
+  replacement: { ...base, date: auto.date, open: '19:00', events: [] }
+};
+assert.equal(mergeSchedule(auto, sameDateReplacement).open, '19:00');
+
+const newerAuto = { ...auto, date: '2026-10-04' };
+assert.equal(mergeSchedule(newerAuto, futureManual).date, '2026-10-04');
+
 console.log('schedule data tests passed');

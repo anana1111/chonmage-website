@@ -28,8 +28,7 @@ export function mergeSchedule(autoData, manualData) {
   const manualDate = typeof manualData.date === 'string' ? manualData.date : autoData.date;
   if (manualDate < autoData.date) return clone(autoData);
 
-  if (manualDate > autoData.date) {
-    if (!manualData.replacement) return clone(autoData);
+  if (manualData.replacement && manualDate >= autoData.date) {
     const replacement = clone(manualData.replacement);
     replacement.source = mergeObject(replacement.source, {
       type: replacement.source?.type || 'manual',
@@ -40,6 +39,8 @@ export function mergeSchedule(autoData, manualData) {
     replacement.events.sort(compareTime);
     return replacement;
   }
+
+  if (manualDate > autoData.date) return clone(autoData);
 
   const result = clone(autoData);
   Object.entries(manualData.fields || {}).forEach(([key, value]) => {
