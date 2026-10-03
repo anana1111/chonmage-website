@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const timelineState = { dateMode: 'actual', data: null, rail: null, activeIndex: 0, userScrolled: false };
+  const timelineState = { dateMode: 'actual', heroDate: null, data: null, rail: null, activeIndex: 0, userScrolled: false };
   const DAY = 24 * 60;
   // Times before 06:00 after an evening OPEN belong to the same business day (25時CLOSE = 01:00).
   const BUSINESS_DAY_START = 6 * 60;
@@ -529,6 +529,29 @@
     const openItem = schedule.querySelector('[data-hero-event="open"]');
     const nextItem = schedule.querySelector('[data-hero-event="next"]');
     const mainItem = schedule.querySelector('[data-hero-event="main"]');
+    const override = getHeroOverride(data);
+    if (override) {
+      const { date, hero } = override;
+      const dateLabel = document.getElementById('hero-schedule-date');
+      if (dateLabel) dateLabel.textContent = heroDateLabel(date);
+      const status = document.getElementById('hero-business-status');
+      if (status) status.dataset.phase = { open: 'scheduled', ongoing: 'open', ended: 'ended', closed: 'closed' }[hero.status];
+      const statusText = document.getElementById('hero-business-status-text');
+      if (statusText) statusText.textContent = { open: '本日営業', ongoing: '開催中', ended: '本日終了', closed: '休業' }[hero.status];
+      if (openItem) {
+        openItem.hidden = hero.status === 'closed' || !validTime(hero.open);
+        if (openItem.querySelector('strong')) openItem.querySelector('strong').textContent = hero.open || '';
+      }
+      setHeroItem(nextItem, 'NEXT', null);
+      setHeroItem(mainItem, 'MAIN', hero.status !== 'closed' && hero.mainTime && hero.mainTitle ? { time: hero.mainTime, title: hero.mainTitle } : null);
+      schedule.dataset.detailCount = String([openItem, mainItem].filter((item) => item && !item.hidden).length);
+      const x = schedule.querySelector('.schedule-x');
+      if (x) {
+        x.href = hero.latestUrl || data.latestXUrl || 'https://x.com/ChonmageNiigata';
+        if (x.querySelector('strong')) x.querySelector('strong').textContent = hero.latestText.replace(/\s*↗$/, '') + ' ↗';
+      }
+      return;
+    }
     const open = data.open;
     const events = (data.events || []).filter((event) => !event.hidden && validTime(event.time))
       .slice().sort((a, b) => scheduleMinutes(a.time, open) - scheduleMinutes(b.time, open));
@@ -575,23 +598,39 @@
     const count = [openItem, nextItem, mainItem].filter((item) => item && !item.hidden).length;
     schedule.dataset.detailCount = String(count);
     const x = schedule.querySelector('.schedule-x');
-    if (x && data.latestXUrl) x.href = data.latestXUrl;
+    if (x) {
+      if (data.latestXUrl) x.href = data.latestXUrl;
+      if (x.querySelector('strong')) x.querySelector('strong').textContent = 'Xで確認 ↗';
+    }
+  }
+
+  function getHeroOverride(data, now) {
+    const date = timelineState.dateMode === 'selected' ? timelineState.heroDate || data.date : japanClock(now).date;
+    const hero = data.heroOverrides?.[date];
+    return hero ? { date, hero } : null;
   }
 
   // Changes only when something visible changes (date check, phase, NOW / NEXT / past).
   function scheduleSignature(data) {
     const items = buildTimeline(data);
-    return JSON.stringify([businessClock(data).current, businessPhase(data, currentMinute(data)), [...statusMap(data, items)]]);
+    return JSON.stringify([businessClock(data).current, businessPhase(data, currentMinute(data)), [...statusMap(data, items)], getHeroOverride(data)]);
   }
 
-  window.ChonmageSchedule = { businessClock, scheduleMinutes, scheduleSignature };
+  window.ChonmageSchedule = { businessClock, scheduleMinutes, scheduleSignature, getHeroOverride };
   window.renderChonmageTimeline = renderTimeline;
   window.renderChonmageTimelineHero = renderHero;
 
   window.addEventListener('message', (event) => {
+    if (new URLSearchParams(location.search).get('preview') !== '1') return;
     if (event.origin !== location.origin || event.source !== window.parent) return;
     const message = event.data;
     if (!message || typeof message !== 'object' || message.type !== 'CHONMAGE_PREVIEW') return;
-    timelineState.dateMode = message.dateMode === 'selected' ? 'selected' : 'actual';
+    try {
+      window.validateEvents(message.events); window.validateNews(message.news);
+      if (!['selected', 'actual'].includes(message.dateMode)) return;
+      if (message.heroDate !== undefined) window.dateValue(message.heroDate);
+      timelineState.dateMode = message.dateMode;
+      timelineState.heroDate = message.heroDate || null;
+    } catch { /* Keep the previous valid preview mode. */ }
   });
 })();

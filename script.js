@@ -149,8 +149,27 @@ function safeUrl(value, allowTelephone = false) {
 
 const filled = (value) => value !== undefined && value !== '';
 
+// Kept in sync with the shared Node/admin validator.
+function validateHeroOverrides(overrides) {
+  if (overrides === undefined) return;
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) throw new Error('Invalid hero overrides');
+  Object.entries(overrides).forEach(([date, hero]) => {
+    dateValue(date);
+    if (!hero || typeof hero !== 'object' || Array.isArray(hero)) throw new Error('Invalid hero date');
+    for (const key of ['open', 'mainTime', 'mainTitle', 'latestUrl']) {
+      if (hero[key] !== undefined && typeof hero[key] !== 'string') throw new Error('Invalid hero ' + key);
+    }
+    if (!['open', 'ongoing', 'ended', 'closed'].includes(hero.status)) throw new Error('Invalid hero status');
+    if (hero.status !== 'closed' || hero.open) requireTime(hero.open);
+    if (hero.mainTime || hero.mainTitle) { requireTime(hero.mainTime); requireText(hero.mainTitle); }
+    requireText(hero.latestText);
+    if (hero.latestUrl) safeUrl(hero.latestUrl);
+  });
+}
+
 function validateEvents(data) {
   if (!data || typeof data !== 'object') throw new Error('Invalid schedule');
+  validateHeroOverrides(data.heroOverrides);
   dateValue(data.date);
   if (!['open', 'closed'].includes(data.status)) throw new Error('Invalid status');
   // A closed day may omit OPEN; an open day always needs it.
@@ -251,7 +270,7 @@ function isCurrentSchedule(data, now = new Date()) {
   return data.date === getJapanDate(now);
 }
 
-function applyStaleState(isStale, latestXUrl = officialXUrl) {
+function applyStaleState(isStale, latestXUrl = officialXUrl, heroIsStale = isStale) {
   if (!todaySection) return;
   const live = todaySection.querySelector('.today-live-content');
   const message = todaySection.querySelector('.today-stale-message');
@@ -261,10 +280,12 @@ function applyStaleState(isStale, latestXUrl = officialXUrl) {
   todaySection.setAttribute('aria-labelledby', isStale ? 'today-stale-title' : 'today-title');
   todaySection.querySelector('.today-stale-x')?.setAttribute('href', latestXUrl);
   const schedule = document.querySelector('.hero-schedule');
-  schedule?.classList.toggle('is-stale', isStale);
-  schedule?.setAttribute('aria-label', isStale ? '最新の営業・イベント情報' : '本日の営業とイベント');
-  schedule?.querySelector('.schedule-x')?.setAttribute('href', latestXUrl);
-  if (isStale) {
+  schedule?.classList.toggle('is-stale', heroIsStale);
+  schedule?.setAttribute('aria-label', heroIsStale ? '最新の営業・イベント情報' : '本日の営業とイベント');
+  if (heroIsStale) schedule?.querySelector('.schedule-x')?.setAttribute('href', latestXUrl);
+  if (heroIsStale) {
+    const latest = schedule?.querySelector('.schedule-x strong');
+    if (latest) latest.textContent = 'Xで確認 ↗';
     document.querySelectorAll('.hero-event-detail').forEach((item) => { item.hidden = true; });
     const date = document.getElementById('hero-schedule-date');
     const status = document.getElementById('hero-business-status-text');
@@ -312,9 +333,10 @@ function showEvents(data) {
   const isCurrent = isCurrentSchedule(data);
   if (isCurrent) {
     renderEvents(data);
-    renderHeroSchedule(data);
   }
-  applyStaleState(!isCurrent, safeUrl(data.latestXUrl));
+  const hasHero = Boolean(window.ChonmageSchedule?.getHeroOverride?.(data));
+  if (isCurrent || hasHero) renderHeroSchedule(data);
+  applyStaleState(!isCurrent, safeUrl(data.latestXUrl), !isCurrent && !hasHero);
 }
 
 async function loadEvents() {
@@ -364,11 +386,15 @@ if (isPreviewMode) {
       const events = validateEvents(message.events);
       const news = validateNews(message.news);
       if (!['selected', 'actual'].includes(message.dateMode)) throw new Error('Invalid preview date mode');
+      if (message.heroDate !== undefined) dateValue(message.heroDate);
       // Both datasets are validated before replacing any content.
       renderEvents(events);
       renderHeroSchedule(events);
       renderNews(news);
-      applyStaleState(message.dateMode === 'actual' && !isCurrentSchedule(events), safeUrl(events.latestXUrl));
+      const hasHero = Boolean(window.ChonmageSchedule?.getHeroOverride?.(events));
+      const heroStale = message.dateMode === 'actual' ? !isCurrentSchedule(events) && !hasHero :
+        Boolean(message.heroDate && message.heroDate !== events.date && !hasHero);
+      applyStaleState(message.dateMode === 'actual' && !isCurrentSchedule(events), safeUrl(events.latestXUrl), heroStale);
       if (previewSection !== message.section) {
         previewSection = message.section;
         const target = document.getElementById(previewSection === 'news' ? 'news' : 'top');

@@ -7,10 +7,11 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { validateSchedule, mergeSchedule } from './schedule-core.mjs';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = process.argv[2] || '';
 const require = createRequire(import.meta.url);
 let chromium;
@@ -31,7 +32,7 @@ const server = http.createServer((request, response) => {
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const origin = 'http://127.0.0.1:' + server.address().port;
-const browser = await chromium.launch(fs.existsSync('/opt/pw-browsers/chromium') ? {} : {});
+const browser = await chromium.launch(process.env.BROWSER_CHANNEL ? { channel: process.env.BROWSER_CHANNEL } : {});
 const problems = [];
 let checks = 0;
 const ok = (condition, message) => { checks += 1; if (!condition) problems.push(message); };
@@ -157,7 +158,7 @@ await scenario('old data is never shown as today', { time: jst('18:00'), events:
   assert.equal(s.open, null);
   assert.equal(s.next, null);
 });
-await scenario('repository data (real events.json) at a later date', { time: jst('18:00') }, (s) => {
+await scenario('repository data (real events.json) at a later date', { time: jst('18:00', '2026-12-31') }, (s) => {
   assert.equal(s.stale, true);
 });
 
@@ -229,6 +230,13 @@ await scenario('repository data (real events.json) at a later date', { time: jst
     fixture({ latestXUrl: 'javascript:alert(1)' }),
     fixture({ date: '2026-02-30' }),
     fixture({ source: { url: 'http://bad' } }),
+    ...[{ status: 'open', open: '17:00', latestText: 'Xで確認', latestUrl: '' },
+      { status: 'closed', open: '', latestText: 'Xで確認' },
+      { status: 'open', open: '25:00', latestText: 'Xで確認' },
+      { status: 'ended', open: '17:00', mainTime: '18:00', mainTitle: '', latestText: 'Xで確認' },
+      { status: 'open', open: '17:00', latestText: 'Xで確認', latestUrl: 'javascript:alert(1)' },
+      { status: 'closed', open: 0, latestText: 'Xで確認' }, null]
+      .map((hero) => fixture({ heroOverrides: { '2026-10-02': hero } })),
   ];
   const { page, context, errors } = await openPage({ time: jst('18:00'), events: fixture() });
   const browserResults = await page.evaluate((list) => list.map((item) => { try { window.validateEvents(item); return true; } catch { return false; } }), JSON.parse(JSON.stringify(cases)));
@@ -239,7 +247,7 @@ await scenario('repository data (real events.json) at a later date', { time: jst
 }
 
 // --- layout at each width ---------------------------------------------------------------
-const widths = [320, 375, 390, 620, 768, 1024, 1440];
+const widths = [320, 360, 375, 390, 412, 620, 768, 1024, 1440];
 for (const width of widths) {
   for (const mode of ['live', 'stale']) {
     const { page, context, errors } = await openPage({ width, time: jst('18:05'), events: mode === 'live' ? fixture() : fixture({ date: '2026-09-13' }) });
@@ -320,9 +328,93 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   await context.close();
 }
 
+// Homepage overrides: actual rendered card and the existing admin draft/export workflow.
+const heroDraft = { status: 'ended', open: '17:00', mainTime: '18:00', mainTitle: '王者決定戦', latestText: '当日のXで確認', latestUrl: '' };
+for (const [status, label] of [['open', '本日営業'], ['ongoing', '開催中'], ['ended', '本日終了'], ['closed', '休業']]) {
+  const { page, context } = await openPage({ time: jst('18:00'), events: fixture({ date: '2026-09-13', heroOverrides: { '2026-10-02': { ...heroDraft, status } } }) });
+  const rendered = await heroState(page);
+  ok(rendered.stale && rendered.status === label, 'hero override: ' + status + ' works without current automatic data');
+  ok(status !== 'closed' || rendered.open === null && rendered.main === null, 'hero override: closed hides times');
+  await context.close();
+}
+{
+  const { page, context } = await openPage({ time: jst('23:59'), events: fixture({ heroOverrides: { '2026-10-02': heroDraft } }) });
+  await page.clock.setFixedTime(new Date(jst('00:01', '2026-10-03')));
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  ok((await heroState(page)).date === 'LATEST INFO', 'hero override: midnight expires old card');
+  await page.evaluate((data) => window.dispatchEvent(new MessageEvent('message', { origin: location.origin, source: window, data: { type: 'CHONMAGE_PREVIEW', dateMode: 'selected', events: data, news: { items: [] } } })), fixture({ heroOverrides: { '2026-10-02': heroDraft } }));
+  ok((await heroState(page)).date === 'LATEST INFO', 'normal homepage ignores preview messages');
+  await context.close();
+}
+for (const width of [360, 390, 412, 768, 1440]) {
+  const data = fixture({ heroOverrides: { '2026-10-02': { ...heroDraft, mainTitle: '長い日本語の大会名と初めて参加する方へのご案内'.repeat(8) } } });
+  const { page, context, errors } = await openPage({ width, time: jst('18:05'), events: data });
+  const rendered = await heroState(page);
+  ok(rendered.status === '本日終了' && rendered.date === '2026.10.02 · FRI', 'hero override ' + width + ': status/date');
+  ok(rendered.open === 'OPEN 17:00' && rendered.main?.includes('18:00'), 'hero override ' + width + ': times');
+  ok(await page.locator('.schedule-x').getAttribute('href') === data.latestXUrl, 'hero override: blank URL fallback');
+  ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'hero override ' + width + ': long-title overflow');
+  ok(!errors.length, 'hero override ' + width + ': errors ' + errors.join(' | '));
+  if (shotDir) await page.screenshot({ path: path.join(shotDir, 'hero-override-' + width + '.png'), fullPage: true });
+  await context.close();
+}
+{
+  const { page, context, errors } = await openPage({ width: 1440, url: '/admin/', time: jst('18:05') });
+  let confirmReset = true;
+  page.on('dialog', (dialog) => confirmReset ? dialog.accept() : dialog.dismiss());
+  await page.waitForSelector('#hero-editor');
+  const fill = (key, value) => page.fill('#field-hero-' + key, value);
+  await fill('date', '2026-10-04');
+  await fill('open', '17:00'); await fill('mainTime', '18:00'); await fill('mainTitle', '下書きの王者決定戦');
+  await page.selectOption('#field-hero-status', 'ongoing');
+  await fill('latestText', '当日のXで確認'); await fill('latestUrl', 'https://x.com/ChonmageNiigata/status/123');
+  await page.click('#hero-preview');
+  const preview = page.frameLocator('#website-preview');
+  await preview.locator('[data-hero-event="main"] strong').getByText('下書きの王者決定戦', { exact: false }).waitFor();
+  ok(await preview.locator('#hero-schedule-date').textContent() === '2026.10.04 · SUN', 'admin hero: future selected day and weekday');
+  ok(await preview.locator('#hero-business-status-text').textContent() === '開催中', 'admin hero: unsaved status');
+  ok(await page.evaluate(() => !localStorage.getItem('chonmage-admin-events-draft')), 'admin hero: preview is unsaved');
+  await page.selectOption('#date-mode', 'actual');
+  await page.waitForTimeout(350);
+  ok(!(await preview.locator('[data-hero-event="main"]').getAttribute('hidden') === null && (await preview.locator('[data-hero-event="main"]').textContent()).includes('下書き')), 'admin hero: Japan actual-date ignores future override');
+  await page.selectOption('#date-mode', 'selected');
+  await page.click('#close-preview');
+  await fill('latestUrl', 'javascript:alert(1)');
+  await page.click('#hero-save');
+  ok(/https/.test(await page.locator('#field-hero-latestUrl-error').textContent()), 'admin hero: invalid URL visible');
+  ok(await page.evaluate(() => !localStorage.getItem('chonmage-admin-events-draft')), 'admin hero: invalid save blocked');
+  await fill('latestUrl', ''); await page.click('#hero-save');
+  ok(/保存しました/.test(await page.locator('#notice-text').textContent()), 'admin hero: save confirmation');
+  await page.evaluate(() => { window.originalStorageSet = Storage.prototype.setItem; Storage.prototype.setItem = () => { throw new Error('QA storage unavailable'); }; });
+  await fill('mainTitle', '保存失敗のテスト'); await page.click('#hero-save');
+  ok(/保存できませんでした/.test(await page.locator('#notice-text').textContent()), 'admin hero: save failure visible');
+  await page.evaluate(() => { Storage.prototype.setItem = window.originalStorageSet; });
+  await fill('mainTitle', '下書きの王者決定戦'); await page.click('#hero-save');
+  await page.reload(); await page.waitForSelector('#draft-dialog[open]'); await page.click('#restore-draft');
+  await page.waitForSelector('#hero-editor'); await fill('date', '2026-10-04');
+  ok(await page.inputValue('#field-hero-mainTitle') === '下書きの王者決定戦', 'admin hero: saved draft survives refresh');
+  await fill('date', '2026-10-05'); await fill('open', '13:00'); await page.click('#hero-save');
+  await fill('date', '2026-10-04');
+  confirmReset = false; await page.click('#hero-restore-auto');
+  ok(await page.inputValue('#field-hero-mainTitle') === '下書きの王者決定戦', 'admin hero: reset cancel retains data');
+  confirmReset = true; await page.click('#hero-restore-auto');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('chonmage-admin-events-draft')));
+  ok(!stored.heroOverrides['2026-10-04'] && stored.heroOverrides['2026-10-05'].open === '13:00', 'admin hero: reset only removes selected day');
+  await page.click('#prepare-publish'); await page.waitForSelector('#export-dialog[open]');
+  const manual = JSON.parse(await page.inputValue('#export-events-manual'));
+  const output = JSON.parse(await page.inputValue('#export-events'));
+  ok(output.heroOverrides['2026-10-05'].open === '13:00', 'admin hero: export contains override');
+  const originalManual = JSON.parse(fs.readFileSync(path.join(root, 'data/events.manual.json'), 'utf8'));
+  ok(JSON.stringify(manual.replacement) === JSON.stringify(originalManual.replacement), 'admin hero: existing schedule replacement preserved');
+  validateSchedule(output);
+  ok(!errors.length, 'admin hero: errors ' + errors.join(' | '));
+  await context.close();
+}
+
 // --- admin flow -----------------------------------------------------------------------------
 {
-  const { page, context, errors } = await openPage({ width: 1280, url: '/admin/', time: jst('18:00') });
+  const automatic = JSON.parse(fs.readFileSync(path.join(root, 'data/events.auto.json'), 'utf8'));
+  const { page, context, errors } = await openPage({ width: 1280, url: '/admin/', time: jst('18:00'), events: automatic });
   page.on('dialog', (dialog) => dialog.accept());
   await page.waitForSelector('#editor-form:not([hidden])', { timeout: 20000 });
   const bodyText = await page.locator('body').innerText();
@@ -386,7 +478,7 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
 }
 
 // --- admin layout at each width ------------------------------------------------------------
-for (const width of [320, 375, 390, 768, 1024, 1440]) {
+for (const width of [320, 360, 375, 390, 412, 768, 1024, 1440]) {
   for (const view of ['home', 'schedule', 'news', 'settings']) {
     const { page, context, errors } = await openPage({ width, url: '/admin/#' + view, time: jst('18:00') });
     await page.waitForSelector('#editor-form:not([hidden])', { timeout: 20000 });

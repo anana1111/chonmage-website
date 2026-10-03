@@ -13,6 +13,7 @@
   const state = {
     data: null, snapshot: '', local: false, view: 'home', request: 0, api: null, core: null,
     autoEvents: null, manualEvents: null, live: null, publishFiles: [], drawer: null, errors: new Map(),
+    heroDate: null,
   };
   let timer, readyResolve, readyTimer, noticeTimer;
   const controls = new Map();
@@ -75,11 +76,63 @@
   // ---------- data access ----------
   function dirty() { return state.data && JSON.stringify(state.data) !== state.snapshot; }
   function differsFromLive() { return state.data && state.live && JSON.stringify(state.data) !== JSON.stringify(state.live); }
-  function get(path) { return path.split('.').reduce((value, key) => value?.[key], state.data); }
+  function get(path) {
+    if (path === 'hero.date') return state.heroDate;
+    if (path.startsWith('hero.')) return heroValues()[path.slice(5)];
+    return path.split('.').reduce((value, key) => value?.[key], state.data);
+  }
   function set(path, value) {
+    if (path === 'hero.date') { state.heroDate = value; return; }
+    if (path.startsWith('hero.')) {
+      if (!state.core.isDate(state.heroDate)) return;
+      if (!state.data.events.heroOverrides) state.data.events.heroOverrides = {};
+      if (!state.data.events.heroOverrides[state.heroDate]) state.data.events.heroOverrides[state.heroDate] = heroValues();
+      state.data.events.heroOverrides[state.heroDate][path.slice(5)] = value;
+      return;
+    }
     const parts = path.split('.'); let target = state.data;
     parts.slice(0, -1).forEach((key) => { if (!target[key]) target[key] = {}; target = target[key]; });
     target[parts.at(-1)] = value;
+  }
+  function heroValues() {
+    const saved = state.data?.events?.heroOverrides?.[state.heroDate];
+    if (saved) return saved;
+    const auto = state.data?.events?.date === state.heroDate ? state.data.events : state.autoEvents?.date === state.heroDate ? state.autoEvents : null;
+    const visible = (auto?.events || []).filter((event) => !event.hidden);
+    const main = visible.find((event) => event.isMain) || visible.slice().reverse().find((event) => ['special', 'tournament'].includes(event.type));
+    return { status: auto?.status || 'open', open: auto?.open || '', mainTime: main?.time || '', mainTitle: main?.heroTitle || main?.title || '', latestText: 'Xで確認', latestUrl: '' };
+  }
+  function renderHeroEditor(view) {
+    const card = panel('今日のゲーム', 'ホームの営業カードだけを編集します。手動設定は選んだ日付にだけ適用されます。');
+    card.id = 'hero-editor';
+    const manual = Boolean(state.data.events.heroOverrides?.[state.heroDate]);
+    card.append(chip(manual ? '手動 override' : '既存の予定データ', manual ? 'manual' : 'neutral'));
+    if (!manual && state.autoEvents?.date !== state.heroDate && state.data.events.date !== state.heroDate) card.append(node('p', 'この日の予定データはまだありません。手動設定がなければ公式Xへの案内を表示します。', 'panel-description'));
+    card.append(field('hero.date', '日付', 'date', { required: true }), field('hero.status', '営業状況', 'select', { values: [['open', '本日営業'], ['ongoing', '開催中'], ['ended', '本日終了'], ['closed', '休業']] }),
+      grid(field('hero.open', 'OPEN', 'time', { required: get('hero.status') !== 'closed' }), field('hero.mainTime', 'MAIN TIME', 'time')),
+      field('hero.mainTitle', 'MAIN EVENT', 'text', { hint: 'MAIN TIME と一緒に入力。両方空欄なら MAIN を表示しません。' }),
+      field('hero.latestText', 'LATEST TEXT', 'text', { required: true }), field('hero.latestUrl', 'X URL', 'url', { hint: '空欄なら現在の公式Xリンクを使います。https:// のURLのみ。' }));
+    const actions = node('div', undefined, 'button-row');
+    const preview = button('プレビュー', () => { setPreview(true); sendPreview(); }); preview.id = 'hero-preview';
+    const save = button('保存', () => {
+      if (!state.core.isDate(state.heroDate)) { notice('有効な日付を入力してください。', 'error'); return; }
+      if (!state.data.events.heroOverrides?.[state.heroDate]) set('hero.status', get('hero.status'));
+      const result = validate();
+      if (!result.valid) { notice('保存できません。入力を確認してください。', 'error'); jumpToError(result.errors); return; }
+      if (saveDraft()) { notice('保存しました（このブラウザの下書き）。公開用ファイルを作成し、GitHubにアップロードするとサイトに反映されます。'); changed(); }
+    }, 'button primary'); save.id = 'hero-save';
+    const reset = button('自動取得データに戻す', restoreHeroAuto); reset.id = 'hero-restore-auto'; reset.disabled = !manual;
+    actions.append(preview, save, reset); card.append(actions, node('p', '下書き保存は公開ではありません。既存の「公開用ファイルを作成」から公開してください。', 'field-hint'));
+    view.append(card);
+  }
+  function restoreHeroAuto() {
+    const date = state.heroDate;
+    if (!state.data.events.heroOverrides?.[date] || !window.confirm(`${dateLabel(date)} のホームカードの手動設定を削除し、自動取得データに戻しますか？他の日付やイベント編集は残ります。`)) return;
+    const before = clone(state.data.events.heroOverrides);
+    delete state.data.events.heroOverrides[date];
+    if (!Object.keys(state.data.events.heroOverrides).length) delete state.data.events.heroOverrides;
+    if (!saveDraft()) { state.data.events.heroOverrides = before; rebuild(); return; }
+    rebuild(); sendPreview(); notice('この日の手動設定を削除しました。公開用ファイルをアップロードすると公開サイトも自動取得データに戻ります。');
   }
   function autoEventFor(event) {
     return event?.id ? state.autoEvents?.events?.find((item) => item.id === event.id) : undefined;
@@ -221,6 +274,7 @@
     const head = node('div', undefined, 'home-head');
     head.append(node('p', `${greeting} 👋`, 'greeting'), node('p', dateLabel(now.date), 'today-date'));
     view.append(head);
+    renderHeroEditor(view);
 
     const alerts = node('div', undefined, 'alerts');
     const live = state.live?.events;
@@ -623,6 +677,17 @@
       if (placeholder(get(path))) errors.set(path, '「' + get(path).trim() + '」は仮の文言です。公開する内容に書き換えてください。');
       else check(path, api.requireText, '入力してください。');
     };
+    if (state.view === 'home') check('hero.date', api.dateValue, '有効な日付を入力してください。');
+    Object.entries(get('events.heroOverrides') || {}).forEach(([date, hero]) => {
+      const base = date === state.heroDate ? 'hero' : `events.heroOverrides.${date}`;
+      const inspect = (key, fn, message) => { try { fn(hero[key]); } catch { errors.set(`${base}.${key}`, message); } };
+      try { api.dateValue(date); } catch { errors.set('hero.date', '有効な日付を入力してください。'); }
+      if (!['open', 'ongoing', 'ended', 'closed'].includes(hero.status)) errors.set(`${base}.status`, '営業状況を選択してください。');
+      if (hero.status !== 'closed' || hero.open) inspect('open', api.requireTime, '時刻を入力してください（例：17:00）。');
+      if (hero.mainTime || hero.mainTitle) { inspect('mainTime', api.requireTime, 'MAIN TIME とイベント名を一緒に入力してください。'); inspect('mainTitle', api.requireText, 'MAIN EVENT を入力してください。'); }
+      inspect('latestText', api.requireText, 'リンクの文言を入力してください。');
+      if (hero.latestUrl) inspect('latestUrl', api.safeUrl, 'https:// で始まるURLを入力してください。');
+    });
     (get('events.summary') || []).forEach((_, index) => text(`events.summary.${index}`));
     if (get('events.ringGame.enabled')) {
       if (get('events.ringGame.start')?.trim()) check('events.ringGame.start', api.requireTime, '時刻を入力してください（例：17:00）。');
@@ -664,7 +729,12 @@
     if (!path) return;
     const eventMatch = path.match(/^events\.events\.(\d+)\./);
     const newsMatch = path.match(/^news\.items\.(\d+)\./);
-    if (eventMatch) { location.hash = '#schedule'; openDrawer('event', Number(eventMatch[1]), path); }
+    const heroMatch = path.match(/^events\.heroOverrides\.(\d{4}-\d{2}-\d{2})\.(.+)$/);
+    if (path.startsWith('hero.') || heroMatch) {
+      if (heroMatch) state.heroDate = heroMatch[1];
+      location.hash = '#home'; setView('home'); controls.get(heroMatch ? `hero.${heroMatch[2]}` : path)?.input.focus();
+    }
+    else if (eventMatch) { location.hash = '#schedule'; openDrawer('event', Number(eventMatch[1]), path); }
     else if (newsMatch) { location.hash = '#news'; openDrawer('news', Number(newsMatch[1]), path); }
     else if (/^events\.(date|status|open|close|ringGame)/.test(path)) { location.hash = '#schedule'; openDrawer('hours', null, path); }
     else { location.hash = '#settings'; setView('settings'); controls.get(path)?.input.focus(); }
@@ -677,7 +747,8 @@
       $('preview-feedback').textContent = '入力を確認してください。最後の正しいプレビューを表示しています。'; $('preview-feedback').classList.add('error'); return;
     }
     $('preview-feedback').classList.remove('error'); $('preview-feedback').textContent = 'プレビューを更新しています…';
-    frame.contentWindow.postMessage({ type: 'CHONMAGE_PREVIEW', events: result.data.events, news: result.data.news, dateMode: $('date-mode').value, section: state.view === 'news' ? 'news' : 'today', requestId: ++state.request }, location.origin);
+    frame.contentWindow.postMessage({ type: 'CHONMAGE_PREVIEW', events: result.data.events, news: result.data.news, dateMode: $('date-mode').value,
+      ...(state.view === 'home' ? { heroDate: state.heroDate } : {}), section: state.view === 'news' ? 'news' : state.view === 'home' ? 'top' : 'today', requestId: ++state.request }, location.origin);
   }
   function setPreview(open) {
     $('preview-panel').hidden = !open;
@@ -700,11 +771,16 @@
     const input = event.target; if (!input.dataset?.path || !state.data) return;
     if (input.type === 'radio' && !input.checked) return;
     const path = input.dataset.path;
+    if (path === 'hero.date') { set(path, input.value); rebuild('hero.date'); return; }
     // Clearing 参加費 / 最終受付 removes that row instead of leaving an empty one.
     if (input.dataset.optionalFact && event.type === 'change' && !input.value.trim()) {
       const parts = path.split('.'); get(parts.slice(0, 4).join('.')).splice(Number(parts[4]), 1); rebuild(); return;
     }
     set(path, input.type === 'checkbox' ? input.checked : input.value);
+    if (path.startsWith('hero.')) {
+      if (path === 'hero.status') { rebuild('hero.status'); return; }
+      const reset = $('hero-restore-auto'); if (reset) reset.disabled = false;
+    }
     if (path === 'events.ringGame.enabled') $('ring-fields').hidden = !input.checked;
     if (path === 'events.status') { rebuild(); return; }
     if (state.drawer?.kind === 'event' && path === `events.events.${state.drawer.index}.title`) $('drawer-title').textContent = input.value || 'イベント';
@@ -764,6 +840,7 @@
     if (!data || !data.events || !data.news || !Array.isArray(data.events.events) || !Array.isArray(data.news.items)) return false;
     const strings = (obj, names) => obj && names.every((key) => obj[key] === undefined || typeof obj[key] === 'string');
     return strings(data.events, ['date', 'open', 'status', 'latestXUrl', 'schedulePostUrl']) &&
+      (data.events.heroOverrides === undefined || data.events.heroOverrides && typeof data.events.heroOverrides === 'object' && !Array.isArray(data.events.heroOverrides) && Object.values(data.events.heroOverrides).every((hero) => hero && !Array.isArray(hero) && strings(hero, ['status', 'open', 'mainTime', 'mainTitle', 'latestText', 'latestUrl']))) &&
       (!data.events.summary || Array.isArray(data.events.summary) && data.events.summary.every((row) => typeof row === 'string')) &&
       (!data.events.ringGame || typeof data.events.ringGame === 'object' && typeof data.events.ringGame.enabled === 'boolean' && strings(data.events.ringGame, ['title', 'description'])) &&
       data.events.events.every((item) => strings(item, ['time', 'title', 'heroTitle', 'theme', 'description']) && (!item.tags || Array.isArray(item.tags) && item.tags.every((tag) => typeof tag === 'string')) && (!item.facts || Array.isArray(item.facts) && item.facts.every((fact) => strings(fact, ['label', 'value']))) && (!item.link || strings(item.link, ['label', 'url']))) &&
@@ -786,9 +863,10 @@
   async function load() {
     $('load-error').hidden = true; $('loading').hidden = false; $('editor-form').hidden = true;
     try {
-      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=2');
+      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=3');
       await prepareFrame(); const live = await fetchPublished(); const choice = await chooseDraft(live);
       state.data = clone(choice.data); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
+      state.heroDate = japanNow().date;
       $('editor-form').hidden = false; $('loading').hidden = true;
       ['save-draft', 'prepare-publish'].forEach((id) => { $(id).disabled = false; });
       setView(location.hash.slice(1));
@@ -837,9 +915,17 @@
   // ---------- export (same merge as GitHub Actions) ----------
   function buildManualOverrides(finalEvents) {
     const auto = state.autoEvents;
-    if (!auto) return { version: 1, date: finalEvents.date, replacement: clone(finalEvents) };
+    const heroOverrides = clone(finalEvents.heroOverrides || {});
+    const baseEvents = clone(finalEvents); delete baseEvents.heroOverrides;
+    const liveEvents = clone(state.live?.events || {}); delete liveEvents.heroOverrides;
+    if (state.manualEvents && JSON.stringify(baseEvents) === JSON.stringify(liveEvents)) {
+      const manual = clone(state.manualEvents); manual.heroOverrides = heroOverrides;
+      if (manual.replacement) delete manual.replacement.heroOverrides;
+      return manual;
+    }
+    if (!auto) return { version: 1, date: finalEvents.date, replacement: baseEvents, heroOverrides };
     if (finalEvents.date !== auto.date) {
-      return { version: 1, date: finalEvents.date, replacement: clone(finalEvents) };
+      return { version: 1, date: finalEvents.date, replacement: baseEvents, heroOverrides };
     }
     const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const fields = {};
@@ -869,7 +955,7 @@
       if (Object.keys(override).length) events[event.id] = override;
     });
     autoById.forEach((event, id) => { events[id] = { hidden: true }; });
-    return { version: 1, date: finalEvents.date, fields, ringGame, events, extraEvents };
+    return { version: 1, date: finalEvents.date, fields, ringGame, events, extraEvents, heroOverrides };
   }
   function downloadFile(filename, text) {
     const url = URL.createObjectURL(new Blob([text], { type: 'application/json;charset=utf-8' }));
@@ -888,7 +974,9 @@
     const manual = buildManualOverrides(result.data.events);
     let finalEvents;
     try {
-      if (state.autoEvents && result.data.events.date < state.autoEvents.date) {
+      const schedule = clone(result.data.events); delete schedule.heroOverrides;
+      const published = clone(state.live.events); delete published.heroOverrides;
+      if (state.autoEvents && result.data.events.date < state.autoEvents.date && JSON.stringify(schedule) !== JSON.stringify(published)) {
         throw new Error(`日付が自動取得の予定（${dateLabel(state.autoEvents.date)}）より前なので、この内容は公開されません。日付を確認してください。`);
       }
       finalEvents = state.core.mergeSchedule(state.autoEvents || result.data.events, manual);

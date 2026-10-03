@@ -16,6 +16,12 @@
 
 merge は `scripts/schedule-core.mjs` の `mergeSchedule()` です。`scripts/merge-events.mjs`（Actions）と管理画面の書き出しは同じコードを使います。
 
+## 日付ごとのホームカード上書き
+
+既存の `events.manual.json` に任意の `heroOverrides` オブジェクトを追加できます。キーは日本のカレンダー日付、値は `status`（open / ongoing / ended / closed）、`open`、`mainTime`、`mainTitle`、`latestText`、`latestUrl` です。時刻は HH:MM、MAIN は時刻・名称を一緒に入力、リンクは HTTPS または空欄です。
+
+merge はこのマップを `events.json` に引き継ぎます。古いイベント手動設定が期限切れでも、未来日のカード設定は残ります。公開ページは日本時間の今日に一致するカードのみ適用し、他の日の自動更新を妨げません。ホームカードだけが対象で、イベント詳細・リングゲーム・News は変更しません。日付のキーを削除すると、その日は従来のデータと公式X案内へ戻ります。
+
 ## events.json の主な項目
 
 - `date`：開催日（YYYY-MM-DD）
