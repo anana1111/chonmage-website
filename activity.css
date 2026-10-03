@@ -1,0 +1,62 @@
+/* TODAY uses the site's existing paper, ink, blue and orange palette. */
+.event-list.activity-enhanced { display: block; min-width: 0; margin-top: clamp(2rem, 5vw, 4rem); }
+.activity-hero, .activity-card { min-width: 0; border: 1px solid var(--line); border-radius: 20px; background: var(--white); color: var(--ink); overflow-wrap: anywhere; }
+.activity-hero { min-height: 390px; border-top: 5px solid var(--blue); padding: clamp(1.25rem, 3vw, 2.5rem); display: flex; flex-direction: column; justify-content: center; gap: .65rem; }
+.activity-status { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; font-size: .8rem; font-weight: 700; }
+.activity-badge { color: var(--blue); letter-spacing: .07em; }
+.activity-kicker { color: var(--ink); }
+.activity-value { margin: .25rem 0; font-family: "Archivo Black", "Noto Sans JP", sans-serif; font-weight: 900; font-size: clamp(2.3rem, 5vw, 5rem); line-height: 1.12; letter-spacing: -.045em; text-wrap: balance; line-break: strict; overflow-wrap: anywhere; }
+.activity-title { margin: 0; font-size: clamp(1.15rem, 2.5vw, 2rem); font-weight: 800; line-height: 1.4; text-wrap: balance; }
+.activity-description { margin: 0; font-size: 1rem; line-height: 1.65; }
+.activity-meta { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: .2rem 0 0; }
+.activity-meta > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: .35rem; }
+.activity-meta dt { font-size: .75rem; }
+.activity-meta dd { margin: 0; font-size: .95rem; font-weight: 800; }
+.activity-link { display: inline-flex; align-items: center; align-self: flex-start; min-height: 44px; color: var(--blue); text-underline-offset: .25em; font-size: .9rem; font-weight: 700; overflow-wrap: anywhere; }
+.activity-details { margin-top: .25rem; border-top: 1px solid var(--line); font-size: .9rem; line-height: 1.75; }
+.activity-details summary { min-height: 44px; padding-block: .6rem; cursor: pointer; font-weight: 700; }
+.activity-details > p { white-space: pre-line; }
+.activity-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.activity-facts dt { font-size: .75rem; }
+.activity-facts dd { margin: 0; font-weight: 700; }
+.activity-secondary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+.activity-card { padding: 1.25rem; display: flex; flex-direction: column; align-items: stretch; }
+.activity-card-label { margin: 0; color: var(--blue); font-size: .8rem; font-weight: 800; letter-spacing: .05em; }
+.activity-card-title { font-size: clamp(1.3rem, 2.2vw, 1.8rem); line-height: 1.4; margin: .5rem 0; text-wrap: balance; }
+.activity-card-state { margin: 0 0 .5rem; font-size: .95rem; font-weight: 600; line-height: 1.6; }
+.activity-card .activity-details { margin-top: auto; }
+.activity-card[data-event-status="last-call"] { border-top: 4px solid var(--orange); }
+.activity-later { margin-top: 2rem; }
+.activity-later > h3 { font-size: 1.15rem; margin: 0 0 .75rem; }
+.activity-later ul { list-style: none; padding: 0; margin: 0; }
+.activity-later li { border-top: 1px solid var(--line); min-width: 0; }
+.activity-later .activity-details { margin: 0; border: 0; }
+.activity-later summary { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; gap: .5rem 1rem; padding: 1rem 0; }
+.activity-later-time { color: var(--blue); font-weight: 800; }
+.activity-later-name { overflow-wrap: anywhere; }
+.activity-later-remaining { font-size: .8rem; font-weight: 500; }
+.activity-empty { padding: 1rem 0; font-size: .9rem; line-height: 1.7; }
+.activity-test-note { padding: .75rem; border: 1px solid var(--orange); font-size: .85rem; font-weight: 700; }
+.activity-hero.is-switching { animation: activity-switch .25s ease; }
+@keyframes activity-switch { from { opacity: .65; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+body[data-activity-state="last-call"] .activity-hero { border-top-color: var(--orange); }
+.activity-value--count { display: flex; align-items: baseline; flex-wrap: wrap; gap: .25rem; }
+.activity-count { font-size: clamp(8.5rem, 19vw, 17rem); line-height: .84; color: var(--blue); }
+.activity-count-label { font-family: "Noto Sans JP", sans-serif; font-size: clamp(1.75rem, 3vw, 3rem); }
+body[data-activity-state="after-close"] .activity-hero,
+body[data-activity-state="closed-day"] .activity-hero { min-height: 280px; }
+.activity-enhanced :focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+.activity-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.activity-enhanced [hidden] { display: none !important; }
+@media (max-width: 620px) {
+  .activity-hero { min-height: 44svh; padding: 1.1rem; gap: .5rem; }
+  .activity-value { font-size: clamp(2rem, 9vw, 3.1rem); }
+  .activity-title { font-size: 1.15rem; }
+  .activity-description { font-size: .95rem; }
+  .activity-count { font-size: clamp(6.5rem, 32vw, 7.5rem); }
+  .activity-count-label { font-size: 1.25rem; }
+  .activity-secondary { grid-template-columns: minmax(0, 1fr); }
+  .activity-later summary { grid-template-columns: 3.5rem minmax(0, 1fr); gap: .25rem .75rem; }
+  .activity-later-remaining { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .activity-hero.is-switching { animation: none; } }

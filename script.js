@@ -264,6 +264,7 @@ function isCurrentSchedule(data, now = new Date()) {
 
 function applyStaleState(isStale, latestXUrl = officialXUrl, heroIsStale = isStale) {
   if (!todaySection) return;
+  if (isStale) window.ChonmageActivity?.clear();
   const live = todaySection.querySelector('.today-live-content');
   const message = todaySection.querySelector('.today-stale-message');
   if (live) live.hidden = isStale;
@@ -368,6 +369,15 @@ const isPreviewMode = new URLSearchParams(window.location.search).get('preview')
 if (isPreviewMode) {
   applyStaleState(true);
   let previewSection = null;
+  let previewScrollPending = false;
+  const positionPreview = () => {
+    if (!previewScrollPending || window.frameElement && !window.frameElement.getClientRects().length) return;
+    const target = document.getElementById(previewSection === 'news' ? 'news' : previewSection === 'today' ? 'activity-hero' : 'top') || document.getElementById('today');
+    if (!target || !target.getClientRects().length) return;
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
+    previewScrollPending = false;
+  };
+  window.addEventListener('resize', () => { if (previewScrollPending) requestAnimationFrame(positionPreview); });
   const tellParent = (message) => window.parent.postMessage(message, window.location.origin);
   window.addEventListener('message', (event) => {
     if (event.origin !== window.location.origin || event.source !== window.parent) return;
@@ -393,9 +403,10 @@ if (isPreviewMode) {
       applyStaleState(message.dateMode === 'actual' && !isCurrentSchedule(events), safeUrl(events.latestXUrl), heroStale);
       if (previewSection !== message.section) {
         previewSection = message.section;
-        const target = document.getElementById(previewSection === 'news' ? 'news' : 'top');
-        if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
+        previewScrollPending = true;
       }
+      // Hidden iframe scrolls are ignored by browsers; retry when it is shown.
+      if (previewScrollPending) requestAnimationFrame(positionPreview);
       tellParent({ type: 'CHONMAGE_PREVIEW_RENDERED', requestId: message.requestId });
     } catch (error) {
       console.warn('下書きのプレビューを更新できません。', error);
@@ -406,7 +417,15 @@ if (isPreviewMode) {
 } else {
   loadEvents();
   loadNews();
-  setInterval(refreshEvents, 60 * 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { refreshEvents(); refreshNews(); } });
+  let activityTimer;
+  const scheduleRefresh = () => {
+    clearTimeout(activityTimer);
+    if (window.ChonmageActivity?.testTime) return;
+    activityTimer = setTimeout(() => { refreshEvents(); scheduleRefresh(); }, window.ChonmageActivity?.nextMinuteDelay() ?? 60000 - (Date.now() % 60000) + 20);
+  };
+  scheduleRefresh();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { refreshEvents(); scheduleRefresh(); refreshNews(); }
+  });
   window.addEventListener('pageshow', refreshNews);
 }

@@ -65,7 +65,7 @@ async function openPage({ width = 390, time, events, javaScriptEnabled = true, u
   if (time && javaScriptEnabled) await page.clock.setFixedTime(new Date(time));
   await page.goto(origin + url, { waitUntil: 'load' });
   if (javaScriptEnabled && url === '/') {
-    await page.waitForFunction(() => document.querySelector('.timeline-rail, .timeline-empty') || !document.querySelector('.today-stale-message').hidden);
+    await page.waitForFunction(() => document.querySelector('#activity-hero') || !document.querySelector('.today-stale-message').hidden);
     await page.waitForTimeout(150);
   }
   return { page, context, errors };
@@ -78,18 +78,15 @@ async function heroState(page) {
       const el = document.querySelector(`[data-hero-event="${name}"]`);
       return el.hidden ? null : el.querySelector('span').textContent + ' ' + el.querySelector('strong').textContent;
     };
-    const states = [...document.querySelectorAll('.timeline-card')].map((card) => card.querySelector('.timeline-card__time').textContent + ':' + (card.dataset.state || '-'));
-    const rail = document.querySelector('.timeline-rail');
-    const cards = [...document.querySelectorAll('.timeline-card')];
-    const focused = rail ? cards.findIndex((card) => Math.abs(card.offsetLeft - cards[0].offsetLeft - rail.scrollLeft) < 4) : -1;
+    const states = [...document.querySelectorAll('[data-activity-event]')].map((card) => card.dataset.activityEvent + ':' + card.dataset.eventStatus);
     return {
       date: text('#hero-schedule-date'),
       status: text('#hero-business-status-text'),
       open: item('open'), next: item('next'), main: item('main'),
-      states, focused,
+      states, activity: document.body.dataset.activityState,
       stale: !document.querySelector('.today-stale-message').hidden,
-      ended: Boolean(document.querySelector('.timeline-ended')),
-      empty: text('.timeline-empty') || '',
+      ended: document.body.dataset.activityState === 'after-close',
+      empty: text('#activity-value') || '',
       summary: text('.today-summary p'),
     };
   });
@@ -112,20 +109,18 @@ await scenario('before open', { time: jst('16:00'), events: fixture() }, (s) => 
   assert.equal(s.next, 'NEXT 18:00 FREE ROLL');
   assert.equal(s.main, 'MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.stale, false);
-  assert.equal(s.states[0], '17:00:next');
-  assert.equal(s.focused, 0);
+  assert.equal(s.activity, 'before-open');
   assert.equal(s.summary, '本日の開催情報です。当日の変更は公式Xでお知らせします。');
 });
 await scenario('event without end just started stays NOW', { time: jst('18:05'), events: fixture() }, (s) => {
   assert.equal(s.status, '営業中');
-  assert.deepEqual(s.states, ['17:00:past', '17:00:now', '18:00:now', '19:10:next', '23:30:-']);
-  assert.equal(s.focused, 2, 'NOW event is scrolled into view');
+  assert.deepEqual(s.states, ['free-1800:running', 'event-1910:upcoming']);
+  assert.equal(s.activity, 'open-ring');
   assert.equal(s.next, 'NEXT · MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.main, null, 'MAIN is not repeated');
 });
 await scenario('NOW preferred over NEXT', { time: jst('19:30'), events: fixture() }, (s) => {
-  assert.deepEqual(s.states, ['17:00:past', '17:00:now', '18:00:past', '19:10:now', '23:30:-']);
-  assert.equal(s.focused, 3);
+  assert.deepEqual(s.states, ['free-1800:running', 'event-1910:running']);
   assert.equal(s.next, 'NOW · MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.main, null);
 });
@@ -133,21 +128,20 @@ await scenario('after close shows 本日終了', { time: jst('23:45'), events: f
   assert.equal(s.status, '本日終了');
   assert.equal(s.next, null);
   assert.equal(s.ended, true);
-  assert.ok(s.states.every((row) => row.endsWith(':past')));
+  assert.deepEqual(s.states, []);
   assert.equal(s.stale, false);
 });
 await scenario('closed day', { time: jst('18:00'), events: fixture({ status: 'closed', open: undefined, close: undefined, ringGame: { enabled: false }, events: [], summary: ['本日は休業です。'] }) }, (s) => {
   assert.equal(s.status, '本日休業');
   assert.equal(s.open, null);
   assert.equal(s.next, null);
-  assert.equal(s.empty, '本日は休業です。');
+  assert.equal(s.empty, '本日は休業です');
 });
 await scenario('25時CLOSE is still today after midnight', { time: jst('00:30', '2026-10-03'), events: fixture({ close: '01:00', events: [...fixture().events, { id: 'late', time: '00:15', title: 'LATE', heroTitle: 'LATE', type: 'event', description: 'd' }] }) }, (s) => {
   assert.equal(s.stale, false);
   assert.equal(s.date, '2026.10.02 · FRI');
   assert.equal(s.status, '営業中');
-  assert.deepEqual(s.states.map((row) => row.split(':').slice(0, 2).join(':')), ['17:00', '17:00', '18:00', '19:10', '00:15', '01:00']);
-  assert.equal(s.states[4], '00:15:now');
+  assert.deepEqual(s.states, ['late:running']);
 });
 await scenario('after 25時CLOSE the old day is stale', { time: jst('01:30', '2026-10-03'), events: fixture({ close: '01:00' }) }, (s) => {
   assert.equal(s.stale, true);
@@ -165,36 +159,31 @@ await scenario('repository data (real events.json) at a later date', { time: jst
 // --- page left open: the minute refresh follows the clock without closing open details ---
 {
   const { page, context, errors } = await openPage({ time: jst('18:55'), events: fixture() });
-  await page.locator('.timeline-card[data-timeline-id="free-1800"] summary').click();
+  await page.locator('[data-activity-event="free-1800"] summary').click();
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-  ok(await page.locator('.timeline-card[data-timeline-id="free-1800"] details').evaluate((d) => d.open), 'refresh without changes keeps details open');
+  ok(await page.locator('[data-activity-event="free-1800"] details').evaluate((d) => d.open), 'refresh without changes keeps details open');
   await page.clock.setFixedTime(new Date(jst('19:15')));
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await page.waitForTimeout(100);
   const s = await heroState(page);
-  ok(s.states[3] === '19:10:now' && s.states[2] === '18:00:past', 'refresh updates NOW/past after the clock moves: ' + s.states.join(','));
-  ok(await page.locator('.timeline-card[data-timeline-id="free-1800"] details').evaluate((d) => d.open), 'refresh with changes keeps details open');
+  ok(s.states.includes('event-1910:running'), 'refresh updates upcoming event after the clock moves: ' + s.states.join(','));
+  ok(await page.locator('[data-activity-event="free-1800"] details').evaluate((d) => d.open), 'refresh with changes keeps details open');
   ok(!errors.length, 'refresh: console errors ' + errors.join(' | '));
   await context.close();
 }
 
-// --- desktop mouse: click opens details, drag scrolls the rail without toggling ----------
+// --- activity details work with pointer and keyboard ---------------------------
 {
   const { page, context, errors } = await openPage({ width: 1280, time: jst('12:00'), events: fixture() });
-  const summary = page.locator('.timeline-card[data-timeline-id="ring"] summary');
+  const details = page.locator('[data-activity-details="ring"]');
+  const summary = details.locator('summary');
   await summary.click();
-  ok(await page.locator('.timeline-card[data-timeline-id="ring"] details').evaluate((d) => d.open), 'mouse click opens 詳細を見る');
-  const box = await summary.boundingBox();
-  const before = await page.locator('.timeline-rail').evaluate((rail) => rail.scrollLeft);
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x - 150, box.y + box.height / 2, { steps: 8 });
-  await page.mouse.up();
-  await page.waitForTimeout(400);
-  const after = await page.locator('.timeline-rail').evaluate((rail) => rail.scrollLeft);
-  ok(after > before, 'mouse drag scrolls the rail (' + before + ' -> ' + after + ')');
-  ok(await page.locator('.timeline-card[data-timeline-id="ring"] details').evaluate((d) => d.open), 'drag does not toggle details');
-  ok(!errors.length, 'mouse: console errors ' + errors.join(' | '));
+  ok(await details.evaluate((d) => d.open), 'mouse click opens ring details');
+  await summary.focus(); await page.keyboard.press('Enter');
+  ok(!(await details.evaluate((d) => d.open)), 'keyboard closes ring details');
+  await page.keyboard.press('Enter');
+  ok(await details.evaluate((d) => d.open), 'keyboard opens ring details');
+  ok(!errors.length, 'activity details: console errors ' + errors.join(' | '));
   await context.close();
 }
 
@@ -279,7 +268,7 @@ for (const width of widths) {
       });
       const small = [];
       if (window.innerWidth <= 900) {
-        document.querySelectorAll('.site-header a, .site-header button, .timeline-dot, .timeline-card__details summary').forEach((el) => {
+        document.querySelectorAll('.site-header a, .site-header button, .activity-details summary').forEach((el) => {
           const rect = el.getBoundingClientRect();
           if (!rect.width || el.closest('[hidden]') || getComputedStyle(el).display === 'none') return;
           // Dots sit in a row: 24px wide (WCAG 2.5.8) and 44px tall without overlapping.

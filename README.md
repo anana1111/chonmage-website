@@ -66,6 +66,8 @@ Google Fonts、X、Google Maps 的链接需要联网。
 ## 测试
 
 ```sh
+node scripts/test-activity.mjs          # TODAY 优先级、截止边界、跨零点和数据适配
+node scripts/test-activity-browser.mjs [截图目录] # 七个时刻、九个宽度、时钟和后台预览
 node scripts/test-news.mjs              # NEWS 日期边界、兼容、抓取及去重
 node scripts/test-news-browser.mjs [截图目录] # NEWS 页面和后台的浏览器验收
 node scripts/test-schedule.mjs          # 数据校验、合并、抓取模拟（Actions 也会运行）
@@ -78,6 +80,18 @@ node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地�
 ## 图片
 
 `images/*.png` 是原图，网页只引用 WebP（`srcset`：800w / 1448w）。替换图片时请同时更新 WebP 和 `image-sources.json`。
+
+## TODAY 动态优先级
+
+`activity.js` 通过 adapter 读取现有 `data/events.json`，`activity.css` 复用原有配色。TODAY 显示主要信息、其他可玩内容与下一场、以及「今日このあと」。活动详情、费用、标签、来源链接仍可展开查看，主活动不会在其他层重复出现。首页图片区的手动 Hero override 仍独立工作。
+
+- 单场状态：upcoming → registering → last-call（最后10分钟，含10分钟整）→ running → finished。结束时间优先读取 `events[].end`，没有则为报名截止后180分钟。
+- 主要信息优先级：营业开始/结束 → 最近截止的报名中比赛 → 已开始的 Ring Game → 下一场。没有可用比赛不代表关店；休业和缺信息有独立提示。不会编造次日营业时间。
+- 继续使用后台「今日の予定」中的 OPEN、CLOSE、开始时间、最終受付和结束时间。报名截止读取 `facts` 的 `最終受付` / `LATE REG` / `LATE REGISTRATION`，也兼容明确的 `registrationEnd`。置きバケ联络截止不会用于报名倒计时。没有明确截止时显示「受付はXで確認」，不宣称仍可报名；此类活动没有结束时间时最多展示开始后180分钟。
+- 日本时间与跨零点沿用既有营业日判断。后台的25时仍填写 `01:00`，adapter 与状态函数也支持 `25:00`；不改变现有数据或后台校验结构。缺失 CLOSE 时不推测关店时刻。
+- `?now=13:55#today` 可查看当前数据文件对应营业日的指定时刻，页面明确标示测试日期和时间；此模式冻结活动时钟，不改变 NEWS 时间、不保存数据。普通 URL 仍检查真实日本日期并使用过期数据的 X 提示。
+- 正常页面对齐整分钟刷新，并在返回标签页时复核。更新保留展开详情与焦点，读屏只在主要状态/活动变化时播报；0.25秒轻微动画尊重减少动态效果设置。
+- `scripts/test-activity.mjs` 覆盖纯逻辑，浏览器测试使用明确的报名截止测试数据。仓库真实业务数据不会被测试样例覆盖。可通过 `BROWSER_CHANNEL=chrome` 使用已安装的 Chrome。
 
 ## 站内 NEWS
 

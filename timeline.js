@@ -41,6 +41,8 @@
 
   // Where "now" falls in this schedule's business day, in Japan time.
   function businessClock(data, now) {
+    const test = window.ChonmageActivity?.testClock(data);
+    if (test) return test;
     const clock = japanClock(now);
     if (!data || typeof data.date !== 'string') return { current: false, minute: clock.minute };
     if (data.date === clock.date) return { current: true, minute: clock.minute };
@@ -464,6 +466,11 @@
 
   function renderTimeline(data) {
     timelineState.data = data;
+    if (window.ChonmageActivity) {
+      updateSummary(data);
+      window.ChonmageActivity.render(data, { minute: currentMinute(data), selected: isPreviewSelected(data) });
+      return;
+    }
     const container = document.querySelector('#today .event-list');
     if (!container) return;
     const items = buildTimeline(data);
@@ -613,7 +620,7 @@
   // Changes only when something visible changes (date check, phase, NOW / NEXT / past).
   function scheduleSignature(data) {
     const items = buildTimeline(data);
-    return JSON.stringify([businessClock(data).current, businessPhase(data, currentMinute(data)), [...statusMap(data, items)], getHeroOverride(data)]);
+    return JSON.stringify([businessClock(data).current, businessPhase(data, currentMinute(data)), [...statusMap(data, items)], getHeroOverride(data), window.ChonmageActivity ? currentMinute(data) : null]);
   }
 
   window.ChonmageSchedule = { businessClock, scheduleMinutes, scheduleSignature, getHeroOverride };
