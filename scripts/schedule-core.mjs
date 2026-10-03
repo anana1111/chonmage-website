@@ -1,3 +1,5 @@
+import '../news-core.js';
+
 // Pure schedule rules shared by the Node scripts and the admin page.
 // This file must not import Node-only modules: /admin/ loads it in the browser
 // so that its export is produced by exactly the same merge as merge-events.mjs.
@@ -158,15 +160,7 @@ export function validateSchedule(data) {
 }
 
 export function validateNews(data) {
-  if (!data || !Array.isArray(data.items)) throw new Error('news items must be an array');
-  data.items.forEach((item, index) => {
-    if (!item || typeof item !== 'object') throw new Error('invalid news ' + index);
-    if (!isDate(item.date)) throw new Error('invalid news date: ' + index);
-    ['category', 'visualLabel', 'title', 'description'].forEach((key) => requireText(item[key], 'news ' + key + ' ' + index));
-    if (!NEWS_THEMES.includes(item.theme)) throw new Error('invalid news theme: ' + index);
-    if (!isSafeUrl(item.url)) throw new Error('invalid news url: ' + index);
-  });
-  return data;
+  return globalThis.ChonmageNews.validateNews(data);
 }
 
 function mergeObject(base, override) {

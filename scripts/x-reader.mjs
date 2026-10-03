@@ -107,7 +107,7 @@ function inferDayOnlyDate(text, published) {
   return jstIso(candidates[0].date);
 }
 
-export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
+export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata', options = {}) {
   const xml = String(rawText || '');
   const out = [];
   const seen = new Set();
@@ -116,8 +116,9 @@ export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
     const title = plainXml(xmlTag(item, 'title'));
     const description = plainXml(xmlTag(item, 'description') || xmlTag(item, 'content:encoded'));
     const published = plainXml(xmlTag(item, 'pubDate'));
-    let text = cleanBlock([title, description].filter(Boolean).join('\n'));
-    if (!SCHEDULE_HINT.test(text) || !(TIME_HINT.test(text) || CLOSED_HINT.test(text))) continue;
+    const newsText = cleanBlock(description.startsWith(title) ? description : [title, description].filter(Boolean).join('\n'));
+    let text = newsText;
+    if (!text || (!options.includeNews && (!SCHEDULE_HINT.test(text) || !(TIME_HINT.test(text) || CLOSED_HINT.test(text))))) continue;
     const inferredDate = inferDayOnlyDate(text, published);
     if (inferredDate) text = inferredDate + '\n' + text;
     const link = plainXml(xmlTag(item, 'link') || xmlTag(item, 'guid'));
@@ -128,6 +129,8 @@ export function rssCandidatesFromText(rawText, handle = 'ChonmageNiigata') {
     out.push({
       text,
       url: id ? ('https://x.com/' + handle + '/status/' + id) : ('https://x.com/' + handle),
+      newsText, publishedAt: Number.isFinite(Date.parse(published)) ? new Date(published).toISOString() : '',
+      images: [...(xmlTag(item, 'description') || xmlTag(item, 'content:encoded')).matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["']/gi)].map((match) => decodeEntities(match[1])).filter((url) => /^https:\/\//.test(url)),
     });
   }
   return out.slice(0, 50);

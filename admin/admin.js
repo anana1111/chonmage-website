@@ -6,6 +6,8 @@
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const VIEWS = { home: 'ホーム', schedule: '今日の予定', news: 'News', settings: '設定' };
   const TYPE_LABELS = { free: 'FREE ROLL', tournament: 'TOURNAMENT', special: 'SPECIAL', event: 'EVENT' };
+  const newsCore = window.ChonmageNews;
+  let newsStatusTimer;
   const NEWS_THEMES = [['schedule', 'スケジュール（青）'], ['event', 'イベント（オレンジ）'], ['result', '結果（黒）']];
   // Well-known detail rows that get their own field instead of the generic list.
   const ENTRY_FACT = /^(entry|参加費|参加料金)$/i;
@@ -191,7 +193,9 @@
     input.id = id; input.dataset.path = path;
     if (options.optionalFact) input.dataset.optionalFact = 'true';
     if (options.placeholder) input.placeholder = options.placeholder;
-    if (type === 'checkbox') input.checked = Boolean(get(path)); else input.value = get(path) ?? '';
+    if (type === 'checkbox') input.checked = Boolean(get(path));
+    else if (type === 'datetime-local') { input.value = newsCore.japanDateTime(newsCore.publishedTime(get(path))).slice(0, 19); input.step = '1'; }
+    else input.value = get(path) ?? '';
     if (options.required) input.required = true;
     const hint = node('p', options.hint || '', 'field-hint'); hint.id = `${id}-hint`; hint.hidden = !options.hint;
     const error = node('p', '', 'error-text'); error.id = `${id}-error`; error.hidden = true;
@@ -430,13 +434,36 @@
     // Clear the drawer first: its close event arrives later and must not re-render the removed item.
     state.drawer = null;
     if ($('drawer').open) $('drawer').close();
+    if (path === 'news.items') {
+      const sourceUrl = newsCore.xUrl(get(path)[index]?.sourceUrl || get(path)[index]?.url, true);
+      if (sourceUrl) state.data.news.excludedSourceUrls = [...new Set([...(state.data.news.excludedSourceUrls || []), sourceUrl])];
+    }
     get(path).splice(index, 1); rebuild();
   }
 
+  function newsStatusChip(index) {
+    const label = chip(''); label.dataset.newsStatusIndex = index; return label;
+  }
+  function updateNewsStatus() {
+    if (!state.data) return;
+    document.querySelectorAll('[data-news-status-index]').forEach((label) => {
+      const value = newsCore.status(get(`news.items.${label.dataset.newsStatusIndex}`));
+      const labels = { Draft: 'Draft / 下書き', Scheduled: 'Scheduled / 公開予約', Published: 'Published / 掲載中', Expired: 'Expired / 掲載終了', Invalid: '要確認' };
+      const tones = { Published: 'success', Scheduled: 'warning', Invalid: 'danger' };
+      label.textContent = labels[value]; label.className = `chip chip-${tones[value] || 'neutral'}`;
+    });
+    clearTimeout(newsStatusTimer); newsStatusTimer = setTimeout(updateNewsStatus, newsCore.nextRefreshDelay(state.data.news));
+  }
+  function newNewsId() { return 'manual-news-' + (window.crypto?.randomUUID?.() || Date.now().toString(36) + '-' + Math.random().toString(36).slice(2)); }
+  function duplicateNews(index) {
+    const copy = clone(get(`news.items.${index}`));
+    copy.id = newNewsId(); copy.published = false; copy.publishedAt = newsCore.japanDateTime(); copy.date = japanNow().date; copy.autoUpdate = false;
+    get('news.items').unshift(copy); render(); changed(); openDrawer('news', 0, 'news.items.0.title');
+  }
   function renderNews(view) {
     const listHead = node('div', undefined, 'list-head');
-    listHead.append(node('p', '上から順にサイトの NEWS に表示されます。', 'panel-description'), button('＋ News を追加', () => {
-      get('news.items').unshift({ date: japanNow().date, category: 'EVENT', visualLabel: 'NEWS', theme: 'event', title: '', description: '', url: '' });
+    listHead.append(node('p', '掲載中の NEWS は最近30日間のみ。公開日時の新しい順（固定を優先）で表示します。履歴はこの画面に残ります。', 'panel-description'), button('＋ News を追加', () => {
+      get('news.items').unshift({ id: newNewsId(), date: japanNow().date, publishedAt: newsCore.japanDateTime(), category: 'EVENT', visualLabel: 'NEWS', theme: 'event', title: '', summary: '', description: '', content: '', image: '', source: 'manual', sourceUrl: '', published: false, pinned: false, autoUpdate: false });
       render(); changed(); openDrawer('news', 0, 'news.items.0.title');
     }, 'button primary-soft'));
     view.append(listHead);
@@ -444,34 +471,57 @@
     const items = get('news.items') || [];
     if (!items.length) {
       const empty = node('div', undefined, 'empty');
-      empty.append(node('p', 'News はまだありません。', 'empty-title'), node('p', '公式Xの投稿を紹介するときに追加してください。'));
+      empty.append(node('p', 'News はまだありません。', 'empty-title'), node('p', 'Xを使わずにお知らせを作成することもできます。'));
       list.append(empty);
     }
     const liveItems = state.live?.news?.items || [];
-    items.forEach((item, index) => {
+    const indexes = items.map((_, index) => index).sort((a, b) => newsCore.publishedTime(items[b].publishedAt) - newsCore.publishedTime(items[a].publishedAt));
+    indexes.forEach((index) => {
+      const item = items[index];
       const card = node('article', undefined, 'item-card news-card');
       const thumb = node('span', item.visualLabel || 'NEWS', `news-thumb news-thumb-${item.theme || 'event'}`); thumb.setAttribute('aria-hidden', 'true');
       const main = node('div', undefined, 'item-main');
-      const meta = node('div', undefined, 'item-meta');
-      const published = liveItems.some((liveItem) => JSON.stringify(liveItem) === JSON.stringify(item));
-      meta.append(published ? chip('公開中', 'success') : chip(liveItems.some((liveItem) => liveItem.url && liveItem.url === item.url) ? '変更あり' : '下書き', 'neutral'));
+      const meta = node('div', undefined, 'item-meta'); meta.append(newsStatusChip(index));
+      if (!liveItems.some((liveItem) => JSON.stringify(liveItem) === JSON.stringify(item))) meta.append(chip('未反映の編集', 'neutral'));
       if (errorsUnder(`news.items.${index}`)) meta.append(chip('要確認', 'danger'));
-      meta.append(node('span', `${(item.date || '').replaceAll('-', '.')} · ${item.category || ''}`, 'item-sub'));
+      meta.append(node('span', `${(item.publishedAt || item.date || '').replace('T', ' ')} · ${item.category || 'NEWS'}`, 'item-sub'));
       main.append(meta, node('h3', item.title || '（タイトルなし）', 'item-title'));
-      if (item.description) main.append(node('p', item.description, 'item-detail clamp'));
+      if (item.summary || item.description) main.append(node('p', item.summary || item.description, 'item-detail clamp'));
       const actions = node('div', undefined, 'item-actions');
       const edit = button('編集', () => openDrawer('news', index)); edit.setAttribute('aria-label', `${item.title || 'News'} を編集`);
-      const move = (offset) => { const list2 = get('news.items'); [list2[index], list2[index + offset]] = [list2[index + offset], list2[index]]; rebuild(); };
       actions.append(edit, menu(`${item.title || 'News'} のその他の操作`, [
-        index > 0 && ['上へ移動', () => move(-1)],
-        index < items.length - 1 && ['下へ移動', () => move(1)],
+        [item.published === false ? '公開する' : '下書きに戻す', () => { item.published = item.published === false; item.autoUpdate = false; rebuild(); }],
+        ['今すぐ再公開', () => { item.publishedAt = newsCore.japanDateTime(); item.date = japanNow().date; item.published = true; item.autoUpdate = false; rebuild(); }],
+        ['コピーして下書きを作成', () => duplicateNews(index)],
         ['削除', () => deleteItem('news.items', index, 'この News'), 'danger'],
       ]));
-      card.append(thumb, main, actions);
-      list.append(card);
+      card.append(thumb, main, actions); list.append(card);
     });
-    view.append(list);
+    view.append(list); updateNewsStatus();
   }
+
+  function sendNewsDetailPreview() {
+    const preview = $('news-detail-preview');
+    if (!preview || state.drawer?.kind !== 'news') return;
+    const item = get(`news.items.${state.drawer.index}`);
+    try { newsCore.validateNews({ items: [item] }); } catch { return; }
+    preview.contentWindow.postMessage({ type: 'CHONMAGE_NEWS_PREVIEW', news: { items: [item] } }, location.origin);
+  }
+  function openNewsDetailPreview(index) {
+    const item = get(`news.items.${index}`);
+    try { newsCore.validateNews({ items: [item] }); }
+    catch { notice('プレビューする前に日付やURLを確認してください。', 'error'); return; }
+    let preview = $('news-detail-preview');
+    if (!preview) {
+      preview = node('iframe', undefined, 'news-detail-preview'); preview.id = 'news-detail-preview'; preview.title = '編集中のNEWS本文プレビュー';
+      preview.src = `../news/?preview=1&id=${encodeURIComponent(newsCore.normalizeItem(item).id)}`;
+      $('drawer-body').append(node('p', '本文プレビュー（下書き・掲載終了も確認できます。公開サイトは変わりません。）', 'field-hint'), preview);
+    }
+    preview.scrollIntoView({ block: 'nearest' }); sendNewsDetailPreview();
+  }
+  window.addEventListener('message', (event) => {
+    if (event.origin === location.origin && event.source === $('news-detail-preview')?.contentWindow && event.data?.type === 'CHONMAGE_NEWS_PREVIEW_READY') sendNewsDetailPreview();
+  });
 
   function renderSettings(view) {
     const links = panel('公式X', 'サイトの「Xで確認」ボタンなどのリンク先です。');
@@ -570,19 +620,23 @@
     } else if (kind === 'news') {
       const base = `news.items.${index}`;
       $('drawer-title').textContent = get(`${base}.title`) || 'News';
-      body.append(
-        field(`${base}.title`, 'タイトル', 'text', { required: true }),
-        grid(field(`${base}.date`, '投稿日', 'date', { required: true }), field(`${base}.url`, 'X の投稿 URL', 'url', { required: true })),
-        field(`${base}.description`, '説明', 'textarea', { required: true }),
+      body.append(newsStatusChip(index), node('p', '公開日時は日本時間（JST）。公開をONにすると、その日時から30日間掲載されます。', 'field-hint'),
+        field(`${base}.title`, 'タイトル', 'text', { required: get(`${base}.published`) !== false }),
+        field(`${base}.publishedAt`, '公開日時（JST）', 'datetime-local', { required: true }),
+        field(`${base}.published`, '公開する（OFFは下書き・下架）', 'checkbox'),
+        field(`${base}.summary`, '短い説明（任意）', 'textarea', { hint: '空欄なら本文から作成します。' }),
+        field(`${base}.content`, '本文', 'textarea', { hint: '改行を保持します。HTMLは文章として表示します。' }),
+        field(`${base}.image`, '画像URL（任意）', 'text', { hint: 'https:// の画像URL、または images/ファイル名。空欄でも公開できます。' }),
+        grid(field(`${base}.source`, '情報源', 'select', { values: [['manual', '手動のお知らせ'], ['x', 'Xの投稿']] }), field(`${base}.sourceUrl`, 'X の元投稿 URL（任意）', 'url')),
       );
       const advanced = node('details', undefined, 'advanced'); advanced.open = Boolean(openDetails);
       advanced.append(node('summary', '詳細設定'));
       const inner = node('div', undefined, 'advanced-body');
-      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { required: true, hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像の大きな文字', 'text', { required: true, hint: '例：TODAY / SPECIAL' })), field(`${base}.theme`, '画像の色', 'select', { values: NEWS_THEMES }));
+      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像なしのときの文字', 'text', { hint: '例：TODAY / SPECIAL / NEWS' })), field(`${base}.theme`, 'カードの色', 'select', { values: NEWS_THEMES }), field(`${base}.pinned`, '固定表示（30日間の制限は同じ）', 'checkbox'));
       advanced.append(inner); body.append(advanced);
       const footer = node('div', undefined, 'drawer-footer');
-      footer.append(button('削除', () => deleteItem('news.items', index, 'この News'), 'text-button danger'));
-      body.append(footer);
+      footer.append(button('本文プレビュー', () => openNewsDetailPreview(index)), button('コピー', () => duplicateNews(index), 'text-button'), button('削除', () => deleteItem('news.items', index, 'この News'), 'text-button danger'));
+      body.append(footer); updateNewsStatus();
     }
     validate();
   }
@@ -602,7 +656,7 @@
     validate(); savedState(); updateDataStatus();
   }
   function changed() {
-    savedState(); validate(); clearTimeout(timer); timer = setTimeout(sendPreview, 200);
+    savedState(); validate(); updateNewsStatus(); clearTimeout(timer); timer = setTimeout(() => { sendPreview(); sendNewsDetailPreview(); }, 200);
   }
   function rebuild(focusPath) {
     const content = $('main'); const scroll = content.scrollTop; const pageScroll = window.scrollY;
@@ -705,9 +759,10 @@
     });
     get('news.items').forEach((item, index) => {
       const base = `news.items.${index}`;
-      check(`${base}.date`, api.dateValue, '有効な投稿日を入力してください。');
-      ['category', 'visualLabel', 'title', 'description'].forEach((key) => text(`${base}.${key}`));
-      check(`${base}.url`, api.safeUrl, 'https:// で始まるURLを入力してください。');
+      check(`${base}.publishedAt`, (value) => { if (!Number.isFinite(newsCore.publishedTime(value))) throw new Error(); }, '日本時間の有効な公開日時を入力してください。');
+      if (item.published !== false) text(`${base}.title`);
+      if (item.sourceUrl?.trim()) check(`${base}.sourceUrl`, (value) => { if (!newsCore.xUrl(value)) throw new Error(); }, 'https://x.com/ の元投稿URLを入力してください。');
+      if (item.image?.trim()) check(`${base}.image`, (value) => { if (!newsCore.imageUrl(value)) throw new Error(); }, 'https:// の画像URL、または images/ のパスを入力してください。');
     });
     controls.forEach(({ input, error, hint }, path) => {
       error.textContent = errors.get(path) || ''; error.hidden = !errors.has(path); input.setAttribute('aria-invalid', String(errors.has(path)));
@@ -776,7 +831,16 @@
     if (input.dataset.optionalFact && event.type === 'change' && !input.value.trim()) {
       const parts = path.split('.'); get(parts.slice(0, 4).join('.')).splice(Number(parts[4]), 1); rebuild(); return;
     }
-    set(path, input.type === 'checkbox' ? input.checked : input.value);
+    let value = input.type === 'checkbox' ? input.checked : input.value;
+    if (/^news\.items\.\d+\.publishedAt$/.test(path)) value = newsCore.japanDateTime(newsCore.publishedTime(input.value)) || input.value;
+    set(path, value);
+    if (path.startsWith('news.items.')) {
+      const base = path.split('.').slice(0, 3).join('.'); set(`${base}.autoUpdate`, false);
+      if (path.endsWith('.publishedAt') && value) set(`${base}.date`, value.slice(0, 10));
+      if (path.endsWith('.summary')) set(`${base}.description`, value);
+      if (path.endsWith('.sourceUrl')) set(`${base}.url`, value);
+      if (path.endsWith('.image')) set(`${base}.images`, []);
+    }
     if (path.startsWith('hero.')) {
       if (path === 'hero.status') { rebuild('hero.status'); return; }
       const reset = $('hero-restore-auto'); if (reset) reset.disabled = false;
@@ -830,6 +894,7 @@
     ]);
     state.api.validateEvents(events);
     state.api.validateNews(news);
+    news.items = newsCore.itemsOf(news);
     if (autoEvents) state.api.validateEvents(autoEvents);
     state.autoEvents = clone(autoEvents || events);
     state.manualEvents = manualEvents || { version: 1, date: events.date, fields: {}, ringGame: {}, events: {}, extraEvents: [] };
@@ -844,7 +909,7 @@
       (!data.events.summary || Array.isArray(data.events.summary) && data.events.summary.every((row) => typeof row === 'string')) &&
       (!data.events.ringGame || typeof data.events.ringGame === 'object' && typeof data.events.ringGame.enabled === 'boolean' && strings(data.events.ringGame, ['title', 'description'])) &&
       data.events.events.every((item) => strings(item, ['time', 'title', 'heroTitle', 'theme', 'description']) && (!item.tags || Array.isArray(item.tags) && item.tags.every((tag) => typeof tag === 'string')) && (!item.facts || Array.isArray(item.facts) && item.facts.every((fact) => strings(fact, ['label', 'value']))) && (!item.link || strings(item.link, ['label', 'url']))) &&
-      data.news.items.every((item) => strings(item, ['date', 'category', 'visualLabel', 'theme', 'title', 'description', 'url']));
+      data.news.items.every((item) => strings(item, ['id', 'publishedAt', 'date', 'category', 'visualLabel', 'theme', 'title', 'summary', 'content', 'description', 'image', 'source', 'sourceUrl', 'url']) && ['published', 'pinned', 'autoUpdate'].every((key) => item[key] === undefined || typeof item[key] === 'boolean') && (item.images === undefined || Array.isArray(item.images) && item.images.every((url) => typeof url === 'string')));
   }
   async function chooseDraft(live) {
     let stored;
@@ -863,9 +928,9 @@
   async function load() {
     $('load-error').hidden = true; $('loading').hidden = false; $('editor-form').hidden = true;
     try {
-      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=3');
+      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=20261003news');
       await prepareFrame(); const live = await fetchPublished(); const choice = await chooseDraft(live);
-      state.data = clone(choice.data); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
+      state.data = clone(choice.data); state.data.news.items = state.data.news.items.map((item) => newsCore.normalizeItem(item) || item); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
       state.heroDate = japanNow().date;
       $('editor-form').hidden = false; $('loading').hidden = true;
       ['save-draft', 'prepare-publish'].forEach((id) => { $(id).disabled = false; });

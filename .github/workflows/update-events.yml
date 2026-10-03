@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'scripts/**'
+      - 'news-core.js'
       - 'data/events.manual.json'
       - '.github/workflows/update-events.yml'
   schedule:
@@ -38,7 +39,12 @@ jobs:
       - name: Test schedule data logic
         run: node scripts/test-schedule.mjs
 
-      - name: Fetch official X schedule when publicly available
+      - name: Test NEWS rules and snapshot merge
+        run: node scripts/test-news.mjs
+
+      - name: Fetch official X schedule and NEWS when publicly available
+        env:
+          NEWS_CANDIDATES_PATH: ${{ runner.temp }}/chonmage-news-candidates.json
         run: node scripts/fetch-events.mjs
 
       - name: Merge manual overrides over automatic data
@@ -60,18 +66,19 @@ jobs:
           for attempt in 1 2 3; do
             # main may have changed while this job ran (e.g. staff uploaded events.manual.json).
             # Start from the latest main, keep only this run's auto data, and merge again so
-            # the newest manual overrides are never overwritten.
+            # the newest manual overrides and NEWS edits are never overwritten.
             git fetch --quiet origin main
             git reset --quiet --hard origin/main
             cp "$AUTO_TMP" data/events.auto.json
             node scripts/merge-events.mjs
-            node scripts/validate-events.mjs data/events.json
-            if git diff --quiet -- data/events.auto.json data/events.json; then
-              echo "No schedule data changes."
+            node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
+            node scripts/validate-events.mjs data/events.json data/news.json
+            if git diff --quiet -- data/events.auto.json data/events.json data/news.json; then
+              echo "No schedule or NEWS data changes."
               exit 0
             fi
-            git add data/events.auto.json data/events.json
-            git commit --quiet -m "Update daily events for $DATE"
+            git add data/events.auto.json data/events.json data/news.json
+            git commit --quiet -m "Update daily events and NEWS for $DATE"
             if git push origin HEAD:main; then
               exit 0
             fi

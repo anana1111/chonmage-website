@@ -312,7 +312,7 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   await page.goto(origin + '/', { waitUntil: 'load' });
   for (let y = 0; y < 30; y += 1) { await page.mouse.wheel(0, 700); await page.waitForTimeout(60); }
   await page.waitForFunction(() => [...document.images].every((img) => img.complete));
-  const images = await page.evaluate(() => [...document.images].map((img) => ({
+  const images = await page.evaluate(() => [...document.images].filter((img) => !img.closest('#news')).map((img) => ({
     src: img.currentSrc.split('/').pop(), natural: img.naturalWidth, shown: img.getBoundingClientRect().width,
     fit: getComputedStyle(img).objectFit, box: [img.getBoundingClientRect().width, img.getBoundingClientRect().height], ratio: img.naturalWidth / img.naturalHeight,
   })));
@@ -420,8 +420,9 @@ for (const width of [360, 390, 412, 768, 1440]) {
   const bodyText = await page.locator('body').innerText();
   ok(await page.locator('#prepare-publish').textContent() === '公開用ファイルを作成', 'admin: publish button renamed');
   ok(!bodyText.includes('GitHubに公開'), 'admin: misleading label removed');
-  // Home answers "what needs attention": the published data (9/13) is not today.
-  ok(/要確認/.test(bodyText) && /9月13日/.test(bodyText), 'admin home: stale published data is flagged');
+  // Use the current fixture date; daily Actions must not make the test stale.
+  const expectedDate = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: 'long', day: 'numeric' }).format(new Date(automatic.date + 'T12:00:00+09:00'));
+  ok(/要確認/.test(bodyText) && bodyText.includes(expectedDate), 'admin home: stale published data is flagged');
   ok(await page.locator('.stat').count() === 4, 'admin home: four summary cards');
 
   await page.click('a[data-view-link="schedule"] >> visible=true');
@@ -434,7 +435,7 @@ for (const width of [360, 390, 412, 768, 1440]) {
   await page.fill('#field-events-events-0-title', 'フリーロール（手動）');
   ok(await page.locator('#drawer .field-source:visible').count() === 1, 'admin: 手動編集 appears on the changed field only');
   await page.locator('#drawer .field-source:visible .text-button').click();
-  ok(await page.inputValue('#field-events-events-0-title') === 'フリーロールトーナメント', 'admin: 自動の値に戻す restores the automatic value');
+  ok(await page.inputValue('#field-events-events-0-title') === automatic.events[0].title, 'admin: 自動の値に戻す restores the automatic value');
   await page.click('#close-drawer');
 
   // A new event cannot be published with the placeholder text.

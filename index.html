@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./styles.css?v=20261002" />
     <link rel="stylesheet" href="./v2.css?v=20261002" />
     <link rel="stylesheet" href="./timeline.css?v=20261002" />
+    <link rel="stylesheet" href="./news.css?v=20261003news" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23273870'/%3E%3Cpath d='M12 38c8-17 32-17 40 0' fill='none' stroke='%23f4f1e8' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='30' r='4' fill='%23f26b38'/%3E%3Ccircle cx='41' cy='30' r='4' fill='%23f26b38'/%3E%3C/svg%3E" />
   </head>
   <body>
@@ -93,29 +94,9 @@
         <div class="section-kicker reveal"><span>02</span><span>NEWS FROM CHONMAGE</span></div>
         <div class="news-heading">
           <h2 id="news-title" class="reveal">最新の<br /><span class="news-name">ちょんまげ。</span></h2>
-          <a class="all-news-link reveal" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">公式Xをすべて見る <span>↗</span></a>
+          <a class="all-news-link reveal" href="./news/">NEWS一覧を見る <span aria-hidden="true">→</span></a>
         </div>
-        <!-- Keep these cards if news.json cannot load. -->
-        <div class="news-grid">
-          <article class="news-card reveal">
-            <a class="news-image news-image--schedule" href="https://x.com/ChonmageNiigata/status/2098995956872278516" target="_blank" rel="noreferrer" aria-label="本日のゲームと営業時間を公式Xで見る"><span class="news-image-category">SCHEDULE</span><strong>TODAY</strong><span class="news-image-arrow" aria-hidden="true">↗</span></a>
-            <div class="news-meta"><time datetime="2026-09-13">2026.09.13</time><span>SCHEDULE</span></div>
-            <h3><a href="https://x.com/ChonmageNiigata/status/2098995956872278516" target="_blank" rel="noreferrer">本日のゲームと営業時間</a></h3>
-            <p>13:00オープン。フリーロール、ランキング王者決定戦、リングゲームを開催します。</p>
-          </article>
-          <article class="news-card reveal">
-            <a class="news-image news-image--event" href="https://x.com/ChonmageNiigata/status/2098755322307633453" target="_blank" rel="noreferrer" aria-label="Silver Week Special Gamesを公式Xで見る"><span class="news-image-category">EVENT</span><strong>SPECIAL</strong><span class="news-image-arrow" aria-hidden="true">↗</span></a>
-            <div class="news-meta"><time datetime="2026-09-12">2026.09.12</time><span>EVENT</span></div>
-            <h3><a href="https://x.com/ChonmageNiigata/status/2098755322307633453" target="_blank" rel="noreferrer">Silver Week Special Games</a></h3>
-            <p>9月19日から23日まで、日替わりのスペシャルリングゲームを開催予定です。</p>
-          </article>
-          <article class="news-card reveal">
-            <a class="news-image news-image--result" href="https://x.com/ChonmageNiigata/status/2098751869904670888" target="_blank" rel="noreferrer" aria-label="ふるまちトーナメントdeepの結果を公式Xで見る"><span class="news-image-category">RESULT</span><strong>RESULT</strong><span class="news-image-arrow" aria-hidden="true">↗</span></a>
-            <div class="news-meta"><time datetime="2026-09-12">2026.09.12</time><span>RESULT</span></div>
-            <h3><a href="https://x.com/ChonmageNiigata/status/2098751869904670888" target="_blank" rel="noreferrer">ふるまちトーナメントdeep 結果</a></h3>
-            <p>入賞者を発表しました。ご参加いただいた皆さま、ありがとうございました。</p>
-          </article>
-        </div>
+        <div class="news-grid" aria-live="polite"><p class="news-empty">最近のニュースは NEWS一覧でご確認ください。</p></div>
       </section>
 
       <section class="ticker" aria-label="店舗の特徴">
@@ -201,6 +182,8 @@
       <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><span>© 2026</span></div>
     </footer>
     <script src="./timeline.js?v=20261003hero"></script>
-    <script src="./script.js?v=20261003hero"></script>
+    <script src="./news-core.js?v=20261003news"></script>
+    <script src="./news-view.js?v=20261003news"></script>
+    <script src="./script.js?v=20261003news"></script>
   </body>
 </html>

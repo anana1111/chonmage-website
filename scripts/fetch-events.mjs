@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { normalizeScheduleText } from './normalize-events.mjs';
 import { validateSchedule } from './validate-events.mjs';
 import { readerCandidatesFromText, rssCandidatesFromText } from './x-reader.mjs';
+import { syncNewsFile } from './sync-news.mjs';
 
 const HANDLE = 'ChonmageNiigata';
 const PROFILE_URL = 'https://x.com/' + HANDLE;
@@ -50,25 +51,31 @@ function clean(value) {
     .trim();
 }
 
-function candidateFromObject(value, out, seen = new Set()) {
+function candidateFromObject(value, out, seen = new Set(), includeNews = false) {
   if (!value || typeof value !== 'object' || seen.has(value)) return;
   seen.add(value);
 
   if (!Array.isArray(value)) {
-    const text = typeof value.full_text === 'string' ? value.full_text :
+    const noteText = value.note_tweet?.note_tweet_results?.result?.text || value.note_tweet?.text;
+    const text = typeof noteText === 'string' ? noteText : typeof value.full_text === 'string' ? value.full_text :
       typeof value.text === 'string' ? value.text :
       typeof value.note_tweet?.text === 'string' ? value.note_tweet.text : null;
-    if (text && SCHEDULE_WORDS.test(text)) {
+    const author = value.user?.screen_name || value.user?.legacy?.screen_name || value.core?.user_results?.result?.legacy?.screen_name;
+    if (text && (includeNews || SCHEDULE_WORDS.test(text)) && (!author || typeof author === 'string' && author.toLowerCase() === HANDLE.toLowerCase())) {
       const id = value.id_str || value.rest_id || value.id || value.tweet_id || null;
+      const media = value.extended_entities?.media || value.entities?.media || value.mediaDetails;
       out.push({
         text: clean(text),
-        url: id ? ('https://x.com/' + HANDLE + '/status/' + String(id)) : PROFILE_URL
+        url: id ? ('https://x.com/' + HANDLE + '/status/' + String(id)) : PROFILE_URL,
+        newsText: clean(text),
+        publishedAt: value.created_at || value.createdAt || value.legacy?.created_at || '',
+        images: (Array.isArray(media) ? media : []).map((item) => item?.media_url_https || item?.media_url || '').filter((url) => /^https:\/\//.test(url)),
       });
     }
   }
 
   Object.values(value).forEach((child) => {
-    if (child && typeof child === 'object') candidateFromObject(child, out, seen);
+    if (child && typeof child === 'object') candidateFromObject(child, out, seen, includeNews);
   });
 }
 
@@ -78,7 +85,7 @@ async function syndicationCandidates() {
   if (!match) throw new Error('syndication __NEXT_DATA__ not found');
   const data = JSON.parse(match[1]);
   const out = [];
-  candidateFromObject(data, out);
+  candidateFromObject(data, out, new Set(), true);
   return out;
 }
 
@@ -129,15 +136,23 @@ async function readerCandidates() {
 
 async function twiiitCandidates() {
   const xml = await getText(TWIIIT_RSS_URL);
-  return rssCandidatesFromText(xml, HANDLE);
+  return rssCandidatesFromText(xml, HANDLE, { includeNews: true });
+}
+
+async function withRssNews(rows) {
+  // Loose HTML/Reader windows stay schedule-only; RSS has bounded post bodies.
+  try { return [...rows, ...await twiiitCandidates()]; }
+  catch (error) { warn('NEWS RSS fallback could not be read; keeping captured schedule. ' + (error?.message || String(error))); return rows; }
 }
 
 async function loadCandidates() {
+  const collected = [];
+  const keep = (rows) => { collected.push(...rows); return rows.some((row) => SCHEDULE_WORDS.test(row.text || '')); };
   try {
     const rows = await syndicationCandidates();
     if (rows.length) {
       console.log('read ' + rows.length + ' candidate posts from X syndication');
-      return rows;
+      if (keep(rows)) return collected;
     }
     warn('X syndication returned no schedule-like posts; trying profile HTML.');
   } catch (error) {
@@ -148,7 +163,7 @@ async function loadCandidates() {
     const rows = await profileCandidates();
     if (rows.length) {
       console.log('read ' + rows.length + ' candidate posts from X profile HTML');
-      return rows;
+      if (keep(rows)) return withRssNews(collected);
     }
     warn('X profile HTML returned no schedule-like posts; trying Jina Reader.');
   } catch (error) {
@@ -156,19 +171,19 @@ async function loadCandidates() {
   }
 
   const readerRows = await readerCandidates();
-  if (readerRows.length) return readerRows;
+  if (readerRows.length) { collected.push(...readerRows); return withRssNews(collected); }
 
   try {
     const rows = await twiiitCandidates();
     if (rows.length) {
       console.log('read ' + rows.length + ' candidate posts via Twiiit/Nitter RSS fallback');
-      return rows;
+      collected.push(...rows); return collected;
     }
     warn('Twiiit/Nitter RSS returned no schedule-like posts.');
   } catch (error) {
     warn('Twiiit/Nitter RSS fallback could not be read. ' + (error?.message || String(error)));
   }
-  return [];
+  return collected;
 }
 
 // One malformed post must not stop the run or hide the other posts.
@@ -212,6 +227,9 @@ async function main() {
   } catch (error) {
     warn('candidate loading failed: ' + (error?.message || String(error)));
   }
+  // Share the same free fetch run. Actions merges these snapshots into latest main.
+  if (process.env.NEWS_CANDIDATES_PATH) fs.writeFileSync(process.env.NEWS_CANDIDATES_PATH, JSON.stringify(candidates) + '\n');
+  else syncNewsFile(candidates);
   const normalized = pickSchedule(candidates);
   if (!normalized) {
     warn('公式Xから当日のScheduleを十分な確度で識別できませんでした。既存のevents.auto.jsonを保持します。');
@@ -220,7 +238,7 @@ async function main() {
   writeSchedule(normalized);
 }
 
-export { clean as cleanPostText, candidateFromObject, decodeJsonString };
+export { clean as cleanPostText, candidateFromObject, decodeJsonString, loadCandidates };
 
 if (process.argv[1] && process.argv[1].endsWith('fetch-events.mjs')) {
   await main();

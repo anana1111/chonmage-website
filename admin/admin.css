@@ -333,3 +333,6 @@ dialog::backdrop { background: rgba(29, 29, 31, .32); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* NEWS body preview stays in the existing editor drawer. */
+.news-detail-preview { display: block; width: 100%; max-width: 100%; height: 480px; border: 1px solid var(--line); background: #f4f1e8; margin-top: 1rem; }

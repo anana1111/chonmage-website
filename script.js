@@ -221,15 +221,7 @@ function validateEvents(data) {
 }
 
 function validateNews(data) {
-  if (!data || !Array.isArray(data.items)) throw new Error('Missing news items');
-  data.items.forEach((item) => {
-    if (!item || typeof item !== 'object') throw new Error('Invalid news item');
-    dateValue(item.date);
-    ['category', 'visualLabel', 'title', 'description'].forEach((key) => requireText(item[key]));
-    if (!['schedule', 'event', 'result'].includes(item.theme)) throw new Error('Invalid news theme');
-    safeUrl(item.url);
-  });
-  return data;
+  return window.ChonmageNews.validateNews(data);
 }
 
 function element(tag, className, text) {
@@ -294,27 +286,25 @@ function applyStaleState(isStale, latestXUrl = officialXUrl, heroIsStale = isSta
   }
 }
 
-function renderNews(data) {
+let liveNews = null;
+let newsTimer = null;
+let newsSignature = '';
+function renderNews(data, now = Date.now()) {
   const grid = document.querySelector('.news-grid');
-  if (!grid) return;
+  if (!grid || !window.ChonmageNews || !window.ChonmageNewsView) return;
   const cards = document.createDocumentFragment();
-  data.items.forEach((item) => {
-    const card = element('article', 'news-card reveal in');
-    const image = contentLink(`news-image news-image--${item.theme}`, '', item.url);
-    image.setAttribute('aria-label', `${item.title}を公式Xで見る`);
-    const arrow = element('span', 'news-image-arrow', '↗');
-    arrow.setAttribute('aria-hidden', 'true');
-    image.append(element('span', 'news-image-category', item.category), element('strong', '', item.visualLabel), arrow);
-    const meta = element('div', 'news-meta');
-    const time = element('time', '', item.date.replaceAll('-', '.'));
-    time.setAttribute('datetime', item.date);
-    meta.append(time, element('span', '', item.category));
-    const title = element('h3');
-    title.append(contentLink('', item.title, item.url));
-    card.append(image, meta, title, element('p', '', item.description));
-    cards.append(card);
-  });
+  const items = window.ChonmageNews.visibleItems(data, now, 3);
+  const root = new URL('./', location.href);
+  items.forEach((item) => cards.append(window.ChonmageNewsView.card(item, root)));
+  if (!items.length) cards.append(element('p', 'news-empty', '最近30日間のニュースはありません。'));
   grid.replaceChildren(cards);
+}
+function refreshNews() {
+  if (!liveNews || !window.ChonmageNews) return;
+  const signature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+  if (signature !== newsSignature) { renderNews(liveNews); newsSignature = signature; }
+  clearTimeout(newsTimer);
+  newsTimer = setTimeout(refreshNews, window.ChonmageNews.nextRefreshDelay(liveNews));
 }
 
 async function fetchData(path) {
@@ -361,9 +351,15 @@ function refreshEvents() {
 
 async function loadNews() {
   try {
-    renderNews(validateNews(await fetchData('./data/news.json')));
+    liveNews = await fetchData('./data/news.json');
+    if (!liveNews || !Array.isArray(liveNews.items)) throw new Error('Missing news items');
+    renderNews(liveNews);
+    newsSignature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+    refreshNews();
   } catch (error) {
-    console.warn('ニュースを読み込めません。表示中の情報または公式Xをご確認ください。', error);
+    const grid = document.querySelector('.news-grid');
+    if (grid) grid.replaceChildren(element('p', 'news-empty', 'ニュースを読み込めませんでした。NEWS一覧で再度お試しください。'));
+    console.warn('ニュースを読み込めません。', error);
   }
 }
 
@@ -411,5 +407,6 @@ if (isPreviewMode) {
   loadEvents();
   loadNews();
   setInterval(refreshEvents, 60 * 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshEvents(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { refreshEvents(); refreshNews(); } });
+  window.addEventListener('pageshow', refreshNews);
 }
