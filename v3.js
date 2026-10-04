@@ -20,6 +20,12 @@
       if (s.status === 'registering' || s.status === 'last-call') return { key: 'live', text: `受付中・あと${A.formatRemaining(s.remaining)}` };
       return { key: 'live', text: '開催中' };
     };
+    const nowMarker = (now) => {
+      const marker = el('li', 'tl-now');
+      const pic = el('img', 'tl-now-mascot'); pic.src = './images/chonmage-character-400.webp'; pic.alt = ''; pic.width = 400; pic.height = 345;
+      marker.append(el('span', '', `いま ${hhmm(now)}`), pic);
+      return marker;
+    };
     A.render = (data, options = {}) => {
       const list = document.querySelector('#today .event-list');
       if (!list) return;
@@ -40,7 +46,7 @@
       let nowPlaced = selected || now < 0;
       rows.forEach((row) => {
         if (!nowPlaced && row.start > now) {
-          const marker = el('li', 'tl-now'); marker.append(el('span', '', `いま ${hhmm(now)}`)); ol.append(marker); nowPlaced = true;
+          const marker = nowMarker(now); ol.append(marker); nowPlaced = true;
         }
         const st = stateLabel(row, now, selected);
         const li = el('li', `tl-row is-${st.key}`);
@@ -51,7 +57,7 @@
         a.append(el('time', 'tl-time', hhmm(row.start)), body, el('span', `tl-state is-${st.key}`, st.text));
         li.append(a); ol.append(li);
       });
-      if (!nowPlaced && rows.length) { const marker = el('li', 'tl-now'); marker.append(el('span', '', `いま ${hhmm(now)}`)); ol.append(marker); }
+      if (!nowPlaced && rows.length) { const marker = nowMarker(now); ol.append(marker); }
       if (!rows.length && !schedule.closed) ol.append(el('li', 'tl-empty', '開催内容は公式Xでご確認ください。'));
       list.className = 'event-list v3-timeline';
       list.replaceChildren(ol);
@@ -80,9 +86,11 @@
         const stamp = el('span', 'v3-date');
         stamp.append(el('b', '', String(Number(match[3]))), el('small', '', `${Number(match[2])}月`));
         visual.append(stamp);
+        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
+        if (`${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}` === today) { visual.classList.add('v3-today'); stamp.lastChild.textContent = '今日'; }
       }
       const cat = card.querySelector('.news-meta > :last-child');
-      if (cat && label[cat.textContent.trim()]) { visual?.classList.add(`v3-cat-${cat.textContent.trim().toLowerCase()}`); cat.textContent = label[cat.textContent.trim()]; }
+      if (cat && label[cat.textContent.trim()]) cat.textContent = label[cat.textContent.trim()];
     });
   };
   tidy();

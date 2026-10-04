@@ -8,7 +8,7 @@
     <title>ポーカールーム ちょんまげ｜新潟・古町</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Dela+Gothic+One&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./timeline.css?v=20261002" />
     <link rel="stylesheet" href="./activity.css?v=20261004" />
     <link rel="stylesheet" href="./news.css?v=20261003news" />
@@ -46,7 +46,7 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-text">
           <p class="hero-place">新潟・古町6番町のポーカールーム</p>
-          <h1 id="hero-title"><span>古町で、</span><span>気軽に</span><span><em>ポーカー</em>を。</span></h1>
+          <h1 id="hero-title"><span>古町で、<wbr />気軽に</span><span><em>ポーカー</em>を。</span></h1>
           <p class="hero-lead">初めてでも、ひとりでも。<br />ルールはスタッフが最初から教えます。</p>
 
           <!-- Filled by timeline.js from data/events.json; safe default points to official X. -->
@@ -64,7 +64,6 @@
           </div>
         </div>
         <figure class="hero-photo">
-          <img class="hero-mascot" src="./images/chonmage-character-400.webp" alt="" width="400" height="345" decoding="async" />
           <img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 100vw, 55vw" alt="白い壁と3台のポーカーテーブルがある明るい店内" width="1448" height="1086" fetchpriority="high" decoding="async" />
         </figure>
       </section>
@@ -88,10 +87,15 @@
 
       <section class="access section" id="access" aria-labelledby="access-title">
         <div class="access-copy">
-          <h2 id="access-title">古町モール6、<br />ミサワビル1階。</h2>
+          <h2 id="access-title">お店への行き方</h2>
+          <ol class="route">
+            <li><b>1</b><p>古町通6番町のアーケード<strong>「古町モール6」</strong>へ。</p></li>
+            <li><b>2</b><p>緑色の<strong>「POKER」の看板</strong>が目印です。</p></li>
+            <li><b>3</b><p><strong>ミサワビル1階</strong>のガラス扉からどうぞ。</p></li>
+          </ol>
           <dl class="access-list">
-            <div><dt>住所</dt><dd>新潟県新潟市中央区古町通6番町987-1<br />ミサワビル1階</dd></div>
-            <div><dt>営業</dt><dd>平日 17:00–23:30<br />土日祝 13:00–</dd></div>
+            <div><dt>住所</dt><dd>新潟県新潟市中央区古町通6番町987-1 ミサワビル1階</dd></div>
+            <div><dt>営業</dt><dd>平日 17:00–23:30 ／ 土日祝 13:00–</dd></div>
             <div><dt>電話</dt><dd><a href="tel:08014700011">080-1470-0011</a></dd></div>
           </dl>
           <div class="access-actions">
@@ -100,8 +104,7 @@
           </div>
         </div>
         <figure class="access-photo">
-          <img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 100vw, 45vw" alt="古町モールに面したちょんまげの入口" width="1448" height="1086" loading="lazy" decoding="async" />
-          <figcaption>この入口が目印です。</figcaption>
+          <img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 100vw, 45vw" alt="緑のPOKER看板が光る、ちょんまげのガラス扉の入口" width="1448" height="1086" loading="lazy" decoding="async" />
         </figure>
       </section>
 
@@ -124,6 +127,7 @@
             <div><dt>施設利用料</dt><dd>¥500</dd></div>
             <div><dt>フリーロール参加</dt><dd>¥0</dd></div>
             <div><dt>初心者講習</dt><dd>無料</dd></div>
+            <div><dt>トーナメント参加費</dt><dd>¥1,500〜<small>日によって異なります</small></dd></div>
           </dl>
         </div>
       </section>
@@ -132,10 +136,7 @@
         <figure class="space-photo"><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="100vw" alt="白い壁の店内に並ぶポーカーテーブルと椅子" width="1448" height="1086" loading="lazy" decoding="async" /></figure>
         <div class="space-card">
           <h2 id="space-title">明るくて、<br />ゆったり。</h2>
-          <p>白い壁に、3台のテーブルとソファ席。遊ぶ人同士の距離も、ちょうどいい。</p>
-          <ul class="chips" aria-label="店内の特徴">
-            <li>明るい店内</li><li>清潔なトイレ</li><li>ドリンクあり</li><li>スタッフ常駐</li><li>見学OK</li>
-          </ul>
+          <p>白い壁に、3台のテーブルとソファ席。ドリンクを片手に、見学だけでも気軽にどうぞ。スタッフが常にいるので、わからないことはその場で聞けます。</p>
         </div>
       </section>
 
