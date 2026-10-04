@@ -450,3 +450,40 @@ h1, h2, h3, .q, .tl-title { font-feature-settings: "palt"; }
   .bubble--cover { left: 30%; top: 12px; bottom: auto; }
   .bubble--cover::after { right: -13px; top: 62%; }
 }
+
+/* ===== oil-ui pass: readability, stale header, three base motions + stamp ===== */
+/* readability: auxiliary text no smaller than ~13px, body 15–16px on phones */
+.tl-note { font-size: .84rem; }
+.schedule-note, .wl-line { font-size: .84rem; }
+.news-meta { font-size: .8rem; }
+.price-list dd small, .footer-note { font-size: .78rem; }
+.tl-state { font-size: .78rem; }
+.a { font-size: 1rem; }
+.access-list { font-size: .95rem; }
+@media (max-width: 680px) {
+  .a { font-size: .95rem; line-height: 1.75; }
+  .tl-note { font-size: .82rem; }
+  .tl-state { font-size: .76rem; }
+}
+/* stale header: one plain line, no English labels, no second X link (the button below already goes to X) */
+.hero-schedule.is-stale #hero-schedule-date, .hero-schedule.is-stale .schedule-x { display: none !important; }
+.hero-schedule.is-stale #hero-business-status i { background: #9a9890; box-shadow: none; }
+.today-stale-message h2 { margin-top: .2rem; }
+
+/* motion vocabulary: hard cuts, stepped, ≤150ms per step (manga panel being inked) */
+@keyframes panel-ink { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes row-cut { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes stamp-press { 0% { transform: scale(1.6) rotate(-8deg); opacity: 0; } 60% { transform: scale(.94) rotate(0); opacity: 1; } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: no-preference) {
+  /* 1) primary action feedback: pressed = ink fills instantly, sinks 2px */
+  .btn, .dock a, .tl-more button { transition: transform 80ms steps(1), background-color 80ms steps(1), color 80ms steps(1); }
+  .btn:active, .dock a:active { transform: translateY(2px); background: var(--ink); color: var(--sheet); }
+  .btn--red:active, .dock a:first-child:active { background: #a92812; color: var(--shu-ink); }
+  /* 2) state change: folded games cut in top-down, one after another */
+  .tl.is-opening .tl-extra { animation: row-cut 180ms steps(3, end) both; animation-delay: calc(var(--i, 0) * 70ms); }
+  /* 3) first entry: cover then board are inked left to right, once */
+  .cover { animation: panel-ink 240ms steps(4, end) both; }
+  .today { animation: panel-ink 240ms steps(4, end) 120ms both; }
+  /* memory point: the live / running stamp is pressed onto the board once */
+  .tl.is-first .tl-state.is-live, .tl.is-first .tl-state.is-running { animation: stamp-press 220ms steps(4, end) 420ms both; }
+}

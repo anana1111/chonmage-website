@@ -32,6 +32,7 @@ const WAITINGLIST_URL = '';
       return marker;
     };
     let expanded = false;
+    let firstRender = true;
     A.render = (data, options = {}) => {
       const list = document.querySelector('#today .event-list');
       if (!list) return;
@@ -62,7 +63,11 @@ const WAITINGLIST_URL = '';
         (row.title.match(/[\u3040-\u309F]+|[\u30A0-\u30FF]+[A-Za-z0-9]*|[A-Za-z0-9]+|[^\u3040-\u30FFA-Za-z0-9]+/g) || [row.title])
           .forEach((part) => title.append(el('span', 'nb', part), document.createElement('wbr')));
         body.append(title);
-        if (row.note) body.append(el('span', 'tl-note', row.note));
+        if (row.note) {
+          const note = el('span', 'tl-note');
+          row.note.split(/(?<=[・、])|(?<=で)(?=途中)/).forEach((part) => note.append(el('span', 'nb', part), document.createElement('wbr')));
+          body.append(note);
+        }
         a.append(el('time', 'tl-time', hhmm(row.start)), body, el('span', `tl-state is-${st.key}`, st.text));
         li.append(a); ol.append(li);
       });
@@ -73,9 +78,9 @@ const WAITINGLIST_URL = '';
       const next = rowEls.find((li) => li.classList.contains('is-soon')); if (next) focus.add(next);
       const extra = rowEls.filter((li) => !focus.has(li));
       if (focus.size && extra.length) {
-        extra.forEach((li) => li.classList.add('tl-extra'));
+        extra.forEach((li, i) => { li.classList.add('tl-extra'); li.style.setProperty('--i', i); });
         const more = el('li', 'tl-more'); const button = el('button', '', `ほか${extra.length}件の予定を見る`); button.type = 'button';
-        button.addEventListener('click', () => { expanded = true; ol.classList.add('is-expanded'); });
+        button.addEventListener('click', () => { expanded = true; ol.classList.add('is-expanded', 'is-opening'); });
         more.append(button); ol.append(more);
         if (expanded) ol.classList.add('is-expanded');
       }
@@ -91,10 +96,12 @@ const WAITINGLIST_URL = '';
       }
       const hours = document.querySelector('.board-hours');
       if (hours) {
-        hours.textContent = schedule.closed ? '本日休業' : schedule.closeTime ? `${schedule.closeTime}まで` : schedule.openTime ? `${schedule.openTime} OPEN` : '';
+        hours.textContent = schedule.closed ? '本日休業' : schedule.closeTime ? `${schedule.closeTime}まで` : (schedule.openTime && (selected || now < schedule.open)) ? `${schedule.openTime} OPEN` : '';
         hours.hidden = !hours.textContent;
       }
       list.className = 'event-list v3-timeline';
+      // Entrance + stamp only on the first render; the minute tick re-renders silently.
+      if (firstRender && !selected) { ol.classList.add('is-first'); firstRender = false; }
       list.replaceChildren(ol);
       const title = document.getElementById('today-title'); if (title) title.textContent = '今日のゲーム';
     };
