@@ -79,37 +79,34 @@
         <div class="today-stale-message">
           <h2 id="today-stale-title" class="sr">今日のゲーム</h2>
           <p class="stale-line"><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x">今日のゲームは、公式Xでお知らせします ↗</a></p>
-          <dl class="regular-hours" aria-label="通常の営業時間">
-            <div data-days="weekday"><dt>平日</dt><dd>17:00〜23:30</dd></div>
-            <div data-days="dayoff"><dt>土日祝</dt><dd>13:00〜</dd></div>
-          </dl>
+          <p class="regular-line"><span class="rl-label">通常営業</span><b class="rl-time">平日 17:00〜23:30／土日祝 13:00〜</b></p>
         </div>
         <p class="wl-line">参加人数は、店舗アプリ「Waitinglist」で確認できます。</p>
       </section>
 
-      <section class="k firstvisit" id="first" aria-labelledby="first-title">
-        <h2 id="first-title">はじめての方へ</h2>
-        <ol class="qa">
-          <li><p class="q">見るだけでも、いいの？</p><p class="a">ガラス扉の外から店内が見えます。入って見学だけして、帰ってもOK。</p></li>
-          <li><p class="q">ルールを知らなくても？</p><p class="a">役の強さや進め方を、スタッフが卓で一緒に説明します。講習は無料です。</p></li>
-          <li><p class="q">ひとりで行っても浮かない？</p><p class="a">ひとりで来る常連さんも多め。空いている席にどうぞ。</p></li>
+      <section class="first" id="first" aria-labelledby="first-title">
+        <h2 id="first-title" class="chapter">はじめての方へ</h2>
+        <!-- Three panels, one question each. The bubbles are the visitor's own questions (speaker off-panel). -->
+        <ol class="story">
+          <li class="k panel panel-1">
+            <div class="panel-pic"><img src="./images/interior-wide-800.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 680px) 100vw, 520px" alt="白い壁にテーブル3台とソファ席がある、明るい店内" width="800" height="600" loading="lazy" decoding="async" />
+              <p class="q"><svg class="q-shape" viewBox="0 0 140 100" preserveAspectRatio="none" aria-hidden="true"><path d="M47.4 81.6A66 40 0 1 0 32.1 76.8L22 99Z" /></svg><span class="q-text">見るだけでも、<br />いいの？</span></p>
+            </div>
+            <p class="a">ガラス扉の外から店内が見えます。入って見学だけして、帰ってもOK。</p>
+          </li>
+          <li class="k panel panel-2">
+            <div class="panel-pic"><img src="./images/poker-table-detail-800.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="(max-width: 680px) 100vw, 420px" alt="チップトレーが置かれた、薄紫のポーカーテーブル" width="800" height="600" loading="lazy" decoding="async" />
+              <p class="q"><svg class="q-shape" viewBox="0 0 140 100" preserveAspectRatio="none" aria-hidden="true"><path d="M47.4 81.6A66 40 0 1 0 32.1 76.8L22 99Z" /></svg><span class="q-text">ルールを<br />知らなくても？</span></p>
+            </div>
+            <p class="a">役の強さや進め方を、スタッフが卓で一緒に説明します。講習は無料です。</p>
+          </li>
+          <li class="k panel panel-3">
+            <div class="panel-pic"><img src="./images/chonmage-character-closeup.webp" alt="" width="844" height="709" loading="lazy" decoding="async" />
+              <p class="q"><svg class="q-shape" viewBox="0 0 140 100" preserveAspectRatio="none" aria-hidden="true"><path d="M47.4 81.6A66 40 0 1 0 32.1 76.8L22 99Z" /></svg><span class="q-text">ひとりで行っても<br />浮かない？</span></p>
+            </div>
+            <p class="a">ひとりで来る常連さんも多め。空いている席にどうぞ。</p>
+          </li>
         </ol>
-      </section>
-
-      <figure class="k inside">
-        <img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 680px) 100vw, 700px" alt="白い壁にテーブル3台とソファ席がある明るい店内" width="1448" height="1086" loading="lazy" decoding="async" />
-        <figcaption>白い壁にテーブルが3台、ソファ席もあります。</figcaption>
-      </figure>
-
-      <section class="k price" id="price" aria-labelledby="price-title">
-        <h2 id="price-title">料金</h2>
-        <dl class="price-list">
-          <div class="price-main"><dt>施設利用料</dt><dd>¥500</dd></div>
-          <div><dt>フリーロール参加費</dt><dd>¥0</dd></div>
-          <div><dt>初心者講習</dt><dd>¥0</dd></div>
-          <div><dt>見学のみ</dt><dd>¥0</dd></div>
-          <div><dt>トーナメント参加費</dt><dd>¥1,500〜</dd></div>
-        </dl>
       </section>
 
       <section class="k access" id="access" aria-labelledby="access-title">
@@ -128,7 +125,18 @@
         </dl>
       </section>
 
-      <section class="k news" id="news" aria-labelledby="news-title">
+      <section class="plain price" id="price" aria-labelledby="price-title">
+        <h2 id="price-title">料金</h2>
+        <dl class="price-list">
+          <div class="price-main"><dt>施設利用料</dt><dd>¥500</dd></div>
+          <div><dt>フリーロール参加費</dt><dd>¥0</dd></div>
+          <div><dt>初心者講習</dt><dd>¥0</dd></div>
+          <div><dt>見学のみ</dt><dd>¥0</dd></div>
+          <div><dt>トーナメント参加費</dt><dd>¥1,500〜</dd></div>
+        </dl>
+      </section>
+
+      <section class="plain news" id="news" aria-labelledby="news-title">
         <div class="news-heading">
           <h2 id="news-title">おしらせ</h2>
           <a class="all-news-link" href="./news/">すべて見る →</a>

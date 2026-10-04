@@ -74,47 +74,56 @@ const WAITINGLIST_URL = '';
     new MutationObserver(format).observe(dateLabel, { childList: true, characterData: true, subtree: true });
   }
 
-  /* Status band. Until today's schedule is published, "open today?" is answered from the
-     published regular hours (平日 17:00〜23:30／土日祝 13:00〜), marked 通常 — never invented. */
+  /* Regular hours as published by the shop (平日 17:00〜23:30／土日祝 13:00〜). Used only where the
+     day's own schedule is missing, and always labelled 通常 or 予定 — never presented as fact. */
+  const HOURS = { weekday: ['17:00', '23:30'], dayOff: ['13:00', ''] };
+  // Japanese national holidays (current rules): fixed days, Happy Mondays, equinoxes, 振替休日, 国民の休日.
+  const isHoliday = (y, m, d) => {
+    const at = (k) => new Date(Date.UTC(y, m - 1, d + k));
+    const listed = (t) => {
+      const yy = t.getUTCFullYear(); const mm = t.getUTCMonth() + 1; const dd = t.getUTCDate();
+      const firstMonday = 1 + ((8 - new Date(Date.UTC(yy, mm - 1, 1)).getUTCDay()) % 7);
+      const equinox = (c) => Math.floor(c + 0.242194 * (yy - 1980) - Math.floor((yy - 1980) / 4));
+      const key = mm * 100 + dd;
+      return [101, 211, 223, 429, 503, 504, 505, 811, 1103, 1123].includes(key)
+        || ((mm === 1 || mm === 10) && dd === firstMonday + 7) || ((mm === 7 || mm === 9) && dd === firstMonday + 14)
+        || key === 300 + equinox(20.8431) || key === 900 + equinox(23.2488);
+    };
+    if (listed(at(0))) return true;
+    for (let k = -1; listed(at(k)); k -= 1) if (at(k).getUTCDay() === 0) return true;
+    return listed(at(-1)) && listed(at(1));
+  };
+  // The regular day for a calendar date (UTC fields carry the Japanese date).
+  const regularDay = (y, m, d) => {
+    const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+    const dayOff = weekday === 0 || weekday === 6 || isHoliday(y, m, d);
+    const [open, close] = dayOff ? HOURS.dayOff : HOURS.weekday;
+    return { dayOff, open, close, label: `${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')}（${'日月火水木金土'[weekday]}）` };
+  };
+
+  /* Status band. Until today's schedule is published, "open today?" is answered from the regular hours. */
   const band = document.querySelector('.today .hero-schedule');
   const statusText = document.getElementById('hero-business-status-text');
+  const regularLine = document.querySelector('.regular-line');
   if (band && statusText && dateLabel) {
-    const HOURS = { weekday: ['17:00', '23:30'], dayOff: ['13:00', ''] };
-    // Japanese national holidays (current rules): fixed days, Happy Mondays, equinoxes, 振替休日, 国民の休日.
-    const isHoliday = (y, m, d) => {
-      const at = (k) => new Date(Date.UTC(y, m - 1, d + k));
-      const listed = (t) => {
-        const yy = t.getUTCFullYear(); const mm = t.getUTCMonth() + 1; const dd = t.getUTCDate();
-        const firstMonday = 1 + ((8 - new Date(Date.UTC(yy, mm - 1, 1)).getUTCDay()) % 7);
-        const equinox = (c) => Math.floor(c + 0.242194 * (yy - 1980) - Math.floor((yy - 1980) / 4));
-        const key = mm * 100 + dd;
-        return [101, 211, 223, 429, 503, 504, 505, 811, 1103, 1123].includes(key)
-          || ((mm === 1 || mm === 10) && dd === firstMonday + 7) || ((mm === 7 || mm === 9) && dd === firstMonday + 14)
-          || key === 300 + equinox(20.8431) || key === 900 + equinox(23.2488);
-      };
-      if (listed(at(0))) return true;
-      for (let k = -1; listed(at(k)); k -= 1) if (at(k).getUTCDay() === 0) return true;
-      return listed(at(-1)) && listed(at(1));
-    };
-    const regular = () => {
-      const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
-        .formatToParts(new Date()).map((part) => [part.type, part.value]));
-      const [y, m, d] = [Number(p.year), Number(p.month), Number(p.day)];
-      const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-      const [open, close] = weekday === 0 || weekday === 6 || isHoliday(y, m, d) ? HOURS.dayOff : HOURS.weekday;
-      const beforeOpen = Number(p.hour) * 60 + Number(p.minute) < Number(open.slice(0, 2)) * 60 + Number(open.slice(3));
-      return {
-        dayOff: open === HOURS.dayOff[0],
-        date: `${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')}（${'日月火水木金土'[weekday]}）`,
-        status: beforeOpen ? `本日 ${open} OPEN（通常）` : `通常 ${open}〜${close}`,
-      };
-    };
     const fill = () => {
       if (!band.classList.contains('is-stale')) return;
-      const now = regular();
-      if (dateLabel.textContent !== now.date) dateLabel.textContent = now.date;
-      if (statusText.textContent !== now.status) statusText.textContent = now.status;
-      document.querySelectorAll('.regular-hours [data-days]').forEach((row) => row.classList.toggle('is-today', (row.dataset.days === 'dayoff') === now.dayOff));
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+        .formatToParts(new Date()).map((part) => [part.type, part.value]));
+      const day = regularDay(Number(p.year), Number(p.month), Number(p.day));
+      const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+      const minute = Number(p.hour) * 60 + Number(p.minute);
+      const status = minute < toMin(day.open) ? `本日 ${day.open} OPEN 予定`
+        : day.close && minute >= toMin(day.close) ? '通常は営業終了' : '通常は営業中';
+      if (dateLabel.textContent !== day.label) dateLabel.textContent = day.label;
+      if (statusText.textContent !== status) statusText.textContent = status;
+      const label = `${day.dayOff ? '土日祝' : '平日'}の通常営業`;
+      if (regularLine && regularLine.dataset.label !== label) {
+        regularLine.dataset.label = label;
+        const time = el('b', 'rl-time', day.open);
+        time.append(el('span', 'rl-tilde', '〜'), day.close);
+        regularLine.replaceChildren(el('span', 'rl-label', label), time);
+      }
     };
     fill();
     new MutationObserver(fill).observe(band, { attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true });
@@ -191,19 +200,37 @@ const WAITINGLIST_URL = '';
       const now = Number.isFinite(options.minute) ? options.minute : -1;
       const selected = Boolean(options.selected);
       const rows = [];
-      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: ['好きなタイミングで途中参加OK・', { nb: '初めての方も' }, 'ここから'] });
+      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: ['いつでも途中参加OK。', { nb: '初めての方も' }, 'ここから'] });
       schedule.events.forEach((event) => {
         const entry = event.facts.find((f) => /entry/i.test(f.label));
         rows.push({ ...event, kind: 'event', note: entry ? `参加費 ${entry.value === '¥0' ? '無料' : entry.value}` : '' });
       });
       rows.sort((a, b) => (b.kind === 'ring') - (a.kind === 'ring') || a.start - b.start);
       rows.forEach((row) => { row.state = stateOf(row, now, selected, schedule.close); });
+      // Only the next game counts down; later ones already show their start time on the left.
+      rows.filter((row) => row.state.key === 'soon').sort((a, b) => a.start - b.start).slice(1).forEach((row) => { row.state = { key: 'later', text: '' }; });
 
       const ol = el('ol', 'tl');
-      if (schedule.closed) { ol.append(el('li', 'tl-empty', '本日は休業です。次回の営業は公式Xでお知らせします。')); rows.length = 0; }
+      const ended = !selected && schedule.close !== null && now >= schedule.close;
+      const nextLine = (content) => { const li = el('li', 'tl-next'); li.append(content); ol.append(li); };
+      if (schedule.closed) {
+        // Closed today: the band already says 本日休業; the one useful line is where the next day is announced.
+        const x = el('a', '', '次の営業は公式Xでお知らせします ↗');
+        x.href = schedule.latestUrl; x.target = '_blank'; x.rel = 'noreferrer';
+        nextLine(x);
+        rows.length = 0;
+      } else if (ended) {
+        // After closing time: the next regular opening, marked 予定 (the next day's own schedule is not out yet).
+        const [y, m, d] = schedule.date.split('-').map(Number);
+        const after = new Date(Date.UTC(y, m - 1, d + 1)); // rolls over month and year ends
+        if (y && m && d) {
+          const day = regularDay(after.getUTCFullYear(), after.getUTCMonth() + 1, after.getUTCDate());
+          nextLine(`次は ${day.label}${day.open} OPEN 予定`);
+        }
+      }
       const done = rows.filter((row) => row.state.key === 'done');
       let foldPlaced = false;
-      let nowPlaced = selected || now < 0;
+      let nowPlaced = selected || now < 0 || ended;
       rows.forEach((row) => {
         if (row.state.key === 'done') {
           if (!foldPlaced) { ol.append(foldEl(done, schedule)); foldPlaced = true; }
@@ -214,7 +241,10 @@ const WAITINGLIST_URL = '';
       });
       if (!nowPlaced && rows.length) ol.append(nowMarker(now));
       if (!rows.length && !schedule.closed) ol.append(el('li', 'tl-empty', '開催内容は公式Xでご確認ください。'));
-      phraseAll(ol, '.tl-title, .tl-note');
+      phraseAll(ol, '.tl-title, .tl-note, .tl-next, .tl-empty');
+      // Waitinglist counts players for today's games: say nothing about it on a day that is over or off.
+      document.querySelector('.wl-line')?.toggleAttribute('hidden', !selected && (schedule.closed || ended));
+      document.getElementById('today')?.classList.toggle('is-short', !selected && (schedule.closed || ended));
 
       // The single stamp: pressed once, on the first thing you can join now.
       if (firstRender && !selected && document.documentElement.dataset.intro) ol.querySelector('.tl-state.is-live')?.classList.add('is-stamp');
@@ -236,7 +266,8 @@ const WAITINGLIST_URL = '';
   const grid = document.querySelector('.news-grid');
   if (grid) {
     const emoji = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}\u{1F3FB}-\u{1F3FF}\u{FFFD}]/gu;
-    const clean = (text) => text.replace(emoji, '').replace(/^R to @\S+:\s*/, '').replace(/\s+/g, ' ').trim();
+    // also: full-width brackets around short Japanese notes like (日), and no space after 】
+    const clean = (text) => text.replace(emoji, '').replace(/^R to @\S+:\s*/, '').replace(/\(([^()\s]{1,3})\)/g, '（$1）').replace(/】\s+/g, '】').replace(/\s+/g, ' ').trim();
     const shorten = (text, max = 30) => {
       if (text.length <= max) return text;
       const cut = text.slice(0, max).search(/[\s　。！!](?=[^\s　。！!]*$)/);
