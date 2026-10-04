@@ -118,7 +118,8 @@
   const dock = document.querySelector('.dock');
   const board = document.querySelector('.board');
   if (!dock || !board || !('IntersectionObserver' in window)) return;
-  new IntersectionObserver(([entry]) => {
-    dock.classList.toggle('is-visible', !entry.isIntersecting && entry.boundingClientRect.top < 0);
-  }).observe(board);
+  const actions = document.querySelector('.access-actions');
+  if (!actions) return;
+  // Hide the dock while the same actions are already on screen in ACCESS.
+  new IntersectionObserver(([entry]) => dock.classList.toggle('is-hidden', entry.isIntersecting)).observe(actions);
 })();

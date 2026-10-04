@@ -546,3 +546,51 @@ footer .logo-mark .lm-spade { fill: var(--ink); }
   .tl-note { grid-column: 2 / 4; grid-row: 2; }
   .tl-state { grid-column: 3; grid-row: 1; }
 }
+
+/* ===== round-9 ===== */
+.today h2, .access h2, .news h2, .first h2, .price h3 { font-family: "Dela Gothic One", "Noto Sans JP", sans-serif; font-weight: 400; letter-spacing: 0; }
+.access h2, .news h2 { font-size: clamp(1.8rem, 3vw, 2.6rem); line-height: 1.25; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+/* hero door card */
+.hero-door { display: grid; grid-template-columns: 150px 1fr; gap: 1rem; align-items: center; max-width: 440px; margin-top: 2.5rem; padding: .6rem; border: 1px solid var(--line); border-radius: 16px; background: var(--white); text-decoration: none; font-size: .85rem; line-height: 1.6; }
+.hero-door:hover { border-color: var(--ink); }
+.hero-door-img { position: relative; display: block; border-radius: 10px; overflow: hidden; }
+.hero-door-img img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.hero-door .pin i { width: 14px; height: 14px; left: -7px; top: -7px; }
+.hero-door-text b { display: block; font-size: 1rem; font-weight: 900; }
+/* annotated interior */
+.first-photo { position: relative; }
+.tag { position: absolute; z-index: 1; transform: translate(-50%, -50%); padding: .35rem .8rem; border-radius: 99px; background: var(--white); font-size: .82rem; font-weight: 900; white-space: nowrap; box-shadow: 0 6px 18px rgba(0, 0, 0, .16); }
+.tag::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 14px; background: var(--white); transform: translateX(-50%); }
+/* price: one big number + mascot */
+.price { display: block; border-top: 0; padding-top: 0; }
+.price-main { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0 2rem; padding: clamp(2rem, 4vw, 3rem) 0 0; }
+.price-kicker { flex-basis: 100%; margin: 0; font-size: clamp(1.1rem, 1.8vw, 1.5rem); font-weight: 900; }
+.price h3 { display: block; line-height: 1; }
+.price-num { display: block; font-family: "Archivo Black", sans-serif; font-size: clamp(7rem, 20vw, 17rem); line-height: .9; letter-spacing: -.06em; margin: .5rem 0 0 -.05em; color: var(--ink); vertical-align: 0; }
+.price-mascot { width: clamp(150px, 20vw, 280px); margin: 0 0 .5rem auto; }
+.price-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 2rem; margin-top: 2rem; border-top: 1.5px solid var(--ink); }
+.price-list div, .price-list div:first-child { display: block; padding: 1rem 0 0; border: 0; }
+.price-list dt { font-size: .85rem; color: var(--mute); }
+.price-list dd { font-size: 1.4rem; }
+.price-list dd small { text-align: left; }
+/* dock */
+.dock svg, .ico-x { width: 18px; height: 18px; flex: 0 0 auto; }
+.ico-x { display: inline-grid; place-items: center; font-weight: 900; font-size: .95rem; }
+@media (max-width: 900px) {
+  .hero-door { display: none; }
+  .tag { font-size: .7rem; padding: .25rem .6rem; }
+  .price-num { font-size: clamp(6rem, 30vw, 9rem); }
+  .price-mascot { width: 130px; }
+  .price-list { grid-template-columns: 1fr 1fr; gap: 0 1.25rem; }
+  .price-list div { padding-bottom: .5rem !important; }
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  footer { padding-bottom: 2rem; }
+  .dock { bottom: calc(12px + env(safe-area-inset-bottom)); background: var(--ink); transition: transform .3s ease, opacity .3s; }
+  .dock a, .dock a:first-child { display: flex; align-items: center; justify-content: center; gap: .45rem; background: transparent; color: #fff; }
+  .dock a + a { border-left: 1px solid rgba(255, 255, 255, .18); border-radius: 0; }
+  .dock.is-hidden { transform: translateY(160%); opacity: 0; }
+}
+.first-stage { grid-template-columns: 1fr; }
+.flow::before { right: 0; }
+@media (max-width: 900px) { .flow::before { bottom: 3.5rem; } }
