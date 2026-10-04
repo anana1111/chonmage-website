@@ -75,7 +75,7 @@ const WAITINGLIST_URL = '';
   }
 
   /* Regular hours as published by the shop (平日 17:00〜23:30／土日祝 13:00〜). Used only where the
-     day's own schedule is missing, and always labelled 通常 or 予定 — never presented as fact. */
+     day's own schedule is missing, and always labelled 通常 or 予定: never presented as fact. */
   const HOURS = { weekday: ['17:00', '23:30'], dayOff: ['13:00', ''] };
   // Japanese national holidays (current rules): fixed days, Happy Mondays, equinoxes, 振替休日, 国民の休日.
   const isHoliday = (y, m, d) => {
@@ -161,7 +161,7 @@ const WAITINGLIST_URL = '';
       }
       if (row.state.key === 'running') {
         const xnote = el('span', 'tl-xnote');
-        xnote.append(el('span', 'xn-pre', '途中参加の'), '締切は公式Xで ↗');
+        xnote.append(el('span', 'wide-only', '途中参加の'), '締切は公式Xで ↗');
         body.append(xnote);
       }
       const time = el('time', 'tl-time', hhmm(row.start));
@@ -197,7 +197,8 @@ const WAITINGLIST_URL = '';
         icon.textContent = expanded ? '－' : '＋';
         label.textContent = `終了した${done.length}件`;
       };
-      toggle.addEventListener('click', () => { expanded = !expanded; sync(); });
+      // a keyboard press (Enter/Space) reports detail 0: open instantly, no motion
+      toggle.addEventListener('click', (event) => { li.classList.toggle('is-instant', event.detail === 0); expanded = !expanded; sync(); });
       sync();
       li.append(toggle, body);
       return li;
@@ -224,7 +225,8 @@ const WAITINGLIST_URL = '';
       const nextLine = (content) => { const li = el('li', 'tl-next'); li.append(content); ol.append(li); };
       if (schedule.closed) {
         // Closed today: the band already says 本日休業; the one useful line is where the next day is announced.
-        const x = el('a', '', '次の営業は公式Xでお知らせします ↗');
+        const x = el('a');
+        x.append('次の営業は公式Xで', el('span', 'wide-only', 'お知らせします'), ' ↗');
         x.href = schedule.latestUrl; x.target = '_blank'; x.rel = 'noreferrer';
         nextLine(x);
         rows.length = 0;
@@ -305,6 +307,12 @@ const WAITINGLIST_URL = '';
     tidy();
     new MutationObserver(tidy).observe(grid, { childList: true });
   }
+
+  /* The phone menu animates out of its button on a tap; opened from the keyboard it just appears.
+     Registered before script.js's own handler, so the flag is set before the menu is shown. */
+  const menuButton = document.querySelector('.menu-button');
+  const mobileNav = document.getElementById('mobile-nav');
+  if (menuButton && mobileNav) menuButton.addEventListener('click', (event) => mobileNav.toggleAttribute('data-instant', event.detail === 0));
 
   /* Press: the control inverts in place, instantly; held at least 110ms so a quick tap still reads. */
   document.addEventListener('pointerdown', (event) => {
