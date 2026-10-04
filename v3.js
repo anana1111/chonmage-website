@@ -111,18 +111,17 @@ const WAITINGLIST_URL = '';
       if (!band.classList.contains('is-stale')) {
         const short = statusText.textContent.replace(/^本日\s+(\d{1,2}:\d{2} OPEN)$/, '$1');
         if (short !== statusText.textContent) statusText.textContent = short;
+        // a long stamp (13:00 OPEN) keeps to the band's right edge instead of centring under the chair
+        statusText.parentElement.classList.toggle('is-wide', short.length > 4);
         return;
       }
-      const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+      // Not published yet: the band carries only today's date; the hours block below says what to expect.
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric' })
         .formatToParts(new Date()).map((part) => [part.type, part.value]));
       const day = regularDay(Number(p.year), Number(p.month), Number(p.day));
-      const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
-      const minute = Number(p.hour) * 60 + Number(p.minute);
-      const status = minute < toMin(day.open) ? `本日 ${day.open} OPEN 予定`
-        : day.close && minute >= toMin(day.close) ? 'いつもなら営業を終えた時間' : 'いつもなら営業中の時間';
       if (dateLabel.textContent !== day.label) dateLabel.textContent = day.label;
-      if (statusText.textContent !== status) statusText.textContent = status;
-      const label = day.dayOff ? '土日祝' : '平日';
+      if (statusText.textContent) statusText.textContent = '';
+      const label = `本日の営業予定（${day.dayOff ? '土日祝' : '平日'}）`;
       if (regularLine && regularLine.dataset.label !== label) {
         regularLine.dataset.label = label;
         const time = el('b', 'rl-time', day.open);
@@ -157,10 +156,14 @@ const WAITINGLIST_URL = '';
       if (row.note) {
         const note = el('span', 'tl-note');
         // { nb } parts never break inside ("初めての方も" stays one phrase)
-        note.append(...[].concat(row.note).map((part) => (typeof part === 'string' ? part : el('span', 'nb', part.nb))));
+        note.append(...[].concat(row.note).flatMap((part) => (typeof part === 'string' ? [part] : [el('span', 'nb', part.nb), document.createElement('wbr')])));
         body.append(note);
       }
-      if (row.state.key === 'running') body.append(el('span', 'tl-xnote', '途中参加の締切は公式Xで ↗'));
+      if (row.state.key === 'running') {
+        const xnote = el('span', 'tl-xnote');
+        xnote.append(el('span', 'xn-pre', '途中参加の'), '締切は公式Xで ↗');
+        body.append(xnote);
+      }
       const time = el('time', 'tl-time', hhmm(row.start));
       if (row.kind === 'ring') time.append(el('span', 'tl-from', '〜')); // open-ended: runs from this time
       a.append(time, body, el('span', `tl-state is-${row.state.key}`, row.state.text));
@@ -192,7 +195,7 @@ const WAITINGLIST_URL = '';
         li.classList.toggle('is-open', expanded);
         toggle.setAttribute('aria-expanded', String(expanded));
         icon.textContent = expanded ? '－' : '＋';
-        label.textContent = `終了した${done.length}件を${expanded ? 'とじる' : '見る'}`;
+        label.textContent = `終了した${done.length}件`;
       };
       toggle.addEventListener('click', () => { expanded = !expanded; sync(); });
       sync();
@@ -242,7 +245,7 @@ const WAITINGLIST_URL = '';
           if (!foldPlaced) { ol.append(foldEl(done, schedule)); foldPlaced = true; }
           return;
         }
-        if (!nowPlaced && row.start > now) { ol.append(nowMarker(now)); nowPlaced = true; }
+        if (!nowPlaced && row.start > now) { if (ol.children.length) ol.append(nowMarker(now)); nowPlaced = true; }
         ol.append(rowEl(row, schedule));
       });
       if (!nowPlaced && rows.length) ol.append(nowMarker(now));
