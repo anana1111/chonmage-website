@@ -88,10 +88,11 @@ const WAITINGLIST_URL = '';
         live.querySelector('span').textContent = (open ? '営業中' : '営業時間外') + (upcoming ? `・次 ${hhmm(upcoming.start)} ${upcoming.title}` : '');
         live.classList.toggle('is-open', open);
         live.hidden = selected;
-        const bar = document.querySelector('.statusbar');
-        const runningRow = rows.filter((row) => !selected && row.kind !== 'ring' && row.start <= now && A.getEventStatus(row, now).status !== 'finished').pop();
-        const barText = (open ? '営業中' : '営業時間外') + (upcoming ? `・次 ${hhmm(upcoming.start)} ${upcoming.title}` : runningRow ? `・いま ${runningRow.title} 開催中` : '');
-        if (bar) { bar.querySelector('span').textContent = barText; bar.classList.toggle('is-open', open); bar.hidden = selected; }
+      }
+      const hours = document.querySelector('.board-hours');
+      if (hours) {
+        hours.textContent = schedule.closed ? '本日休業' : schedule.closeTime ? `${schedule.closeTime}まで` : schedule.openTime ? `${schedule.openTime}〜` : '';
+        hours.hidden = !hours.textContent;
       }
       list.className = 'event-list v3-timeline';
       list.replaceChildren(ol);

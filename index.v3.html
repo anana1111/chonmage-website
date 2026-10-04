@@ -44,7 +44,6 @@
     </header>
 
     <main id="top" class="zine">
-      <a class="k statusbar" href="#today" hidden><i></i><span></span></a>
       <section class="k cover" aria-labelledby="hero-title">
         <div class="speed" aria-hidden="true"></div>
         <h1 id="hero-title"><span>古町で、</span><span><em>ポーカー</em>を。</span></h1>
@@ -57,6 +56,7 @@
         <!-- Filled by timeline.js from data/events.json; safe default points to official X. -->
         <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
           <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
+          <span class="board-hours" hidden></span>
           <div class="hero-event-detail" data-hero-event="open" hidden><span>OPEN</span><strong>—</strong></div>
           <a class="hero-event-detail" data-hero-event="next" href="#today" hidden><span>NEXT</span><strong>—</strong></a>
           <a class="hero-event-detail" data-hero-event="main" href="#today" hidden><span>MAIN</span><strong>—</strong></a>
@@ -69,7 +69,7 @@
           </div>
           <div class="event-list"></div>
           <div class="today-foot">
-            <p class="wl-line">参加人数・受付状況は店舗アプリ <b>Waitinglist</b> で確認できます。</p>
+            <p class="wl-line">参加人数・受付状況は、店舗アプリ「Waitinglist」でも確認できます。</p>
             <a class="btn btn--ink waitinglist-link" href="#" target="_blank" rel="noreferrer" hidden>Waitinglistで参加人数を見る ↗</a>
             <p class="schedule-note">トーナメントの最終受付時間は、当日に公式Xでお知らせします。</p>
           </div>
@@ -87,18 +87,18 @@
         <h2 id="first-title" class="strip-title">はじめての<br />ちょんまげ</h2>
         <ol class="strip-panels">
           <li class="k sp sp--1">
-            <p class="sp-voice">「見るだけでも、いいの？」</p>
-            <h3><b>1</b>まずは見るだけ</h3>
+            <b class="sp-num" aria-hidden="true">1</b>
+            <h3 class="sp-voice"><span class="nb">「見るだけでも、</span><span class="nb">いいの？」</span></h3>
             <p class="sp-text">ガラス扉の外から店内が見えます。入って見学だけして、帰ってもOK。</p>
           </li>
           <li class="k sp sp--2">
-            <p class="sp-voice">「役って、なに？」</p>
-            <h3><b>2</b>無料で教わる</h3>
+            <b class="sp-num" aria-hidden="true">2</b>
+            <h3 class="sp-voice"><span class="nb">「役って、</span><span class="nb">なに？」</span></h3>
             <p class="sp-text">役の強さや進め方を、スタッフが卓で一緒に説明します。</p>
           </li>
           <li class="k sp sp--3">
-            <p class="sp-voice">「ひとりでも、座れた！」</p>
-            <h3><b>3</b>ひとりで座る</h3>
+            <b class="sp-num" aria-hidden="true">3</b>
+            <h3 class="sp-voice"><span class="nb">「ひとりでも、</span><span class="nb">座れた！」</span></h3>
             <p class="sp-text">ひとりで来る常連さんも多め。空いている席にどうぞ。</p>
           </li>
         </ol>
