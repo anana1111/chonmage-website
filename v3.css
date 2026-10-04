@@ -397,3 +397,43 @@ body { background-image: none; font-weight: 400; }
   .access { grid-column: 1 / 8; }
   .news { grid-column: 8 / 13; }
 }
+
+/* ===== round-19: fewer boxes, content-height rows, one Q&A panel ===== */
+h1, h2, h3, .q, .tl-title { font-feature-settings: "palt"; }
+.board-hours::before { content: none; }
+.board-hours { padding-left: .6rem; border-left: 1px solid rgba(255, 255, 255, .3); }
+.masthead .header-live { display: none !important; }
+/* stamps: running = solid red, registering = outline */
+.tl-state.is-running { background: var(--shu); border-color: var(--shu); color: var(--shu-ink); }
+.tl-state.is-live { background: var(--sheet); border-color: var(--shu); color: var(--shu); }
+/* first visit: one panel, three Q&A */
+.firstvisit { grid-column: 1 / 13; padding: 1.1rem 1.2rem 1.2rem; }
+.firstvisit h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.2rem); }
+.qa { list-style: none; margin: .8rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1.6rem; counter-reset: qa; }
+.qa li { counter-increment: qa; padding-top: .7rem; border-top: 2px solid var(--ink); }
+.q { margin: 0; font-weight: 900; font-size: 1.12rem; line-height: 1.45; }
+.q::before { content: "Q" counter(qa) " "; font-family: var(--font-num); font-weight: 400; color: var(--shu); }
+.a { margin: .35rem 0 0; font-size: .92rem; line-height: 1.7; }
+/* frameless list sections */
+.plain { min-width: 0; padding: .4rem .2rem 0; }
+.plain > h2, .plain .news-heading h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.2rem); }
+.price-list div:last-child { border-bottom: 2px solid var(--ink); }
+.news-card:last-child { border-bottom: 2px solid var(--ink); }
+@media (min-width: 1081px) {
+  .inside, .access, .price, .news { align-self: start; }
+  .cover { grid-row: 1; }
+}
+@media (max-width: 1080px) {
+  .qa { grid-template-columns: 1fr; }
+  .qa li { padding: .55rem 0 .6rem; }
+  .firstvisit, .plain { grid-column: 1 / 13; }
+}
+@media (max-width: 680px) {
+  .cover { aspect-ratio: 390 / 250; }
+  .cover h1 { font-size: clamp(1.7rem, 7.6vw, 2.1rem); }
+  .cover-mascot { width: 52%; bottom: 8px; right: -10px; }
+  .bubble--cover { top: 10px; right: 10px; font-size: .72rem; padding: .55rem .7rem; }
+  .q { font-size: 1rem; }
+  .a { font-size: .86rem; margin-top: .2rem; }
+  .plain { padding: .6rem .1rem 0; }
+}

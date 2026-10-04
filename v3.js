@@ -91,7 +91,7 @@ const WAITINGLIST_URL = '';
       }
       const hours = document.querySelector('.board-hours');
       if (hours) {
-        hours.textContent = schedule.closed ? '本日休業' : schedule.closeTime ? `${schedule.closeTime}まで` : schedule.openTime ? `${schedule.openTime}〜` : '';
+        hours.textContent = schedule.closed ? '本日休業' : schedule.closeTime ? `${schedule.closeTime}まで` : schedule.openTime ? `${schedule.openTime} OPEN` : '';
         hours.hidden = !hours.textContent;
       }
       list.className = 'event-list v3-timeline';
