@@ -18,7 +18,7 @@
   <body>
     <header class="site-header">
       <a class="brand" href="#top" aria-label="ちょんまげ ホーム">
-        <span class="brand-mark">ちょ</span>
+        <svg class="logo-mark" viewBox="0 0 48 48" aria-hidden="true"><path class="lm-knot" d="M19 9.5c1.5-4.6 8.5-4.6 10 0-1.6-.9-3.3-1.3-5-1.3s-3.4.4-5 1.3z"/><path class="lm-spade" d="M24 10c4 6.4 15 11.6 15 20.2 0 4.6-3.6 7.6-7.6 7.6-2.7 0-4.8-1.3-5.9-3.2.4 3.3 1.6 5.7 3.9 8.4H18.6c2.3-2.7 3.5-5.1 3.9-8.4-1.1 1.9-3.2 3.2-5.9 3.2-4 0-7.6-3-7.6-7.6C9 21.6 20 16.4 24 10z"/></svg>
         <span class="brand-name">ちょんまげ<small>POKER ROOM · 古町</small></span>
       </a>
       <nav aria-label="メインナビゲーション">
@@ -64,6 +64,7 @@
           </div>
         </div>
         <figure class="hero-photo">
+          <img class="hero-mascot" src="./images/chonmage-character-400.webp" alt="" width="400" height="345" decoding="async" />
           <img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 100vw, 55vw" alt="白い壁と3台のポーカーテーブルがある明るい店内" width="1448" height="1086" fetchpriority="high" decoding="async" />
         </figure>
       </section>
@@ -107,37 +108,34 @@
       <section class="first section" id="first" aria-labelledby="first-title">
         <div class="first-head">
           <h2 id="first-title">ポーカーの店、<br />初めてですか？</h2>
-          <p>ルールを知らなくても大丈夫。来てから決めればいいんです。</p>
+          <p>ルールを知らなくても大丈夫。<br />来てから決めればいいんです。</p>
         </div>
-        <img class="first-character" src="./images/chonmage-character-800.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 900px) 70vw, 34vw" alt="" width="1350" height="1165" loading="lazy" decoding="async" />
-        <ol class="steps">
-          <li><b>1</b><h3>まずは見るだけ</h3><p>入口から店内の雰囲気を見て、合わなければそのまま帰ってもOK。</p></li>
-          <li><b>2</b><h3>無料で教わる</h3><p>役の強さや進め方を、スタッフが卓で一緒に説明します。</p></li>
-          <li><b>3</b><h3>ひとりで座る</h3><p>常連さんもひとり参加が多め。空いている席にどうぞ。</p></li>
-        </ol>
+        <div class="first-stage">
+          <img class="first-character" src="./images/chonmage-character-800.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 900px) 70vw, 30vw" alt="" width="800" height="690" loading="lazy" decoding="async" />
+          <ol class="steps">
+            <li><b>1</b><h3>まずは見るだけ</h3><p>入口から店内を見て、合わなければそのまま帰ってもOK。</p></li>
+            <li><b>2</b><h3>無料で教わる</h3><p>役の強さや進め方を、スタッフが卓で一緒に説明します。</p></li>
+            <li><b>3</b><h3>ひとりで座る</h3><p>ひとりで来る常連さんも多め。空いている席にどうぞ。</p></li>
+          </ol>
+        </div>
+        <div class="price" id="price" aria-labelledby="price-title">
+          <h3 id="price-title">しかも、<span class="price-num">¥500</span>から。</h3>
+          <dl class="price-list">
+            <div><dt>施設利用料</dt><dd>¥500</dd></div>
+            <div><dt>フリーロール参加</dt><dd>¥0</dd></div>
+            <div><dt>初心者講習</dt><dd>無料</dd></div>
+          </dl>
+        </div>
       </section>
 
-      <section class="price section" id="price" aria-labelledby="price-title">
-        <h2 id="price-title"><span class="price-from">施設利用料</span><span class="price-num">¥500</span><span class="price-tail">から遊べます。</span></h2>
-        <dl class="price-list">
-          <div><dt>施設利用料</dt><dd>¥500</dd></div>
-          <div><dt>フリーロール参加</dt><dd>¥0</dd></div>
-          <div><dt>初心者講習</dt><dd>無料</dd></div>
-        </dl>
-      </section>
-
-      <section class="space section" id="space" aria-labelledby="space-title">
-        <div class="space-head">
-          <h2 id="space-title">明るくて、ゆったり。</h2>
-          <p>白い壁、3台のテーブル、ソファ席。遊ぶ人同士の距離も、ちょうどいい。</p>
+      <section class="space" id="space" aria-labelledby="space-title">
+        <figure class="space-photo"><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="100vw" alt="白い壁の店内に並ぶポーカーテーブルと椅子" width="1448" height="1086" loading="lazy" decoding="async" /></figure>
+        <div class="space-card">
+          <h2 id="space-title">明るくて、<br />ゆったり。</h2>
+          <p>白い壁に、3台のテーブルとソファ席。遊ぶ人同士の距離も、ちょうどいい。</p>
           <ul class="chips" aria-label="店内の特徴">
             <li>明るい店内</li><li>清潔なトイレ</li><li>ドリンクあり</li><li>スタッフ常駐</li><li>見学OK</li>
           </ul>
-        </div>
-        <div class="space-grid" data-drag-scroll>
-          <figure class="space-main"><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 100vw, 60vw" alt="白を基調とした明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /></figure>
-          <figure><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="(max-width: 900px) 50vw, 30vw" alt="ポーカーテーブルと椅子" width="1448" height="1086" loading="lazy" decoding="async" /></figure>
-          <figure><img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 50vw, 30vw" alt="夜の外観" width="1448" height="1086" loading="lazy" decoding="async" /></figure>
         </div>
       </section>
 
@@ -152,16 +150,16 @@
 
     <footer>
       <div class="footer-top">
-        <div class="footer-brand"><span class="brand-mark">ちょ</span><p>ポーカールーム ちょんまげ<br /><small>新潟市中央区古町通6番町987-1 ミサワビル1階</small></p></div>
+        <div class="footer-brand"><svg class="logo-mark" viewBox="0 0 48 48" aria-hidden="true"><path class="lm-knot" d="M19 9.5c1.5-4.6 8.5-4.6 10 0-1.6-.9-3.3-1.3-5-1.3s-3.4.4-5 1.3z"/><path class="lm-spade" d="M24 10c4 6.4 15 11.6 15 20.2 0 4.6-3.6 7.6-7.6 7.6-2.7 0-4.8-1.3-5.9-3.2.4 3.3 1.6 5.7 3.9 8.4H18.6c2.3-2.7 3.5-5.1 3.9-8.4-1.1 1.9-3.2 3.2-5.9 3.2-4 0-7.6-3-7.6-7.6C9 21.6 20 16.4 24 10z"/></svg><p>ポーカールーム ちょんまげ<br /><small>新潟市中央区古町通6番町987-1 ミサワビル1階</small></p></div>
         <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X @ChonmageNiigata ↗</a>
       </div>
       <p class="footer-note">当店は金銭を賭ける行為・換金を一切行っておりません。 NO CASH BETTING · NO CASH REDEMPTION　© 2026</p>
     </footer>
     <script src="./timeline.js?v=20261004"></script>
     <script src="./activity.js?v=20261004"></script>
+    <script src="./v3.js"></script>
     <script src="./news-core.js?v=20261003news"></script>
     <script src="./news-view.js?v=20261003news"></script>
     <script src="./script.js?v=20261004"></script>
-    <script src="./v3.js"></script>
   </body>
 </html>
