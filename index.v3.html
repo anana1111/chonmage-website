@@ -8,7 +8,7 @@
     <title>ポーカールーム ちょんまげ｜新潟・古町</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Dela+Gothic+One&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Dela+Gothic+One&family=Klee+One:wght@600&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./timeline.css?v=20261002" />
     <link rel="stylesheet" href="./activity.css?v=20261004" />
     <link rel="stylesheet" href="./news.css?v=20261003news" />
@@ -52,10 +52,10 @@
             <a class="btn btn--primary hero-maps" href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">Google マップで道順 ↗</a>
             <a class="btn hero-first" href="#first">はじめての方へ</a>
           </div>
-          <ul class="hero-points"><li>ひとりでもOK</li><li>ルール講習は無料</li><li>見学だけでもOK</li></ul>
         </section>
 
         <section class="today board" id="today" aria-labelledby="today-stale-title">
+          <img class="board-mascot" src="./images/chonmage-character-400.webp" alt="" width="400" height="345" decoding="async" />
           <!-- Filled by timeline.js from data/events.json; safe default points to official X. -->
           <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
             <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
@@ -103,8 +103,9 @@
       <section class="first section" id="first" aria-labelledby="first-title">
         <div class="first-head">
           <h2 id="first-title">ポーカーの店、<br />初めてですか？</h2>
-          <p>ルールを知らなくても大丈夫。<br />来てから決めればいいんです。</p>
+          <p class="voice">ルールを知らなくても大丈夫。<br />来てから決めればいいんです。</p>
         </div>
+        <figure class="first-photo"><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="白い壁にテーブル3台とソファ席がある明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption>店内はこんな感じ。白い壁にテーブルが3台、ソファ席もあります。</figcaption></figure>
         <div class="first-stage">
           <ol class="steps flow">
             <li><span class="step-pic step-pic--1" aria-hidden="true"></span><b>1</b><h3>まずは見るだけ</h3><p>ガラス扉の外から店内が見えます。入って見学だけして、帰ってもOK。</p></li>
@@ -112,10 +113,9 @@
             <li><span class="step-pic step-pic--3" aria-hidden="true"></span><b>3</b><h3>ひとりで座る</h3><p>ひとりで来る常連さんも多め。空いている席にどうぞ。</p></li>
           </ol>
         </div>
-        <figure class="first-photo"><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="白い壁にテーブル3台とソファ席がある明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption>店内はこんな感じ。白い壁にテーブルが3台、ソファ席もあります。</figcaption></figure>
         <div class="price" id="price" aria-labelledby="price-title">
           <div class="price-main">
-            <p class="price-kicker">施設利用料だけで、遊べます。</p>
+            <p class="price-kicker voice">施設利用料だけで、遊べます。</p>
             <h3 id="price-title"><span class="price-num">¥500<img class="price-mascot" src="./images/chonmage-character-800.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 900px) 150px, 280px" alt="" width="800" height="690" loading="lazy" decoding="async" /></span><span class="sr">で遊べます</span></h3>
           </div>
           <dl class="price-list">

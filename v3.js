@@ -34,12 +34,12 @@
       const now = Number.isFinite(options.minute) ? options.minute : -1;
       const selected = Boolean(options.selected);
       const rows = [];
-      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: '好きなタイミングで途中参加OK' });
+      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: '好きなタイミングで途中参加OK・初めての方もここから' });
       schedule.events.forEach((event) => {
         const entry = event.facts.find((f) => /entry/i.test(f.label));
         rows.push({ ...event, kind: 'event', note: entry ? `参加費 ${entry.value.replace('¥0', '無料')}` : '' });
       });
-      rows.sort((a, b) => a.start - b.start);
+      rows.sort((a, b) => (b.kind === 'ring') - (a.kind === 'ring') || a.start - b.start);
       const ol = el('ol', 'tl');
       if (schedule.closed) {
         ol.append(el('li', 'tl-empty', '本日は休業です。次回の営業は公式Xでお知らせします。'));
@@ -64,7 +64,7 @@
       if (!nowPlaced && rows.length) { const marker = nowMarker(now); ol.append(marker); }
       // Small screens: show what you can join now + the next game; fold the rest.
       const rowEls = [...ol.querySelectorAll('.tl-row')];
-      const focus = new Set(rowEls.filter((li) => (li.classList.contains('is-live') || li.classList.contains('is-running')) && !li.classList.contains('is-ring')));
+      const focus = new Set(rowEls.filter((li) => li.classList.contains('is-live') || li.classList.contains('is-running')));
       const next = rowEls.find((li) => li.classList.contains('is-soon')); if (next) focus.add(next);
       const extra = rowEls.filter((li) => !focus.has(li));
       if (focus.size && extra.length) {
