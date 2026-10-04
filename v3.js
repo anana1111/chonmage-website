@@ -88,6 +88,10 @@ const WAITINGLIST_URL = '';
         live.querySelector('span').textContent = (open ? '営業中' : '営業時間外') + (upcoming ? `・次 ${hhmm(upcoming.start)} ${upcoming.title}` : '');
         live.classList.toggle('is-open', open);
         live.hidden = selected;
+        const bar = document.querySelector('.statusbar');
+        const runningRow = rows.filter((row) => !selected && row.kind !== 'ring' && row.start <= now && A.getEventStatus(row, now).status !== 'finished').pop();
+        const barText = (open ? '営業中' : '営業時間外') + (upcoming ? `・次 ${hhmm(upcoming.start)} ${upcoming.title}` : runningRow ? `・いま ${runningRow.title} 開催中` : '');
+        if (bar) { bar.querySelector('span').textContent = barText; bar.classList.toggle('is-open', open); bar.hidden = selected; }
       }
       list.className = 'event-list v3-timeline';
       list.replaceChildren(ol);
@@ -100,7 +104,11 @@ const WAITINGLIST_URL = '';
   if (!grid) return;
   const emoji = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}\u{1F3FB}-\u{1F3FF}\u{FFFD}]/gu;
   const clean = (text) => text.replace(emoji, '').replace(/^R to @\S+:\s*/, '').replace(/\s+/g, ' ').trim();
-  const shorten = (text, max = 40) => (text.length > max ? text.slice(0, max - 1) + '…' : text);
+  const shorten = (text, max = 30) => {
+    if (text.length <= max) return text;
+    const cut = text.slice(0, max).search(/[\s　。！!](?=[^\s　。！!]*$)/);
+    return cut >= 10 ? text.slice(0, cut).replace(/[\s　]+$/, '') : text.slice(0, max - 1) + '…';
+  };
   const label = { SCHEDULE: '営業', EVENT: 'イベント', RESULT: '結果' };
   const tidy = () => {
     grid.querySelectorAll('.news-card:not([data-v3])').forEach((card) => {

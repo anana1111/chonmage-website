@@ -271,3 +271,71 @@ a { color: inherit; }
 .wl-name::after { content: ""; display: block; width: 3rem; height: 4px; margin-top: .5rem; background: var(--shu); }
 .wl-text { margin: 0; font-size: .85rem; line-height: 1.6; opacity: .9; }
 @media (max-width: 1080px) { .wl { grid-column: 1 / 13; } }
+
+/* ===== round-17: uneven panels, frame-break, three line weights ===== */
+:root { --rule-main: 4px; --rule-sub: 2px; }
+.cover, .today { border-width: var(--rule-main); }
+.statusbar { display: none; }
+/* cover wider, mascot breaks out of its frame toward today panel */
+.cover { grid-column: 1 / 8; overflow: visible; clip-path: none; }
+.cover .speed { overflow: hidden; }
+.cover-mascot { right: -64px; z-index: 4; }
+.today { grid-row: 1 / 2; align-self: start; }
+.today-foot { margin-top: 1rem; }
+.wl-line { margin: 0; padding: .55rem .7rem; border: var(--rule-sub) solid var(--ink); background: var(--ground); font-size: .82rem; font-weight: 700; }
+.wl-line b { font-family: var(--font-num); font-weight: 400; }
+/* strip: big numerals + voice, slanted panel edges */
+.strip { grid-template-columns: minmax(0, 1.4fr) minmax(0, 2.4fr) minmax(0, 3fr) minmax(0, 3.6fr); }
+.sp { padding: 1rem 1.1rem 1.1rem; border-width: var(--rule-sub); }
+.sp--1 { clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%); }
+.sp--2 { clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%); }
+.sp--3 { clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%); background: var(--shu); color: var(--shu-ink); }
+.sp-voice { margin: 0 0 .9rem; font-family: var(--font-display); font-size: clamp(1.15rem, 1.7vw, 1.55rem); line-height: 1.35; }
+.sp h3 { font-size: 1.1rem; }
+.sp h3 b { width: auto; height: auto; padding: 0; background: none; color: inherit; font-size: 2.6rem; line-height: 1; margin-right: .2rem; }
+.sp--3 .sp-text { color: var(--shu-ink); }
+/* inside + access: access now carries the door photo */
+.inside { grid-column: 1 / 7; align-self: start; }
+.access { grid-column: 7 / 13; }
+.access-door { position: relative; margin: -1.1rem -1.2rem 1rem; border-bottom: var(--rule-sub) solid var(--ink); }
+.access-door img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: 60% 42%; }
+.access-door figcaption { position: absolute; left: 0; bottom: 0; padding: .3rem .7rem; background: var(--ink); color: var(--sheet); font-weight: 900; font-size: .85rem; }
+.price, .news, .access, .inside { border-width: var(--rule-sub); }
+.price { grid-column: 1 / 5; }
+.news { grid-column: 5 / 13; }
+@media (max-width: 1080px) {
+  .cover-mascot { right: -20px; }
+  .cover { overflow: hidden; }
+  .strip { grid-template-columns: 1fr; }
+  .sp--1, .sp--2, .sp--3 { clip-path: none; }
+  .inside, .access, .price, .news { grid-column: 1 / 13; }
+}
+@media (max-width: 680px) {
+  .statusbar:not([hidden]) { grid-column: 1 / -1; display: flex; align-items: center; gap: .5rem; padding: .55rem .8rem; background: var(--ink); color: var(--sheet); border-width: var(--rule-sub); font-weight: 900; font-size: .85rem; text-decoration: none; }
+  .statusbar i { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: #9a9890; }
+  .statusbar.is-open i { background: var(--shu); box-shadow: 0 0 0 3px rgba(223, 59, 31, .35); }
+  .cover { aspect-ratio: 390 / 330; }
+  .cover h1 { font-size: clamp(1.9rem, 8.6vw, 2.4rem); }
+  .cover-mascot { width: 62%; bottom: 36px; right: -14px; }
+  .cover-caption { display: none; }
+  .bubble--cover { font-size: .78rem; padding: .7rem .8rem; }
+  .sp { display: block; padding: .9rem 1rem 1rem; }
+  .sp-voice { font-size: 1.15rem; margin-bottom: .5rem; }
+  .sp h3 { padding: 0; }
+  .sp-text { padding: 0; }
+  .access-door { margin: -1.1rem -1.2rem 1rem; }
+}
+/* round-17 fixes: desktop-only placement; inside photo fills the gap under the board */
+@media (min-width: 1081px) {
+  .inside { grid-column: 8 / 13; grid-row: 2; align-self: stretch; display: flex; flex-direction: column; }
+  .inside img { flex: 1; aspect-ratio: auto; min-height: 0; height: 100%; }
+  .access { grid-column: 1 / 8; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 1.4rem; align-content: start; }
+  .access-door { grid-column: 1; grid-row: 1 / 6; margin: -1.1rem 0 -1.3rem -1.2rem; border-bottom: 0; border-right: var(--rule-sub) solid var(--ink); }
+  .access-door img { height: 100%; aspect-ratio: auto; }
+  .access > :not(.access-door) { grid-column: 2; }
+  .price { grid-column: 8 / 13; }
+  .news { grid-column: 1 / 13; }
+}
+@media (max-width: 1080px) {
+  .cover, .today { grid-column: 1 / 13; grid-row: auto; }
+}
