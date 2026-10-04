@@ -18,7 +18,7 @@
       if (s.status === 'upcoming') return { key: 'soon', text: `あと${A.formatRemaining(s.remaining)}` };
       if (s.status === 'finished') return { key: 'done', text: '終了' };
       if (s.status === 'registering' || s.status === 'last-call') return { key: 'live', text: `受付中・あと${A.formatRemaining(s.remaining)}` };
-      return { key: 'live', text: '開催中' };
+      return { key: 'running', text: '開催中' };
     };
     const nowMarker = (now) => {
       const marker = el('li', 'tl-now');
