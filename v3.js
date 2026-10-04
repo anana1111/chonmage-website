@@ -64,7 +64,7 @@
       if (!nowPlaced && rows.length) { const marker = nowMarker(now); ol.append(marker); }
       // Small screens: show what you can join now + the next game; fold the rest.
       const rowEls = [...ol.querySelectorAll('.tl-row')];
-      const focus = new Set(rowEls.filter((li) => li.classList.contains('is-live')).slice(0, 1));
+      const focus = new Set(rowEls.filter((li) => li.classList.contains('is-live') || li.classList.contains('is-running')));
       const next = rowEls.find((li) => li.classList.contains('is-soon')); if (next) focus.add(next);
       const extra = rowEls.filter((li) => !focus.has(li));
       if (focus.size && extra.length) {

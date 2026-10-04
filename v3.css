@@ -719,3 +719,8 @@ footer .logo-mark .lm-spade { fill: var(--ink); }
   .flow b { margin: 0 0 .1rem; }
   .news-grid { grid-template-columns: 1fr; }
 }
+.price-num { margin-left: 0; }
+@media (max-width: 900px) {
+  .board .hero-schedule .schedule-date > span { display: inline; font-size: .65rem; }
+  .board .hero-schedule .schedule-date { flex-direction: column-reverse; align-items: flex-start; gap: .15rem; }
+}
