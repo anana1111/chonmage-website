@@ -64,7 +64,7 @@
       if (!nowPlaced && rows.length) { const marker = nowMarker(now); ol.append(marker); }
       // Small screens: show what you can join now + the next game; fold the rest.
       const rowEls = [...ol.querySelectorAll('.tl-row')];
-      const focus = new Set(rowEls.filter((li) => li.classList.contains('is-live') || li.classList.contains('is-running')));
+      const focus = new Set(rowEls.filter((li) => li.classList.contains('is-live')).slice(0, 1));
       const next = rowEls.find((li) => li.classList.contains('is-soon')); if (next) focus.add(next);
       const extra = rowEls.filter((li) => !focus.has(li));
       if (focus.size && extra.length) {
@@ -75,6 +75,15 @@
         if (expanded) ol.classList.add('is-expanded');
       }
       if (!rows.length && !schedule.closed) ol.append(el('li', 'tl-empty', '開催内容は公式Xでご確認ください。'));
+      // Header status line: open state + next game.
+      const live = document.querySelector('.header-live');
+      if (live) {
+        const upcoming = rows.find((row) => !selected && row.kind !== 'ring' && row.start > now);
+        const open = !schedule.closed && schedule.open !== null && now >= schedule.open && (schedule.close === null || now < schedule.close);
+        live.querySelector('span').textContent = (open ? '営業中' : '営業時間外') + (upcoming ? `・次 ${hhmm(upcoming.start)} ${upcoming.title}` : '');
+        live.classList.toggle('is-open', open);
+        live.hidden = selected;
+      }
       list.className = 'event-list v3-timeline';
       list.replaceChildren(ol);
       const title = document.getElementById('today-title'); if (title) title.textContent = '今日のゲーム';

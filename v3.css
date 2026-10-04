@@ -692,3 +692,30 @@ footer .logo-mark .lm-spade { fill: var(--ink); }
   .first { grid-template-columns: 1fr; }
   .first-photo { margin-top: 1.75rem; }
 }
+
+/* ===== round-14 ===== */
+.header-live { display: inline-flex; align-items: center; gap: .55rem; min-height: 44px; padding: 0 1.1rem; border: 1px solid var(--line); border-radius: 99px; background: var(--white); font-size: .85rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.header-live[hidden] { display: none; }
+.header-live i { width: 9px; height: 9px; border-radius: 50%; background: #9aa09c; }
+.header-live.is-open i { background: var(--neon-deep); box-shadow: 0 0 0 4px rgba(95, 242, 143, .45); }
+.hero-actions .hero-maps { display: none !important; }
+.flow li::before { display: block; }
+.flow::before { top: calc(2.5rem + 9px); }
+.flow b { margin-top: 2.25rem; }
+.first { padding-top: clamp(3rem, 6vw, 5rem); }
+.news-grid { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+  .header-live { display: none; }
+  .top .hero-lead { display: none; }
+  .hero-route { display: none !important; }
+  .hero-first-main { width: 100%; }
+  .board .hero-schedule .schedule-date > span { display: none; }
+  .board .hero-schedule .schedule-date { padding: .75rem 1rem; }
+  .board .hero-schedule [data-hero-event="open"] { flex-direction: row; align-items: baseline; gap: .5rem; }
+  .flow { padding-left: 2.25rem; }
+  .flow li, .flow li:last-child { display: block; }
+  .flow li::before { left: -2.25rem; top: .35rem; }
+  .flow::before { left: 9px; top: .5rem; }
+  .flow b { margin: 0 0 .1rem; }
+  .news-grid { grid-template-columns: 1fr; }
+}
