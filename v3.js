@@ -107,17 +107,22 @@ const WAITINGLIST_URL = '';
   const regularLine = document.querySelector('.regular-line');
   if (band && statusText && dateLabel) {
     const fill = () => {
-      if (!band.classList.contains('is-stale')) return;
+      // On the stamp the date is already beside it: "本日 13:00 OPEN" → "13:00 OPEN".
+      if (!band.classList.contains('is-stale')) {
+        const short = statusText.textContent.replace(/^本日\s+(\d{1,2}:\d{2} OPEN)$/, '$1');
+        if (short !== statusText.textContent) statusText.textContent = short;
+        return;
+      }
       const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
         .formatToParts(new Date()).map((part) => [part.type, part.value]));
       const day = regularDay(Number(p.year), Number(p.month), Number(p.day));
       const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
       const minute = Number(p.hour) * 60 + Number(p.minute);
       const status = minute < toMin(day.open) ? `本日 ${day.open} OPEN 予定`
-        : day.close && minute >= toMin(day.close) ? '通常は営業終了' : '通常は営業中';
+        : day.close && minute >= toMin(day.close) ? 'いつもなら営業を終えた時間' : 'いつもなら営業中の時間';
       if (dateLabel.textContent !== day.label) dateLabel.textContent = day.label;
       if (statusText.textContent !== status) statusText.textContent = status;
-      const label = `${day.dayOff ? '土日祝' : '平日'}の通常営業`;
+      const label = day.dayOff ? '土日祝' : '平日';
       if (regularLine && regularLine.dataset.label !== label) {
         regularLine.dataset.label = label;
         const time = el('b', 'rl-time', day.open);
@@ -168,7 +173,6 @@ const WAITINGLIST_URL = '';
       return marker;
     };
     let expanded = false;
-    let firstRender = true;
     const foldEl = (done, schedule) => {
       const li = el('li', 'tl-fold');
       const toggle = el('button', 'tl-fold-toggle');
@@ -176,7 +180,8 @@ const WAITINGLIST_URL = '';
       toggle.setAttribute('aria-controls', 'tl-fold-body');
       const icon = el('span', 'tl-fold-icon');
       icon.setAttribute('aria-hidden', 'true');
-      toggle.append(el('span', 'tl-fold-label', `終了 ${done.length}件`), icon);
+      const label = el('span', 'tl-fold-label');
+      toggle.append(label, icon);
       // The body stays in the layout and grows from 0 height (CSS), so the rows below slide down instead of jumping.
       const body = el('div', 'tl-fold-body');
       body.id = 'tl-fold-body';
@@ -187,6 +192,7 @@ const WAITINGLIST_URL = '';
         li.classList.toggle('is-open', expanded);
         toggle.setAttribute('aria-expanded', String(expanded));
         icon.textContent = expanded ? '－' : '＋';
+        label.textContent = `終了した${done.length}件を${expanded ? 'とじる' : '見る'}`;
       };
       toggle.addEventListener('click', () => { expanded = !expanded; sync(); });
       sync();
@@ -200,7 +206,7 @@ const WAITINGLIST_URL = '';
       const now = Number.isFinite(options.minute) ? options.minute : -1;
       const selected = Boolean(options.selected);
       const rows = [];
-      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: ['いつでも途中参加OK。', { nb: '初めての方も' }, 'ここから'] });
+      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: ['いつでも途中参加OK。', { nb: '初めての方も' }, 'ここから。'] });
       schedule.events.forEach((event) => {
         const entry = event.facts.find((f) => /entry/i.test(f.label));
         rows.push({ ...event, kind: 'event', note: entry ? `参加費 ${entry.value === '¥0' ? '無料' : entry.value}` : '' });
@@ -244,11 +250,6 @@ const WAITINGLIST_URL = '';
       phraseAll(ol, '.tl-title, .tl-note, .tl-next, .tl-empty');
       // Waitinglist counts players for today's games: say nothing about it on a day that is over or off.
       document.querySelector('.wl-line')?.toggleAttribute('hidden', !selected && (schedule.closed || ended));
-      document.getElementById('today')?.classList.toggle('is-short', !selected && (schedule.closed || ended));
-
-      // The single stamp: pressed once, on the first thing you can join now.
-      if (firstRender && !selected && document.documentElement.dataset.intro) ol.querySelector('.tl-state.is-live')?.classList.add('is-stamp');
-      firstRender = false;
 
       const hours = document.querySelector('.board-hours');
       if (hours) {
