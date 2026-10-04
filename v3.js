@@ -52,7 +52,10 @@
         const li = el('li', `tl-row is-${st.key}`);
         const a = el('a', 'tl-link'); a.href = row.link?.url || schedule.latestUrl; a.target = '_blank'; a.rel = 'noreferrer';
         const body = el('span', 'tl-body');
-        body.append(el('strong', 'tl-title', row.title));
+        const title = el('strong', 'tl-title');
+        (row.title.match(/[\u3040-\u309F]+|[\u30A0-\u30FF]+[A-Za-z0-9]*|[A-Za-z0-9]+|[^\u3040-\u30FFA-Za-z0-9]+/g) || [row.title])
+          .forEach((part) => title.append(el('span', 'nb', part), document.createElement('wbr')));
+        body.append(title);
         if (row.note) body.append(el('span', 'tl-note', row.note));
         a.append(el('time', 'tl-time', hhmm(row.start)), body, el('span', `tl-state is-${st.key}`, st.text));
         li.append(a); ol.append(li);
@@ -95,4 +98,14 @@
   };
   tidy();
   new MutationObserver(tidy).observe(grid, { childList: true });
+})();
+
+// Mobile dock appears only after the live board has scrolled out of view.
+(() => {
+  const dock = document.querySelector('.dock');
+  const board = document.querySelector('.board');
+  if (!dock || !board || !('IntersectionObserver' in window)) return;
+  new IntersectionObserver(([entry]) => {
+    dock.classList.toggle('is-visible', !entry.isIntersecting && entry.boundingClientRect.top < 0);
+  }).observe(board);
 })();

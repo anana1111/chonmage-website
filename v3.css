@@ -405,3 +405,46 @@ footer .logo-mark .lm-spade { fill: #eae7df; }
   .board { margin-top: 4.5rem; }
   .board-mascot { right: 4px; top: -88px; width: 104px; }
 }
+
+/* ===== round-6 ===== */
+.top { align-items: start; padding-top: clamp(2.5rem, 5vw, 4rem); }
+.top .hero { padding-top: 140px; }
+.board .hero-schedule { background: var(--paper); color: var(--ink); border-bottom: 1px solid var(--line); }
+.board .hero-schedule .schedule-date > span, .board .hero-schedule [data-hero-event="open"] span { color: var(--mute); }
+.board .hero-schedule .schedule-date strong { color: var(--orange); }
+.board .hero-schedule [data-hero-event="open"] { border-left-color: var(--line); }
+.board { box-shadow: 0 0 0 1px var(--line), 0 30px 60px -36px rgba(27, 28, 26, .35); }
+.first-stage { grid-template-columns: 1fr; }
+.steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 2.5rem; }
+.steps li, .steps li:last-child { grid-template-columns: 1fr; border-bottom: 0; padding: 1.5rem 0 0; }
+.steps b { grid-row: auto; margin-bottom: 1rem; font-size: 3.6rem; }
+.price h3 { display: block; font-size: clamp(1.6rem, 2.8vw, 2.4rem); line-height: 1.5; }
+.price-num { font-size: 1.6em; margin: 0 .1em; vertical-align: -.08em; }
+.news { padding-top: clamp(3.5rem, 6vw, 5rem); padding-bottom: clamp(3.5rem, 6vw, 5rem); }
+footer { background: var(--paper); color: var(--ink); border-top: 1px solid var(--line); }
+footer .logo-mark .lm-spade { fill: var(--ink); }
+.footer-top { align-items: start; }
+.footer-info { margin: 0; display: grid; gap: .4rem; font-size: .88rem; }
+.footer-info div { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; }
+.footer-info dt { color: var(--mute); font-weight: 700; }
+.footer-info dd { margin: 0; font-weight: 700; }
+.footer-info a { text-underline-offset: .2em; }
+.footer-note { border-top-color: var(--line); color: var(--mute); opacity: 1; }
+@media (max-width: 900px) {
+  .top .hero { padding-top: 0; }
+  .board-mascot { right: 4px; top: -84px; width: 96px; }
+  .tl-link { grid-template-columns: 3.5rem minmax(0, 1fr) auto; align-items: start; }
+  .tl-state { grid-column: 3; grid-row: 1; justify-self: end; margin-top: .2rem; font-size: .72rem; }
+  .tl-state.is-live, .tl-state.is-running { padding: .15rem .55rem; }
+  .tl-note { font-size: .8rem; }
+  .tl-title { font-size: 1.05rem; }
+  .steps { grid-template-columns: 1fr; }
+  .steps li { grid-template-columns: 3.25rem 1fr; padding: 1.25rem 0; border-top: 1.5px solid var(--ink); }
+  .steps b { grid-row: span 2; margin: 0; font-size: 2.4rem; }
+  .dock { transform: translateY(150%); transition: transform .3s ease; }
+  .dock.is-visible { transform: none; }
+  footer { padding-bottom: 6.5rem; }
+}
+.board .hero-schedule .schedule-date { background: transparent; color: var(--ink); }
+.tl-title, .tl-note, .hero-lead, .route, .steps p, .space-head p { word-break: auto-phrase; }
+.nb { white-space: nowrap; }
