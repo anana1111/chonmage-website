@@ -594,3 +594,20 @@ footer .logo-mark .lm-spade { fill: var(--ink); }
 .first-stage { grid-template-columns: 1fr; }
 .flow::before { right: 0; }
 @media (max-width: 900px) { .flow::before { bottom: 3.5rem; } }
+
+/* ===== round-10 ===== */
+.hero-points { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; list-style: none; margin: 2.25rem 0 0; padding: 1.25rem 0 0; border-top: 1px solid var(--line); font-weight: 900; font-size: .95rem; }
+.hero-points li::before { content: "✓"; margin-right: .4rem; color: var(--ink); }
+.first-head { display: block; }
+.first-head p { margin-top: 1.25rem; font-size: 1.1rem; }
+/* price: mascot sits on the number */
+.price-main { display: block; position: relative; }
+.price h3 { display: inline-block; position: relative; }
+.price-mascot { position: absolute; left: calc(min(100%, 1200px) * 0 + clamp(330px, 46vw, 640px)); bottom: clamp(60px, 9vw, 150px); width: clamp(160px, 18vw, 260px); margin: 0; }
+.price-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* ring game demoted when folded on mobile */
+@media (max-width: 900px) {
+  .hero-points { margin-top: 0; padding-top: 0; border: 0; order: 7; font-size: .85rem; gap: .35rem 1rem; }
+  .price-mascot { left: auto; right: 0; bottom: 5.5rem; width: 120px; }
+  .price-list { grid-template-columns: 1fr 1fr; }
+}

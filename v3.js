@@ -50,7 +50,7 @@
           const marker = nowMarker(now); ol.append(marker); nowPlaced = true;
         }
         const st = stateLabel(row, now, selected);
-        const li = el('li', `tl-row is-${st.key}`);
+        const li = el('li', `tl-row is-${st.key}${row.kind === 'ring' ? ' is-ring' : ''}`);
         const a = el('a', 'tl-link'); a.href = row.link?.url || schedule.latestUrl; a.target = '_blank'; a.rel = 'noreferrer';
         const body = el('span', 'tl-body');
         const title = el('strong', 'tl-title');
@@ -64,7 +64,7 @@
       if (!nowPlaced && rows.length) { const marker = nowMarker(now); ol.append(marker); }
       // Small screens: show what you can join now + the next game; fold the rest.
       const rowEls = [...ol.querySelectorAll('.tl-row')];
-      const focus = new Set(rowEls.filter((li) => li.classList.contains('is-live')));
+      const focus = new Set(rowEls.filter((li) => (li.classList.contains('is-live') || li.classList.contains('is-running')) && !li.classList.contains('is-ring')));
       const next = rowEls.find((li) => li.classList.contains('is-soon')); if (next) focus.add(next);
       const extra = rowEls.filter((li) => !focus.has(li));
       if (focus.size && extra.length) {
