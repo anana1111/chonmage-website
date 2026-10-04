@@ -437,3 +437,16 @@ h1, h2, h3, .q, .tl-title { font-feature-settings: "palt"; }
   .a { font-size: .86rem; margin-top: .2rem; }
   .plain { padding: .6rem .1rem 0; }
 }
+
+/* polish: red reserved for "now / act"; aligned edges; mobile bubble clear of the arm */
+.q::before, .price-main dd, .news-meta > :last-child, .bubble b { color: var(--ink); }
+@media (max-width: 680px) {
+  .plain { padding: .6rem calc(var(--rule) + 1.2rem) 0; }
+  .bubble--cover { top: auto; right: auto; left: 10px; bottom: 10px; }
+  .bubble--cover::after { left: auto; right: -15px; top: 50%; bottom: auto; border: 8px solid transparent; border-left: 14px solid var(--ink); border-right: 0; transform: translateY(-50%); }
+  .cover-mascot { width: 56%; }
+}
+@media (max-width: 680px) {
+  .bubble--cover { left: 30%; top: 12px; bottom: auto; }
+  .bubble--cover::after { right: -13px; top: 62%; }
+}
