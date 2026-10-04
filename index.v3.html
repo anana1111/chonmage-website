@@ -43,12 +43,18 @@
     </header>
 
     <main id="top">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-text">
+      <div class="top">
+        <section class="hero" aria-labelledby="hero-title">
           <p class="hero-place">新潟・古町6番町のポーカールーム</p>
-          <h1 id="hero-title"><span>古町で、<wbr />気軽に</span><span><em>ポーカー</em>を。</span></h1>
+          <h1 id="hero-title"><span>古町で、<wbr />気軽に</span><span>ポーカーを。</span></h1>
           <p class="hero-lead">初めてでも、ひとりでも。<br />ルールはスタッフが最初から教えます。</p>
+          <div class="hero-actions">
+            <a class="btn btn--primary" href="#access">お店への行き方</a>
+            <a class="btn" href="#first">はじめての方へ</a>
+          </div>
+        </section>
 
+        <section class="today board" id="today" aria-labelledby="today-stale-title">
           <!-- Filled by timeline.js from data/events.json; safe default points to official X. -->
           <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
             <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
@@ -57,42 +63,26 @@
             <a class="hero-event-detail" data-hero-event="main" href="#today" hidden><span>MAIN</span><strong>—</strong></a>
             <a class="schedule-x" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer"><span>LATEST</span><strong>Xで確認 ↗</strong></a>
           </div>
-
-          <div class="hero-actions">
-            <a class="btn btn--primary" href="#today">今日のゲームを見る</a>
-            <a class="btn" href="#access">行き方・営業時間</a>
+          <div class="today-live-content" hidden>
+            <div class="today-heading">
+              <h2 id="today-title">今日のゲーム</h2>
+              <div class="today-summary"><span>TODAY</span><strong></strong><p></p></div>
+            </div>
+            <div class="event-list"></div>
+            <p class="schedule-note">※「置きバケ連絡締切」と「トーナメント最終受付」は異なります。最終受付時間は公式Xまたは店舗へご確認ください。</p>
           </div>
-        </div>
-        <figure class="hero-photo">
-          <img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 100vw, 55vw" alt="白い壁と3台のポーカーテーブルがある明るい店内" width="1448" height="1086" fetchpriority="high" decoding="async" />
-        </figure>
-      </section>
-
-      <section class="today section" id="today" aria-labelledby="today-stale-title">
-        <div class="today-live-content" hidden>
-          <div class="today-heading">
-            <h2 id="today-title">今日のゲーム</h2>
-            <div class="today-summary"><span>TODAY</span><strong></strong><p></p></div>
+          <div class="today-stale-message">
+            <h2 id="today-stale-title">今日のゲーム</h2>
+            <p>本日の営業時間・トーナメント・リングゲームは公式Xでお知らせしています。</p>
+            <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x btn btn--primary">公式Xで最新情報を見る ↗</a>
           </div>
-          <div class="event-list"></div>
-          <p class="schedule-note">※「置きバケ連絡締切」と「トーナメント最終受付」は異なります。最終受付時間は公式Xまたは店舗へご確認ください。</p>
-        </div>
-
-        <div class="today-stale-message">
-          <h2 id="today-stale-title">今日のゲーム</h2>
-          <p>本日の営業時間・トーナメント・リングゲームは公式Xでお知らせしています。</p>
-          <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x btn btn--primary">公式Xで最新情報を見る ↗</a>
-        </div>
-      </section>
+        </section>
+      </div>
 
       <section class="access section" id="access" aria-labelledby="access-title">
         <div class="access-copy">
           <h2 id="access-title">お店への行き方</h2>
-          <ol class="route">
-            <li><b>1</b><p>古町通6番町のアーケード<strong>「古町モール6」</strong>へ。</p></li>
-            <li><b>2</b><p>緑色の<strong>「POKER」の看板</strong>が目印です。</p></li>
-            <li><b>3</b><p><strong>ミサワビル1階</strong>のガラス扉からどうぞ。</p></li>
-          </ol>
+          <p class="route">古町通6番町のアーケード「古町モール6」沿い、ミサワビル1階。<b>緑の「POKER」看板</b>のガラス扉が入口です。</p>
           <dl class="access-list">
             <div><dt>住所</dt><dd>新潟県新潟市中央区古町通6番町987-1 ミサワビル1階</dd></div>
             <div><dt>営業</dt><dd>平日 17:00–23:30 ／ 土日祝 13:00–</dd></div>
@@ -104,6 +94,7 @@
           </div>
         </div>
         <figure class="access-photo">
+          <span class="pin" aria-hidden="true"><i></i><em>この看板が目印</em></span>
           <img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 100vw, 45vw" alt="緑のPOKER看板が光る、ちょんまげのガラス扉の入口" width="1448" height="1086" loading="lazy" decoding="async" />
         </figure>
       </section>
@@ -133,11 +124,11 @@
       </section>
 
       <section class="space" id="space" aria-labelledby="space-title">
-        <figure class="space-photo"><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="100vw" alt="白い壁の店内に並ぶポーカーテーブルと椅子" width="1448" height="1086" loading="lazy" decoding="async" /></figure>
-        <div class="space-card">
-          <h2 id="space-title">明るくて、<br />ゆったり。</h2>
+        <div class="space-head">
+          <h2 id="space-title">明るくて、ゆったり。</h2>
           <p>白い壁に、3台のテーブルとソファ席。ドリンクを片手に、見学だけでも気軽にどうぞ。スタッフが常にいるので、わからないことはその場で聞けます。</p>
         </div>
+        <figure class="space-photo"><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="100vw" alt="白い壁の店内に並ぶポーカーテーブルと椅子" width="1448" height="1086" loading="lazy" decoding="async" /></figure>
       </section>
 
       <section class="news section" id="news" aria-labelledby="news-title">
