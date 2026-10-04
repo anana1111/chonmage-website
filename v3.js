@@ -26,6 +26,7 @@
       marker.append(el('span', '', `いま ${hhmm(now)}`), pic);
       return marker;
     };
+    let expanded = false;
     A.render = (data, options = {}) => {
       const list = document.querySelector('#today .event-list');
       if (!list) return;
@@ -61,6 +62,18 @@
         li.append(a); ol.append(li);
       });
       if (!nowPlaced && rows.length) { const marker = nowMarker(now); ol.append(marker); }
+      // Small screens: show what you can join now + the next game; fold the rest.
+      const rowEls = [...ol.querySelectorAll('.tl-row')];
+      const focus = new Set(rowEls.filter((li) => li.classList.contains('is-live')));
+      const next = rowEls.find((li) => li.classList.contains('is-soon')); if (next) focus.add(next);
+      const extra = rowEls.filter((li) => !focus.has(li));
+      if (focus.size && extra.length) {
+        extra.forEach((li) => li.classList.add('tl-extra'));
+        const more = el('li', 'tl-more'); const button = el('button', '', `ほか${extra.length}件の予定を見る`); button.type = 'button';
+        button.addEventListener('click', () => { expanded = true; ol.classList.add('is-expanded'); });
+        more.append(button); ol.append(more);
+        if (expanded) ol.classList.add('is-expanded');
+      }
       if (!rows.length && !schedule.closed) ol.append(el('li', 'tl-empty', '開催内容は公式Xでご確認ください。'));
       list.className = 'event-list v3-timeline';
       list.replaceChildren(ol);

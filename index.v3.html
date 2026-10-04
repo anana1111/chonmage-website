@@ -29,7 +29,7 @@
         <a href="#news">お知らせ</a>
       </nav>
       <div class="header-actions">
-        <a class="x-link" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" aria-label="ちょんまげ公式Xを開く">X</a>
+        <a class="x-link" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" aria-label="ちょんまげ公式Xを開く">X @ChonmageNiigata</a>
         <button class="menu-button" type="button" aria-controls="mobile-nav" aria-expanded="false" aria-label="メニューを開く" hidden>メニュー</button>
       </div>
       <nav class="mobile-nav" id="mobile-nav" aria-label="モバイルナビゲーション">
@@ -37,7 +37,6 @@
         <a href="#access">アクセス</a>
         <a href="#first">はじめての方</a>
         <a href="#price">料金</a>
-        <a href="#space">店内</a>
         <a href="#news">お知らせ</a>
       </nav>
     </header>
@@ -47,15 +46,15 @@
         <section class="hero" aria-labelledby="hero-title">
           <p class="hero-place">新潟・古町6番町のポーカールーム</p>
           <h1 id="hero-title"><span>古町で、<wbr />気軽に</span><span>ポーカーを。</span></h1>
-          <p class="hero-lead">初めてでも、ひとりでも。<br />ルールはスタッフが最初から教えます。</p>
+          <p class="hero-lead">初めてでも、ひとりでも大丈夫。<span class="lead-more"><br />ルールはスタッフが最初から教えます。</span></p>
           <div class="hero-actions">
             <a class="btn btn--primary" href="#access">お店への行き方</a>
             <a class="btn" href="#first">はじめての方へ</a>
           </div>
+          <img class="hero-mascot" src="./images/chonmage-character-800.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 900px) 96px, 300px" alt="" width="800" height="690" decoding="async" />
         </section>
 
         <section class="today board" id="today" aria-labelledby="today-stale-title">
-          <img class="board-mascot" src="./images/chonmage-character-400.webp" alt="" width="400" height="345" decoding="async" />
           <!-- Filled by timeline.js from data/events.json; safe default points to official X. -->
           <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
             <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
@@ -107,9 +106,9 @@
         </div>
         <div class="first-stage">
           <ol class="steps">
-            <li><b>1</b><h3>まずは見るだけ</h3><p>入口から店内を見て、合わなければそのまま帰ってもOK。</p></li>
-            <li><b>2</b><h3>無料で教わる</h3><p>役の強さや進め方を、スタッフが卓で一緒に説明します。</p></li>
-            <li><b>3</b><h3>ひとりで座る</h3><p>ひとりで来る常連さんも多め。空いている席にどうぞ。</p></li>
+            <li><figure><img src="./images/storefront-night-800.webp" alt="ガラス扉越しに見える明るい店内" width="800" height="600" loading="lazy" decoding="async" /></figure><b>1</b><h3>まずは見るだけ</h3><p>ガラス扉の外から店内が見えます。入って見学だけして、帰ってもOK。</p></li>
+            <li><figure><img src="./images/poker-table-detail-800.webp" alt="チップが用意されたポーカーテーブル" width="800" height="600" loading="lazy" decoding="async" /></figure><b>2</b><h3>無料で教わる</h3><p>役の強さや進め方を、スタッフが卓で一緒に説明します。</p></li>
+            <li><figure><img src="./images/interior-wide-800.webp" alt="ソファ席もある白い壁の店内" width="800" height="600" loading="lazy" decoding="async" /></figure><b>3</b><h3>ひとりで座る</h3><p>ひとりで来る常連さんも多め。テーブルは3台、ソファ席でひと休みも。</p></li>
           </ol>
         </div>
         <div class="price" id="price" aria-labelledby="price-title">
@@ -120,17 +119,6 @@
             <div><dt>初心者講習</dt><dd>無料</dd></div>
             <div><dt>トーナメント参加費</dt><dd>¥1,500〜<small>日によって異なります</small></dd></div>
           </dl>
-        </div>
-      </section>
-
-      <section class="space" id="space" aria-labelledby="space-title">
-        <div class="space-head">
-          <h2 id="space-title">明るくて、ゆったり。</h2>
-          <p>白い壁に、3台のテーブルとソファ席。ドリンクを片手に、見学だけでも気軽にどうぞ。スタッフが常にいるので、わからないことはその場で聞けます。</p>
-        </div>
-        <div class="space-photos">
-          <figure><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 100vw, 50vw" alt="ソファ席もある、白い壁の明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption>ソファ席でひと休みもできます</figcaption></figure>
-          <figure><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="(max-width: 900px) 100vw, 50vw" alt="チップが用意されたポーカーテーブル" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption>テーブルは3台。初心者講習もこの卓で</figcaption></figure>
         </div>
       </section>
 

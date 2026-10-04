@@ -448,3 +448,54 @@ footer .logo-mark .lm-spade { fill: var(--ink); }
 .board .hero-schedule .schedule-date { background: transparent; color: var(--ink); }
 .tl-title, .tl-note, .hero-lead, .route, .steps p, .space-head p { word-break: auto-phrase; }
 .nb { white-space: nowrap; }
+
+/* ===== round-7 ===== */
+.x-link { width: auto; padding: 0 1.1rem; border-radius: 99px; font-size: .85rem; }
+.top .hero { padding-top: 0; position: relative; }
+.top { align-items: start; padding-top: clamp(3rem, 6vw, 5rem); }
+.board { margin-top: 0; }
+.hero-mascot { display: block; width: 300px; margin: 2.5rem 0 0 auto; }
+/* red is only for "now": status dot + いま line */
+.board .hero-schedule .schedule-date strong { color: var(--ink); }
+.tl-row.is-live .tl-time { color: var(--ink); }
+.tl-state.is-live { color: var(--ink); border-color: var(--ink); }
+.tl-row.is-live .tl-link::before { background: var(--ink); border-color: var(--ink); }
+.tl-more { display: none; }
+/* steps with photos */
+.steps li { display: block; padding: 0; border: 0 !important; }
+.steps figure { margin: 0 0 1.25rem; }
+.steps figure img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); }
+.steps li:first-child figure img { object-position: 35% 60%; }
+.steps b { display: block; font-size: 2.6rem; margin: 0 0 .5rem; }
+.steps h3 { font-size: 1.4rem; }
+.steps p { margin-top: .4rem; color: var(--ink); opacity: .78; font-size: .98rem; }
+.first-head p { font-weight: 500; }
+.price { margin-top: clamp(3.5rem, 6vw, 5rem); padding-top: clamp(2rem, 4vw, 3rem); border-top: 1.5px solid var(--ink); }
+@media (max-width: 900px) {
+  .top { padding-top: 1.25rem; gap: 1rem; }
+  .lead-more { display: none; }
+  .hero-mascot { order: 4; position: relative; z-index: 2; width: 92px; margin: -.5rem 0 -4.6rem auto; }
+  .top .board { order: 5; }
+  .top .hero-actions { order: 6; }
+  .tl-extra { display: none; }
+  .tl.is-expanded .tl-extra { display: block; }
+  .tl-more { display: block; padding-top: .75rem; }
+  .tl.is-expanded .tl-more { display: none; }
+  .tl-more button { width: 100%; min-height: 44px; border: 1px dashed var(--line); border-radius: 12px; background: transparent; font: 700 .88rem "Noto Sans JP", sans-serif; color: var(--ink); cursor: pointer; }
+  .dock { transform: none; }
+  .steps { gap: 2.5rem; }
+  .steps li { display: block; }
+  .steps b { font-size: 2.2rem; }
+  .x-link { padding: 0 .9rem; font-size: 0; }
+  .x-link::before { content: "X"; font-size: .95rem; }
+}
+.steps figure { aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--radius); }
+.steps figure img { height: 100%; aspect-ratio: auto; border-radius: 0; }
+.steps li:first-child figure img { transform: scale(1.7); transform-origin: 46% 62%; object-position: center; }
+.steps { align-items: start; }
+@media (max-width: 900px) {
+  .top { position: relative; }
+  .hero-mascot { position: absolute; top: 3.4rem; right: var(--pad); width: 96px; margin: 0; }
+}
+.steps li:last-child { padding: 0; }
+.news-image .news-photo { background: transparent !important; }
