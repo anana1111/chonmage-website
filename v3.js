@@ -1,5 +1,10 @@
 // v3 design lab: display-only enhancements for index.v3.html (data and shared scripts untouched).
+// The shop's Waitinglist page. Leave empty to hide the registration button.
+const WAITINGLIST_URL = '';
 (() => {
+  const wl = document.querySelector('.waitinglist-link');
+  if (wl && WAITINGLIST_URL) { wl.href = WAITINGLIST_URL; wl.hidden = false; }
+
   const el = (tag, className, text) => {
     const node = document.createElement(tag);
     if (className) node.className = className;

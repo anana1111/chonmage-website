@@ -2,8 +2,8 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f6f3ec" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3f1ea" />
     <meta name="description" content="新潟・古町の明るく気軽なポーカールーム、ちょんまげ。初心者、おひとり様も歓迎です。" />
     <title>ポーカールーム ちょんまげ｜新潟・古町</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,17 +16,19 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23273870'/%3E%3Cpath d='M12 38c8-17 32-17 40 0' fill='none' stroke='%23f4f1e8' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='30' r='4' fill='%23f26b38'/%3E%3Ccircle cx='41' cy='30' r='4' fill='%23f26b38'/%3E%3C/svg%3E" />
   </head>
   <body>
-    <header class="site-header">
+    <a class="skip" href="#today">今日のゲームへ移動</a>
+    <header class="site-header masthead">
       <a class="brand" href="#top" aria-label="ちょんまげ ホーム">
         <svg class="logo-mark" viewBox="0 0 48 48" aria-hidden="true"><path class="lm-knot" d="M19 9.5c1.5-4.6 8.5-4.6 10 0-1.6-.9-3.3-1.3-5-1.3s-3.4.4-5 1.3z"/><path class="lm-spade" d="M24 10c4 6.4 15 11.6 15 20.2 0 4.6-3.6 7.6-7.6 7.6-2.7 0-4.8-1.3-5.9-3.2.4 3.3 1.6 5.7 3.9 8.4H18.6c2.3-2.7 3.5-5.1 3.9-8.4-1.1 1.9-3.2 3.2-5.9 3.2-4 0-7.6-3-7.6-7.6C9 21.6 20 16.4 24 10z"/></svg>
-        <span class="brand-name">ちょんまげ<small>POKER ROOM · 古町</small></span>
+        <span class="brand-name">ちょんまげ</span>
       </a>
+      <p class="issue">古町モール6<br />ポーカールーム</p>
       <nav aria-label="メインナビゲーション">
         <a href="#today">今日のゲーム</a>
-        <a href="#access">アクセス</a>
         <a href="#first">はじめての方</a>
+        <a href="#access">アクセス</a>
         <a href="#price">料金</a>
-        <a href="#news">お知らせ</a>
+        <a href="#news">おしらせ</a>
       </nav>
       <div class="header-actions">
         <a class="header-live" href="#today" hidden><i></i><span></span></a>
@@ -34,120 +36,141 @@
       </div>
       <nav class="mobile-nav" id="mobile-nav" aria-label="モバイルナビゲーション">
         <a href="#today">今日のゲーム</a>
-        <a href="#access">アクセス</a>
         <a href="#first">はじめての方</a>
+        <a href="#access">アクセス</a>
         <a href="#price">料金</a>
-        <a href="#news">お知らせ</a>
+        <a href="#news">おしらせ</a>
       </nav>
     </header>
 
-    <main id="top">
-      <div class="top">
-        <section class="hero" aria-labelledby="hero-title">
-          <p class="hero-place">新潟・古町6番町のポーカールーム</p>
-          <h1 id="hero-title"><span>古町で、<wbr />気軽に</span><span>ポーカーを。</span></h1>
-          <p class="hero-lead">初めてでも、ひとりでも大丈夫。<span class="lead-more"><br />ルールはスタッフが最初から教えます。</span></p>
-          <div class="hero-actions">
-            <a class="btn btn--primary hero-first-main" href="#first">はじめての方へ</a>
-            <a class="btn hero-route" href="#access">お店への行き方</a>
-            <a class="btn btn--primary hero-maps" href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">Google マップで道順 ↗</a>
-          </div>
-        </section>
+    <main id="top" class="zine">
+      <section class="k cover" aria-labelledby="hero-title">
+        <div class="speed" aria-hidden="true"></div>
+        <h1 id="hero-title"><span>古町で、</span><span><em>ポーカー</em>を。</span></h1>
+        <p class="bubble bubble--cover">初めて？<br />ひとり？<br /><b>ぜんぜんOK！</b></p>
+        <img class="cover-mascot" src="./images/chonmage-character-800.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 900px) 64vw, 420px" alt="赤い椅子に座って手を伸ばす、ちょんまげのキャラクター" width="800" height="690" fetchpriority="high" decoding="async" />
+        <p class="cover-caption">新潟・古町6番町のポーカールーム。ルールはスタッフが最初から教えます。</p>
+      </section>
 
-        <section class="today board" id="today" aria-labelledby="today-stale-title">
-          <!-- Filled by timeline.js from data/events.json; safe default points to official X. -->
-          <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
-            <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
-            <div class="hero-event-detail" data-hero-event="open" hidden><span>OPEN</span><strong>—</strong></div>
-            <a class="hero-event-detail" data-hero-event="next" href="#today" hidden><span>NEXT</span><strong>—</strong></a>
-            <a class="hero-event-detail" data-hero-event="main" href="#today" hidden><span>MAIN</span><strong>—</strong></a>
-            <a class="schedule-x" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer"><span>LATEST</span><strong>Xで確認 ↗</strong></a>
+      <section class="k today board" id="today" aria-labelledby="today-stale-title">
+        <!-- Filled by timeline.js from data/events.json; safe default points to official X. -->
+        <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
+          <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
+          <div class="hero-event-detail" data-hero-event="open" hidden><span>OPEN</span><strong>—</strong></div>
+          <a class="hero-event-detail" data-hero-event="next" href="#today" hidden><span>NEXT</span><strong>—</strong></a>
+          <a class="hero-event-detail" data-hero-event="main" href="#today" hidden><span>MAIN</span><strong>—</strong></a>
+          <a class="schedule-x" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer"><span>LATEST</span><strong>Xで確認 ↗</strong></a>
+        </div>
+        <div class="today-live-content" hidden>
+          <div class="today-heading">
+            <h2 id="today-title">今日のゲーム</h2>
+            <div class="today-summary"><span>TODAY</span><strong></strong><p></p></div>
           </div>
-          <div class="today-live-content" hidden>
-            <div class="today-heading">
-              <h2 id="today-title">今日のゲーム</h2>
-              <div class="today-summary"><span>TODAY</span><strong></strong><p></p></div>
-            </div>
-            <div class="event-list"></div>
+          <div class="event-list"></div>
+          <div class="today-foot">
+            <a class="btn btn--ink waitinglist-link" href="#" target="_blank" rel="noreferrer" hidden>Waitinglistで参加登録 ↗</a>
             <p class="schedule-note">トーナメントの最終受付時間は、当日に公式Xでお知らせします。</p>
           </div>
-          <div class="today-stale-message">
-            <h2 id="today-stale-title">今日のゲーム</h2>
-            <p>本日の営業時間・トーナメント・リングゲームは公式Xでお知らせしています。</p>
-            <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x btn btn--primary">公式Xで最新情報を見る ↗</a>
-          </div>
-        </section>
-      </div>
-
-      <section class="access section" id="access" aria-labelledby="access-title">
-        <div class="access-copy">
-          <h2 id="access-title">お店への行き方</h2>
-          <p class="route">古町通6番町のアーケード「古町モール6」沿い、ミサワビル1階。<b>緑の「POKER」看板</b>のガラス扉が入口です。</p>
-          <dl class="access-list">
-            <div><dt>住所</dt><dd>新潟県新潟市中央区古町通6番町987-1 ミサワビル1階</dd></div>
-            <div><dt>営業</dt><dd>平日 17:00–23:30 ／ 土日祝 13:00–</dd></div>
-            <div><dt>電話</dt><dd><a href="tel:08014700011">080-1470-0011</a></dd></div>
-          </dl>
-          <div class="access-actions">
-            <a class="btn btn--primary" href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">Google マップで道順 ↗</a>
-            <a class="btn" href="tel:08014700011">電話する</a>
-          </div>
         </div>
-        <figure class="access-photo">
-          <span class="pin" aria-hidden="true"><i></i><em>この看板が目印</em></span>
-          <img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 100vw, 45vw" alt="緑のPOKER看板が光る、ちょんまげのガラス扉の入口" width="1448" height="1086" loading="lazy" decoding="async" />
-        </figure>
-      </section>
-
-      <section class="first section" id="first" aria-labelledby="first-title">
-        <div class="first-head">
-          <h2 id="first-title">ポーカーの店、<br />初めてですか？</h2>
-          <p>ルールを知らなくても大丈夫。<br />来てから決めればいいんです。</p>
-        </div>
-        <figure class="first-photo"><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="白い壁にテーブル3台とソファ席がある明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption>店内はこんな感じ。白い壁にテーブルが3台、ソファ席もあります。</figcaption></figure>
-        <div class="first-stage">
-          <ol class="steps flow">
-            <li><b>1</b><h3>まずは見るだけ</h3><p>ガラス扉の外から店内が見えます。入って見学だけして、帰ってもOK。</p></li>
-            <li><b>2</b><h3>無料で教わる</h3><p>役の強さや進め方を、スタッフが卓で一緒に説明します。</p></li>
-            <li><b>3</b><h3>ひとりで座る</h3><p>ひとりで来る常連さんも多め。空いている席にどうぞ。</p></li>
-          </ol>
-        </div>
-        <div class="price" id="price" aria-labelledby="price-title">
-          <div class="price-main">
-            <p class="price-kicker">施設利用料だけで、遊べます。</p>
-            <h3 id="price-title"><span class="price-num">¥500<img class="price-mascot" src="./images/chonmage-character-800.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 900px) 150px, 280px" alt="" width="800" height="690" loading="lazy" decoding="async" /></span><span class="sr">で遊べます</span></h3>
-          </div>
-          <dl class="price-list">
-            <div class="price-free"><dt>フリーロール・初心者講習・見学</dt><dd>ぜんぶ ¥0</dd></div>
-            <div><dt>トーナメント参加費</dt><dd>¥1,500〜<small>日によって異なります</small></dd></div>
-          </dl>
+        <div class="today-stale-message">
+          <h2 id="today-stale-title">今日のゲーム</h2>
+          <p>本日の営業時間・トーナメント・リングゲームは公式Xでお知らせしています。</p>
+          <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x btn btn--ink">公式Xで最新情報を見る ↗</a>
         </div>
       </section>
 
-      <section class="news section" id="news" aria-labelledby="news-title">
+      <a class="k door" href="#access">
+        <img src="./images/storefront-night-800.webp" alt="緑のPOKER看板が光る、ちょんまげのガラス扉の入口" width="800" height="600" loading="lazy" decoding="async" />
+        <span class="door-tag">この扉です →</span>
+      </a>
+      <a class="k fivehundred" href="#price">
+        <b>¥500</b>
+        <span>施設利用料だけ。<br />講習・見学はタダ。</span>
+      </a>
+
+      <aside class="k wl" aria-label="参加登録について">
+        <p class="wl-kicker">参加登録・参加人数は</p>
+        <p class="wl-name">Waitinglist</p>
+        <p class="wl-text">トーナメントの参加人数や受付状況は、店舗管理アプリ「Waitinglist」で確認できます。</p>
+      </aside>
+
+      <section class="strip" id="first" aria-labelledby="first-title">
+        <h2 id="first-title" class="strip-title">はじめての<br />ちょんまげ</h2>
+        <ol class="strip-panels">
+          <li class="k sp sp--1">
+            <span class="sp-art" aria-hidden="true"></span>
+            <p class="bubble">見るだけでも<br />いいの？</p>
+            <h3><b>1</b>まずは見るだけ</h3>
+            <p class="sp-text">ガラス扉の外から店内が見えます。入って見学だけして、帰ってもOK。</p>
+          </li>
+          <li class="k sp sp--2">
+            <span class="sp-art" aria-hidden="true"></span>
+            <p class="bubble">役って<br />なに？</p>
+            <h3><b>2</b>無料で教わる</h3>
+            <p class="sp-text">役の強さや進め方を、スタッフが卓で一緒に説明します。</p>
+          </li>
+          <li class="k sp sp--3">
+            <span class="sp-art" aria-hidden="true"></span>
+            <p class="bubble">ひとりでも<br />座れた！</p>
+            <h3><b>3</b>ひとりで座る</h3>
+            <p class="sp-text">ひとりで来る常連さんも多め。空いている席にどうぞ。</p>
+          </li>
+        </ol>
+      </section>
+
+      <figure class="k inside">
+        <img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 100vw, 760px" alt="白い壁にテーブル3台とソファ席がある明るい店内" width="1448" height="1086" loading="lazy" decoding="async" />
+        <figcaption>店内はこんな感じ。白い壁にテーブルが3台、ソファ席もあります。</figcaption>
+      </figure>
+
+      <section class="k access" id="access" aria-labelledby="access-title">
+        <h2 id="access-title">行き方</h2>
+        <p class="route">古町通6番町のアーケード「古町モール6」沿い、ミサワビル1階。<b>緑の「POKER」看板</b>のガラス扉が入口です。</p>
+        <dl class="access-list">
+          <div><dt>住所</dt><dd>新潟県新潟市中央区古町通6番町987-1 ミサワビル1階</dd></div>
+          <div><dt>営業</dt><dd>平日 17:00–23:30 ／ 土日祝 13:00–</dd></div>
+          <div><dt>電話</dt><dd><a href="tel:08014700011">080-1470-0011</a></dd></div>
+        </dl>
+        <div class="access-actions">
+          <a class="btn btn--red" href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">Google マップで道順 ↗</a>
+          <a class="btn" href="tel:08014700011">電話する</a>
+        </div>
+      </section>
+
+      <section class="k price" id="price" aria-labelledby="price-title">
+        <h2 id="price-title">料金</h2>
+        <dl class="price-list">
+          <div class="price-main"><dt>施設利用料</dt><dd>¥500</dd></div>
+          <div><dt>フリーロール参加費</dt><dd>¥0</dd></div>
+          <div><dt>初心者講習</dt><dd>¥0</dd></div>
+          <div><dt>見学のみ</dt><dd>¥0</dd></div>
+          <div><dt>トーナメント参加費</dt><dd>¥1,500〜<small>日によって異なります</small></dd></div>
+        </dl>
+      </section>
+
+      <section class="k news" id="news" aria-labelledby="news-title">
         <div class="news-heading">
-          <h2 id="news-title">お知らせ</h2>
+          <h2 id="news-title">おしらせ</h2>
           <a class="all-news-link" href="./news/">すべて見る →</a>
         </div>
         <div class="news-grid" aria-live="polite"><p class="news-empty">最近のニュースは NEWS一覧でご確認ください。</p></div>
       </section>
     </main>
 
-    <footer>
-      <div class="footer-top">
-        <div class="footer-brand"><svg class="logo-mark" viewBox="0 0 48 48" aria-hidden="true"><path class="lm-knot" d="M19 9.5c1.5-4.6 8.5-4.6 10 0-1.6-.9-3.3-1.3-5-1.3s-3.4.4-5 1.3z"/><path class="lm-spade" d="M24 10c4 6.4 15 11.6 15 20.2 0 4.6-3.6 7.6-7.6 7.6-2.7 0-4.8-1.3-5.9-3.2.4 3.3 1.6 5.7 3.9 8.4H18.6c2.3-2.7 3.5-5.1 3.9-8.4-1.1 1.9-3.2 3.2-5.9 3.2-4 0-7.6-3-7.6-7.6C9 21.6 20 16.4 24 10z"/></svg><p>ポーカールーム ちょんまげ</p></div>
-        <dl class="footer-info">
-          <div><dt>住所</dt><dd>新潟市中央区古町通6番町987-1 ミサワビル1階</dd></div>
-          <div><dt>営業</dt><dd>平日 17:00–23:30 ／ 土日祝 13:00–</dd></div>
-          <div><dt>連絡</dt><dd><a href="tel:08014700011">080-1470-0011</a> ・ <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X @ChonmageNiigata</a></dd></div>
-        </dl>
-      </div>
-      <p class="footer-note">当店は金銭を賭ける行為・換金を一切行っておりません。 NO CASH BETTING · NO CASH REDEMPTION　© 2026</p>
+    <footer class="colophon">
+      <p class="colophon-title">ちょんまげ</p>
+      <dl>
+        <div><dt>発行</dt><dd>ポーカールーム ちょんまげ</dd></div>
+        <div><dt>住所</dt><dd>新潟市中央区古町通6番町987-1 ミサワビル1階</dd></div>
+        <div><dt>営業</dt><dd>平日 17:00–23:30 ／ 土日祝 13:00–</dd></div>
+        <div><dt>連絡</dt><dd><a href="tel:08014700011">080-1470-0011</a> ・ <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X @ChonmageNiigata</a></dd></div>
+      </dl>
+      <p class="footer-note">当店は金銭を賭ける行為・換金を一切行っておりません。NO CASH BETTING · NO CASH REDEMPTION　© 2026</p>
     </footer>
     <nav class="dock" aria-label="クイックアクション">
-      <a href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.5" fill="currentColor"/></svg>地図</a>
-      <a href="tel:08014700011"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3h3l1.5 4.5-2 1.3a11 11 0 0 0 6.1 6.1l1.3-2L21 14.4v3A2.6 2.6 0 0 1 18.4 20 15.4 15.4 0 0 1 4 5.6 2.6 2.6 0 0 1 6.6 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>電話</a>
-      <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer"><span class="ico-x" aria-hidden="true">X</span>公式</a>
+      <a href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">地図</a>
+      <a href="tel:08014700011">電話</a>
+      <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">公式X</a>
     </nav>
     <script src="./v3-offline.js"></script>
     <script src="./timeline.js?v=20261004"></script>
