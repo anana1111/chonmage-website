@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "date": "2026-10-03",
+  "date": "2026-10-04",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2106202578363338768",
-  "updatedAt": "2026-10-03T13:32:04+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2106584000185921553",
+  "updatedAt": "2026-10-04T12:21:25+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2106202578363338768",
+    "url": "https://x.com/ChonmageNiigata/status/2106584000185921553",
     "mode": "auto"
   },
   "open": "13:00",
@@ -19,7 +19,7 @@
     "enabled": true,
     "start": "13:00",
     "title": "RING GAME",
-    "description": "3日(土)OPEN✨ 本日のトーナメントはこちら👇 🕠フリーロール 13:30～ 参加費無料＆1ドリンク付き🥤 ※別途、施設利用料500円が必要です。 🕠 超クレイジーパイナップル 15:30〜 捨てたハンドから相手の思考を読め‼️ Entry ¥4,000/ 40,000pt 🕖ふるまちターボ 20:00 ～ Entry ¥1,500/ 15,000pt リングゲームもOPENから参加者募集中🔥 本日もご来店お待ちしております☺️"
+    "description": "4日(日)OPEN✨ 本日のトーナメントはこちら👇 🕠フリーロール 13:30～ 参加費無料＆1ドリンク付き🥤 ※別途、施設利用料500円が必要です。 🕠 ふるまちトーナメントdeep 15:30〜 長く遊べるロングストラクチャートーナメント‼️ Entry ¥3,500/ 35,000pt 🕖ふるまちターボ 20:00 ～ Entry ¥1,500/ 15,000pt リングゲームもOPENから参加者募集中🔥 本日もご来店お待ちしております☺️"
   },
   "events": [
     {
@@ -45,31 +45,31 @@
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106202578363338768"
+        "url": "https://x.com/ChonmageNiigata/status/2106584000185921553"
       }
     },
     {
-      "id": "event-1530",
+      "id": "deep-1530",
       "time": "15:30",
-      "type": "event",
-      "title": "超クレイジーパイナップル",
-      "heroTitle": "超クレイジーパイナップル",
+      "type": "tournament",
+      "title": "ふるまちトーナメントdeep",
+      "heroTitle": "ふるまちトーナメントdeep",
       "theme": "orange",
       "tags": [],
       "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "¥4,000"
+          "value": "¥3,500"
         },
         {
           "label": "STARTING STACK",
-          "value": "40,000pt"
+          "value": "35,000pt"
         }
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106202578363338768"
+        "url": "https://x.com/ChonmageNiigata/status/2106584000185921553"
       }
     },
     {
@@ -93,7 +93,7 @@
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106202578363338768"
+        "url": "https://x.com/ChonmageNiigata/status/2106584000185921553"
       }
     }
   ]
