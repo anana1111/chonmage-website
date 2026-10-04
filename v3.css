@@ -615,3 +615,60 @@ footer .logo-mark .lm-spade { fill: var(--ink); }
   .price-kicker { padding-right: 0; }
   .price-mascot { position: static; display: block; width: 130px; margin: -1rem 0 0 auto; }
 }
+
+/* ===== round-12: neon green from the shop sign, mascot as a cast ===== */
+:root { --neon: #5ff28f; --neon-deep: #1f9e4f; }
+.btn--primary { background: var(--neon); border-color: var(--neon); color: var(--ink); }
+.btn--primary:hover { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.board .schedule-date i { background: var(--neon-deep); box-shadow: 0 0 0 5px rgba(95, 242, 143, .45); }
+.hero-maps { display: none; }
+/* price on a neon field */
+.price { margin: clamp(3.5rem, 6vw, 5rem) calc(var(--pad) * -1) calc(clamp(4.5rem, 9vw, 8rem) * -1); padding: clamp(3rem, 6vw, 5rem) var(--pad) clamp(3rem, 6vw, 5rem); background: var(--neon); border: 0; }
+.price-main { padding-top: 0; }
+.price-kicker { font-size: clamp(1.2rem, 2vw, 1.6rem); }
+.price h3 { display: block; }
+.price-num { position: relative; display: inline-block; }
+.price-mascot { position: absolute; left: auto; right: -.06em; bottom: 78%; width: .62em; max-width: none; margin: 0; }
+.price-list { grid-template-columns: 1.4fr 1fr; border-top-color: var(--ink); margin-top: 1.5rem; }
+.price-list dt { color: var(--ink); opacity: .7; }
+.price-list dd { font-size: clamp(1.4rem, 2.4vw, 2rem); }
+.price-list dd small { color: var(--ink); opacity: .7; }
+.news { border-top: 0; }
+/* steps: three crops of the mascot */
+.flow li::before { display: none; }
+.step-pic { position: relative; z-index: 1; display: block; width: 76px; height: 76px; border-radius: 50%; border: 2px solid var(--ink); background: var(--white) url("./images/chonmage-character-400.webp") no-repeat; }
+.step-pic--1 { background-size: 330%; background-position: 78% 6%; }
+.step-pic--2 { background-size: 300%; background-position: 16% 2%; }
+.step-pic--3 { background-size: 90%; background-position: 50% 60%; background-color: var(--neon); }
+.flow::before { top: calc(2.5rem + 38px); }
+.flow { padding-top: 2.5rem; }
+.flow b { margin-top: 1rem; }
+@media (max-width: 900px) {
+  .hero-route { display: none !important; }
+  .hero-maps { display: inline-flex; }
+  .hero-first { border: 0; min-height: 0; padding: .4rem 0; text-decoration: underline; text-underline-offset: .25em; justify-content: flex-start; }
+  .top .hero-actions { flex-direction: column !important; align-items: stretch; }
+  .hero-points { display: none; }
+  .tl-link { grid-template-columns: 3.5rem minmax(0, 1fr); }
+  .tl-title { grid-column: 2; grid-row: 1; }
+  .tl-note { grid-column: 2; grid-row: 2; }
+  .tl-state { grid-column: 2; grid-row: 3; justify-self: start; margin-top: .35rem; }
+  .price-mascot { position: absolute; width: .62em; right: -.04em; bottom: 78%; margin: 0; }
+  .price-num { margin-top: 3.5rem; }
+  .price-list { grid-template-columns: 1fr; }
+  .flow { padding-left: 0; }
+  .flow::before { left: 37px; top: 2.5rem; }
+  .flow li { display: grid; grid-template-columns: 76px 1fr; gap: 0 1rem; }
+  .flow li .step-pic { grid-row: span 3; }
+  .flow b { margin: .35rem 0 0; }
+}
+.step-pic--2 { background-size: 300%; background-position: 25% 0%; }
+.price { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); gap: 2rem clamp(2rem, 5vw, 5rem); align-items: end; }
+.price-list { grid-template-columns: 1fr; margin: 0; gap: 0; }
+.price-list div, .price-list div:first-child { padding: 1rem 0; border-bottom: 1px solid rgba(0, 0, 0, .25); }
+@media (max-width: 900px) {
+  .price { grid-template-columns: 1fr; }
+  .flow li, .flow li:last-child { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 0 1rem; padding: 0; }
+  .flow li > .step-pic { grid-column: 1; grid-row: 1 / span 3; }
+  .flow li > b, .flow li > h3, .flow li > p { grid-column: 2; }
+}
