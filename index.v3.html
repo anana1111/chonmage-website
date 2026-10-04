@@ -29,7 +29,7 @@
       <nav aria-label="メインナビゲーション">
         <a href="#today">今日のゲーム</a>
         <a href="#first">はじめての方</a>
-        <a href="#access">アクセス</a>
+        <a href="#access">行き方</a>
         <a href="#price">料金</a>
         <a href="#news">おしらせ</a>
       </nav>
@@ -41,7 +41,7 @@
       <nav class="mobile-nav" id="mobile-nav" aria-label="モバイルナビゲーション">
         <a href="#today">今日のゲーム</a>
         <a href="#first">はじめての方</a>
-        <a href="#access">アクセス</a>
+        <a href="#access">行き方</a>
         <a href="#price">料金</a>
         <a href="#news">おしらせ</a>
       </nav>
@@ -71,16 +71,20 @@
         </div>
         <div class="today-live-content" hidden>
           <div class="today-heading">
-            <h2 id="today-title">今日のゲーム</h2>
+            <h2 id="today-title" class="sr">今日のゲーム</h2>
             <div class="today-summary"><span>TODAY</span><strong></strong><p></p></div>
           </div>
           <div class="event-list"></div>
-          <p class="wl-line">参加人数は、店舗アプリ「Waitinglist」で確認できます。</p>
         </div>
         <div class="today-stale-message">
-          <h2 id="today-stale-title">今日のゲーム</h2>
-          <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x btn btn--ink">公式Xで今日のゲームを見る ↗</a>
+          <h2 id="today-stale-title" class="sr">今日のゲーム</h2>
+          <p class="stale-line"><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x">今日のゲームは、公式Xでお知らせします ↗</a></p>
+          <dl class="regular-hours" aria-label="通常の営業時間">
+            <div data-days="weekday"><dt>平日</dt><dd>17:00〜23:30</dd></div>
+            <div data-days="dayoff"><dt>土日祝</dt><dd>13:00〜</dd></div>
+          </dl>
         </div>
+        <p class="wl-line">参加人数は、店舗アプリ「Waitinglist」で確認できます。</p>
       </section>
 
       <section class="k firstvisit" id="first" aria-labelledby="first-title">
@@ -94,7 +98,7 @@
 
       <figure class="k inside">
         <img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 680px) 100vw, 700px" alt="白い壁にテーブル3台とソファ席がある明るい店内" width="1448" height="1086" loading="lazy" decoding="async" />
-        <figcaption>店内はこんな感じ。白い壁にテーブルが3台、ソファ席もあります。</figcaption>
+        <figcaption>白い壁にテーブルが3台、ソファ席もあります。</figcaption>
       </figure>
 
       <section class="k price" id="price" aria-labelledby="price-title">
@@ -112,7 +116,7 @@
         <figure class="access-door"><img src="./images/storefront-night-800.webp" alt="緑のPOKER看板が光る、ちょんまげのガラス扉の入口" width="800" height="600" loading="lazy" decoding="async" /><figcaption>この扉です</figcaption></figure>
         <div class="access-main">
           <h2 id="access-title">行き方</h2>
-          <p class="route">古町通6番町のアーケード「古町モール6」沿い、ミサワビル1階。<b>緑の「POKER」看板</b>のガラス扉が入口です。</p>
+          <p class="route">古町通6番町のアーケード「古町モール6」沿い、ミサワビル1階。<b class="nb">緑の「POKER」看板</b>のガラス扉が入口です。</p>
           <div class="access-actions">
             <a class="btn btn--red" href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">Google マップで道順を見る ↗</a>
           </div>
@@ -137,11 +141,9 @@
       <p class="colophon-title">ちょんまげ</p>
       <dl>
         <div><dt>発行</dt><dd>ポーカールーム ちょんまげ</dd></div>
-        <div><dt>住所</dt><dd>新潟市中央区古町通6番町987-1 ミサワビル1階</dd></div>
-        <div><dt>営業</dt><dd>平日 17:00〜23:30／土日祝 13:00〜</dd></div>
         <div><dt>連絡</dt><dd><a href="tel:08014700011">080-1470-0011</a> ・ <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X @ChonmageNiigata</a></dd></div>
       </dl>
-      <p class="footer-note">当店は金銭を賭ける行為・換金を一切行っておりません。NO CASH BETTING · NO CASH REDEMPTION　© 2026</p>
+      <p class="footer-note"><span class="footer-ja">当店は金銭を賭ける行為・換金を一切行っておりません。</span><span class="footer-en"><span class="nb">NO CASH BETTING</span> · <span class="nb">NO CASH REDEMPTION</span></span><span class="footer-c">© 2026</span></p>
     </footer>
     <nav class="dock" aria-label="クイックアクション">
       <a href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">道順</a>

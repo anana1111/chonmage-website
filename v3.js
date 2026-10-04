@@ -74,12 +74,59 @@ const WAITINGLIST_URL = '';
     new MutationObserver(format).observe(dateLabel, { childList: true, characterData: true, subtree: true });
   }
 
+  /* Status band. Until today's schedule is published, "open today?" is answered from the
+     published regular hours (平日 17:00〜23:30／土日祝 13:00〜), marked 通常 — never invented. */
+  const band = document.querySelector('.today .hero-schedule');
+  const statusText = document.getElementById('hero-business-status-text');
+  if (band && statusText && dateLabel) {
+    const HOURS = { weekday: ['17:00', '23:30'], dayOff: ['13:00', ''] };
+    // Japanese national holidays (current rules): fixed days, Happy Mondays, equinoxes, 振替休日, 国民の休日.
+    const isHoliday = (y, m, d) => {
+      const at = (k) => new Date(Date.UTC(y, m - 1, d + k));
+      const listed = (t) => {
+        const yy = t.getUTCFullYear(); const mm = t.getUTCMonth() + 1; const dd = t.getUTCDate();
+        const firstMonday = 1 + ((8 - new Date(Date.UTC(yy, mm - 1, 1)).getUTCDay()) % 7);
+        const equinox = (c) => Math.floor(c + 0.242194 * (yy - 1980) - Math.floor((yy - 1980) / 4));
+        const key = mm * 100 + dd;
+        return [101, 211, 223, 429, 503, 504, 505, 811, 1103, 1123].includes(key)
+          || ((mm === 1 || mm === 10) && dd === firstMonday + 7) || ((mm === 7 || mm === 9) && dd === firstMonday + 14)
+          || key === 300 + equinox(20.8431) || key === 900 + equinox(23.2488);
+      };
+      if (listed(at(0))) return true;
+      for (let k = -1; listed(at(k)); k -= 1) if (at(k).getUTCDay() === 0) return true;
+      return listed(at(-1)) && listed(at(1));
+    };
+    const regular = () => {
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+        .formatToParts(new Date()).map((part) => [part.type, part.value]));
+      const [y, m, d] = [Number(p.year), Number(p.month), Number(p.day)];
+      const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+      const [open, close] = weekday === 0 || weekday === 6 || isHoliday(y, m, d) ? HOURS.dayOff : HOURS.weekday;
+      const beforeOpen = Number(p.hour) * 60 + Number(p.minute) < Number(open.slice(0, 2)) * 60 + Number(open.slice(3));
+      return {
+        dayOff: open === HOURS.dayOff[0],
+        date: `${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')}（${'日月火水木金土'[weekday]}）`,
+        status: beforeOpen ? `本日 ${open} OPEN（通常）` : `通常 ${open}〜${close}`,
+      };
+    };
+    const fill = () => {
+      if (!band.classList.contains('is-stale')) return;
+      const now = regular();
+      if (dateLabel.textContent !== now.date) dateLabel.textContent = now.date;
+      if (statusText.textContent !== now.status) statusText.textContent = now.status;
+      document.querySelectorAll('.regular-hours [data-days]').forEach((row) => row.classList.toggle('is-today', (row.dataset.days === 'dayoff') === now.dayOff));
+    };
+    fill();
+    new MutationObserver(fill).observe(band, { attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true });
+  }
+
   /* TODAY: one timeline. Finished games fold into a single row that opens in place. */
   const A = window.ChonmageActivity;
   if (A) {
     const hhmm = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-    const stateOf = (row, now, selected) => {
+    const stateOf = (row, now, selected, close) => {
       if (selected) return { key: 'plan', text: '予定' };
+      if (close !== null && now >= close) return { key: 'done', text: '終了' }; // after closing time nothing is still on
       if (row.kind === 'ring') return now >= row.start ? { key: 'live', text: '参加受付中' } : { key: 'soon', text: `あと${A.formatRemaining(row.start - now)}` };
       const s = A.getEventStatus(row, now);
       if (s.status === 'upcoming') return { key: 'soon', text: `あと${A.formatRemaining(s.remaining)}` };
@@ -93,9 +140,16 @@ const WAITINGLIST_URL = '';
       a.href = row.link?.url || schedule.latestUrl; a.target = '_blank'; a.rel = 'noreferrer';
       const body = el('span', 'tl-body');
       body.append(el('strong', 'tl-title', row.title));
-      if (row.note) body.append(el('span', 'tl-note', row.note));
+      if (row.note) {
+        const note = el('span', 'tl-note');
+        // { nb } parts never break inside ("初めての方も" stays one phrase)
+        note.append(...[].concat(row.note).map((part) => (typeof part === 'string' ? part : el('span', 'nb', part.nb))));
+        body.append(note);
+      }
       if (row.state.key === 'running') body.append(el('span', 'tl-xnote', '途中参加の締切は公式Xで ↗'));
-      a.append(el('time', 'tl-time', hhmm(row.start)), body, el('span', `tl-state is-${row.state.key}`, row.state.text));
+      const time = el('time', 'tl-time', hhmm(row.start));
+      if (row.kind === 'ring') time.append(el('span', 'tl-from', '〜')); // open-ended: runs from this time
+      a.append(time, body, el('span', `tl-state is-${row.state.key}`, row.state.text));
       li.append(a);
       return li;
     };
@@ -113,23 +167,20 @@ const WAITINGLIST_URL = '';
       toggle.setAttribute('aria-controls', 'tl-fold-body');
       const icon = el('span', 'tl-fold-icon');
       icon.setAttribute('aria-hidden', 'true');
-      const text = el('span', 'tl-fold-text');
-      text.append(el('span', 'tl-fold-times', done.map((row) => hhmm(row.start)).join('・')), el('span', 'tl-fold-label', `終了 ${done.length}件`));
-      toggle.append(text, icon);
+      toggle.append(el('span', 'tl-fold-label', `終了 ${done.length}件`), icon);
+      // The body stays in the layout and grows from 0 height (CSS), so the rows below slide down instead of jumping.
       const body = el('div', 'tl-fold-body');
       body.id = 'tl-fold-body';
       const inner = el('ol', 'tl-fold-list');
-      done.forEach((row, i) => { const r = rowEl(row, schedule); r.style.setProperty('--i', i); inner.append(r); });
+      done.forEach((row) => inner.append(rowEl(row, schedule)));
       body.append(inner);
-      const sync = (animate) => {
+      const sync = () => {
         li.classList.toggle('is-open', expanded);
-        li.classList.toggle('is-opening', expanded && animate);
-        body.hidden = !expanded;
         toggle.setAttribute('aria-expanded', String(expanded));
         icon.textContent = expanded ? '－' : '＋';
       };
-      toggle.addEventListener('click', () => { expanded = !expanded; sync(true); });
-      sync(false);
+      toggle.addEventListener('click', () => { expanded = !expanded; sync(); });
+      sync();
       li.append(toggle, body);
       return li;
     };
@@ -140,16 +191,16 @@ const WAITINGLIST_URL = '';
       const now = Number.isFinite(options.minute) ? options.minute : -1;
       const selected = Boolean(options.selected);
       const rows = [];
-      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: '好きなタイミングで途中参加OK・初めての方もここから' });
+      if (schedule.ring) rows.push({ ...schedule.ring, kind: 'ring', title: 'リングゲーム', note: ['好きなタイミングで途中参加OK・', { nb: '初めての方も' }, 'ここから'] });
       schedule.events.forEach((event) => {
         const entry = event.facts.find((f) => /entry/i.test(f.label));
         rows.push({ ...event, kind: 'event', note: entry ? `参加費 ${entry.value === '¥0' ? '無料' : entry.value}` : '' });
       });
       rows.sort((a, b) => (b.kind === 'ring') - (a.kind === 'ring') || a.start - b.start);
-      rows.forEach((row) => { row.state = stateOf(row, now, selected); });
+      rows.forEach((row) => { row.state = stateOf(row, now, selected, schedule.close); });
 
       const ol = el('ol', 'tl');
-      if (schedule.closed) ol.append(el('li', 'tl-empty', '本日は休業です。次回の営業は公式Xでお知らせします。'));
+      if (schedule.closed) { ol.append(el('li', 'tl-empty', '本日は休業です。次回の営業は公式Xでお知らせします。')); rows.length = 0; }
       const done = rows.filter((row) => row.state.key === 'done');
       let foldPlaced = false;
       let nowPlaced = selected || now < 0;
@@ -171,7 +222,8 @@ const WAITINGLIST_URL = '';
 
       const hours = document.querySelector('.board-hours');
       if (hours) {
-        hours.textContent = !schedule.closed && schedule.closeTime ? `${schedule.closeTime}まで` : '';
+        const closing = !schedule.closed && schedule.closeTime && (now < 0 || now < schedule.close);
+        hours.textContent = closing ? `${schedule.closeTime}まで` : '';
         hours.hidden = !hours.textContent;
       }
       list.className = 'event-list v3-timeline';
@@ -208,7 +260,7 @@ const WAITINGLIST_URL = '';
           stamp.append(el('b', '', String(Number(match[3]))), el('small', '', `${Number(match[2])}月`));
           visual.append(stamp);
           const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
-          if (`${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}` === today) { visual.classList.add('v3-today'); stamp.lastChild.textContent = '今日'; }
+          if (`${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}` === today) visual.classList.add('v3-today');
           time.classList.add('sr');
         }
         const cat = card.querySelector('.news-meta > :last-child');
@@ -219,7 +271,7 @@ const WAITINGLIST_URL = '';
     new MutationObserver(tidy).observe(grid, { childList: true });
   }
 
-  /* Press: ink fills instantly and the control sinks 2px; held at least 110ms so a quick tap still reads. */
+  /* Press: the control inverts in place, instantly; held at least 110ms so a quick tap still reads. */
   document.addEventListener('pointerdown', (event) => {
     const target = event.target.closest('.btn, .dock a, .tl-fold-toggle');
     if (!target) return;
@@ -239,9 +291,9 @@ const WAITINGLIST_URL = '';
     const header = document.querySelector('.masthead');
     const sentinel = document.querySelector('.top-sentinel');
     if (header && sentinel) new IntersectionObserver(([entry]) => header.toggleAttribute('data-stuck', !entry.isIntersecting)).observe(sentinel);
-    /* The phone dock steps aside while ACCESS shows the same actions. */
+    /* The phone dock steps aside only while the Google Maps button itself is on screen (not hidden under the header). */
     const dock = document.querySelector('.dock');
     const actions = document.querySelector('.access-actions');
-    if (dock && actions) new IntersectionObserver(([entry]) => dock.classList.toggle('is-hidden', entry.isIntersecting)).observe(actions);
+    if (dock && actions) new IntersectionObserver(([entry]) => dock.classList.toggle('is-hidden', entry.isIntersecting), { rootMargin: '-72px 0px 0px 0px' }).observe(actions);
   }
 })();
