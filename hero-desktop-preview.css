@@ -1,20 +1,22 @@
-/* Preview only (preview.html): desktop hero (>= 1100px) with the beginner sticker.
-   Mobile and tablet come from v2.css and are not touched here. */
+/* Preview only (preview.html): desktop hero (>= 1100px) with the beginner sticker as a small seal
+   tucked beside 「古町で、気軽に」 and resting on 「を」. Mobile and tablet come from v2.css.
+   Sticker geometry is in multiples of the headline size (--hero-h1) so it tracks the type. */
 @media (min-width: 1100px) {
-  .hero.hero-v2 { --hero-pad: clamp(20px, 6.4vw, 72px); --hero-canvas: max(100svh, 720px); min-height: 0; }
+  .hero.hero-v2 { --hero-pad: clamp(20px, 6.4vw, 72px); --hero-canvas: max(100svh, 720px); --hero-h1: clamp(84px, 7.4vw, 124px); min-height: 0; }
   .hero-v2 .hero-slides { inset: 0 0 auto; height: var(--hero-canvas); }
   .hero-v2 .hero-slide img { object-position: 50% 30%; transform: none; animation: none; }
-  .hero-v2 .hero-wash { inset: 0 0 auto; height: var(--hero-canvas); background: linear-gradient(90deg, rgba(20, 21, 19, .88), rgba(20, 21, 19, .55) 42%, rgba(20, 21, 19, .05) 72%), linear-gradient(180deg, rgba(20, 21, 19, .6), transparent 20%, transparent 70%, rgba(20, 21, 19, .7)); }
-  .hero-v2 .hero-copy { min-height: var(--hero-canvas); padding: 220px var(--hero-pad) clamp(56px, 9vw, 96px); justify-content: flex-end; max-width: 1440px; margin: 0 auto; }
-  .hero-v2 .eyebrow { position: absolute; top: 112px; left: var(--hero-pad); right: var(--hero-pad); margin: 0; font-size: clamp(10px, 2vw, 13px); line-height: 1.4; letter-spacing: .24em; }
+  .hero-v2 .hero-wash { inset: 0 0 auto; height: var(--hero-canvas); background: linear-gradient(90deg, rgba(20, 21, 19, .88), rgba(20, 21, 19, .55) 42%, rgba(20, 21, 19, .05) 72%), linear-gradient(180deg, rgba(20, 21, 19, .6), transparent 20%, transparent 70%, rgba(20, 21, 19, .4)); }
+  .hero-v2 .hero-copy { min-height: var(--hero-canvas); padding: 160px var(--hero-pad) 136px; justify-content: center; max-width: none; margin: 0; }
+  .hero-v2 .eyebrow { position: absolute; top: 112px; left: var(--hero-pad); right: var(--hero-pad); margin: 0; font-size: 13px; line-height: 1.4; letter-spacing: .24em; }
   .hero-v2 .hero-message { margin: 0; }
-  .hero-headline-row { position: relative; display: flex; align-items: flex-end; gap: clamp(24px, 3vw, 56px); }
-  .hero-v2 h1 { font-family: "Noto Sans JP", "Hiragino Sans", Meiryo, sans-serif; font-weight: 900; font-size: clamp(84px, 7.4vw, 124px); flex: none; max-width: none; line-height: 1.12; letter-spacing: -.01em; text-shadow: 0 4px 30px rgba(0, 0, 0, .35); }
+  .hero-headline-row { position: relative; width: fit-content; }
+  .hero-v2 h1 { font-family: "Noto Sans JP", "Hiragino Sans", Meiryo, sans-serif; font-weight: 900; font-size: var(--hero-h1); max-width: none; line-height: 1.12; letter-spacing: -.01em; text-shadow: 0 4px 30px rgba(0, 0, 0, .35); }
   .hero-v2 h1 .accent-word { color: #f7a48b; }
-  .hero-sticker { display: block; position: static; width: clamp(260px, 20vw, 330px); height: auto; flex: none; margin-bottom: -.4em; transform: rotate(-4deg); transform-origin: 50% 80%; filter: drop-shadow(0 10px 22px rgba(0, 0, 0, .35)); animation: heroStickerPop .7s cubic-bezier(.2, 1.4, .4, 1) .35s both; }
-  .hero-v2 .hero-bottom { display: block; width: min(100%, 600px); max-width: none; border-top: 1px solid rgba(255, 255, 255, .28); margin-top: clamp(26px, 4vw, 40px); padding-top: clamp(22px, 3.2vw, 30px); }
-  .hero-v2 .hero-bottom > p { margin: 0; font-weight: 500; font-size: 20px; line-height: 1.85; letter-spacing: .08em; color: rgba(255, 255, 255, .88); }
+  .hero-sticker { display: block; position: absolute; left: calc(var(--hero-h1) * 3.42); top: calc(var(--hero-h1) * .38); width: calc(var(--hero-h1) * 2.21); height: auto; margin: 0; transform: none; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .3)); animation: heroSealPop .6s cubic-bezier(.2, 1.3, .4, 1) .35s both; }
+  .hero-v2 .hero-bottom { display: block; width: min(100%, calc(var(--hero-h1) * 5.4)); max-width: none; border-top: 1px solid rgba(255, 255, 255, .75); margin-top: calc(var(--hero-h1) * .13); padding-top: 16px; }
+  .hero-v2 .hero-bottom > p { margin: 0; font-weight: 500; font-size: 20px; line-height: 1.85; letter-spacing: .08em; color: rgba(255, 255, 255, .9); }
   .hero-v2 .round-link { display: none; }
   .hero-v2 .hero-schedule { position: relative; inset: auto; }
 }
+@keyframes heroSealPop { from { opacity: 0; transform: rotate(-8deg) scale(.7); } to { opacity: 1; transform: none; } }
 @media (min-width: 1100px) and (prefers-reduced-motion: reduce) { .hero-sticker { animation: none; } }
