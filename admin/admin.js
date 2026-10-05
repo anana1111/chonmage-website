@@ -16,7 +16,7 @@
   const state = {
     data: null, snapshot: '', local: false, view: 'home', request: 0, api: null, core: null,
     autoEvents: null, manualEvents: null, live: null, publishFiles: [], drawer: null, errors: new Map(),
-    heroDate: null,
+    heroDate: null, heroImplicit: {},
   };
   let timer, readyResolve, readyTimer, noticeTimer;
   const controls = new Map();
@@ -110,7 +110,8 @@
     const saved = state.data?.events?.heroOverrides?.[state.heroDate];
     if (saved) return saved;
     const auto = state.data?.events?.date === state.heroDate ? state.data.events : state.autoEvents?.date === state.heroDate ? state.autoEvents : null;
-    const visible = (auto?.events || []).filter((event) => !event.hidden);
+    // Scheduled events are not public yet, so a home card must not copy them as MAIN.
+    const visible = (auto?.events || []).filter((event) => publish.state(event) === 'live');
     const main = visible.find((event) => event.isMain) || visible.slice().reverse().find((event) => ['special', 'tournament'].includes(event.type));
     return { status: auto?.status || 'open', open: auto?.open || '', mainTime: main?.time || '', mainTitle: main?.heroTitle || main?.title || '', latestText: 'Xで確認', latestUrl: '' };
   }
@@ -530,16 +531,38 @@
   }
   function setPublishMode(base, kind, mode) {
     if (kind === 'news') {
+      const wasDraft = get(`${base}.published`) === false;
       set(`${base}.published`, mode !== 'draft'); set(`${base}.autoUpdate`, false);
       const at = newsCore.publishedTime(get(`${base}.publishedAt`));
-      const value = mode === 'scheduled' && !(at > Date.now()) ? nextHour() : mode === 'now' && at > Date.now() ? newsCore.japanDateTime() : null;
+      // Publishing a draft "now" uses the current time, so an old draft is not born expired.
+      const stale = !(at <= Date.now()) || wasDraft || Date.now() - at > newsCore.WINDOW_MS;
+      const value = mode === 'scheduled' && !(at > Date.now()) ? nextHour() : mode === 'now' && stale ? newsCore.japanDateTime() : null;
       if (value) { set(`${base}.publishedAt`, value); set(`${base}.date`, value.slice(0, 10)); }
       return;
     }
+    if (kind === 'hero') { setHeroPublishMode(mode); return; }
     if (kind === 'event') { if (mode === 'draft') set(`${base}.hidden`, true); else unset(`${base}.hidden`); }
     if (mode === 'scheduled') { if (!(publish.parse(get(`${base}.publishAt`)) > Date.now())) set(`${base}.publishAt`, nextHour()); }
-    else if (kind === 'hero') { if (state.data.events.heroOverrides?.[state.heroDate]) unset(`events.heroOverrides.${state.heroDate}.publishAt`); }
     else unset(`${base}.publishAt`);
+  }
+  // A home card override that 予約適用 created on its own is removed again by 今すぐ適用,
+  // unless the user edited it in between; otherwise the date would stay frozen to a snapshot.
+  function heroSnapshot(date) {
+    const hero = clone(state.data.events.heroOverrides?.[date] || null); if (hero) delete hero.publishAt; return JSON.stringify(hero);
+  }
+  function setHeroPublishMode(mode) {
+    const date = state.heroDate; const overrides = state.data.events.heroOverrides;
+    if (mode === 'scheduled') {
+      const created = !overrides?.[date];
+      if (created || !(publish.parse(overrides[date].publishAt) > Date.now())) set('hero.publishAt', nextHour());
+      if (created) state.heroImplicit[date] = heroSnapshot(date);
+      return;
+    }
+    if (!overrides?.[date]) return;
+    if (state.heroImplicit[date] === heroSnapshot(date)) {
+      delete overrides[date]; if (!Object.keys(overrides).length) delete state.data.events.heroOverrides;
+    } else unset(`events.heroOverrides.${date}.publishAt`);
+    delete state.heroImplicit[date];
   }
   function publishControl(base, kind) {
     const wrap = node('fieldset', undefined, 'segmented-field publish-control');
@@ -550,7 +573,12 @@
     const choices = kind === 'hero' ? [['now', '今すぐ適用'], ['scheduled', '予約適用']] : [['draft', '下書き'], ['now', '今すぐ公開'], ['scheduled', '予約公開']];
     choices.forEach(([value, text]) => {
       const label = node('label'); const input = node('input'); input.type = 'radio'; input.name = `publish-${kind}-${base}`; input.value = value; input.checked = mode === value;
-      input.addEventListener('change', () => { setPublishMode(base, kind, value); rebuild(); });
+      input.addEventListener('change', () => {
+        const liveHero = kind === 'hero' && value === 'scheduled' && state.data.events.heroOverrides?.[state.heroDate] && mode === 'now';
+        if (liveHero && !window.confirm('いまサイトに出ているこの日のホームカードは、予約時刻まで表示されなくなります（その間は自動取得データの表示になります）。予約しますか？')) { rebuild(); return; }
+        setPublishMode(base, kind, value); rebuild();
+        document.querySelector(`.publish-control[data-base="${CSS.escape(base)}"][data-kind="${kind}"] input[value="${value}"]`)?.focus();
+      });
       label.append(input, node('span', text)); options.append(label);
     });
     wrap.append(options);
@@ -586,9 +614,11 @@
     return entries.sort((a, b) => a.upcoming === b.upcoming ? (a.upcoming ? a.at - b.at : b.at - a.at) : a.upcoming ? -1 : 1);
   }
   function editEntry(entry) {
-    if (entry.kind === 'news') { location.hash = '#news'; openDrawer('news', entry.index, entry.path); }
-    else if (entry.kind === 'event') { location.hash = '#schedule'; openDrawer('event', entry.index, entry.path); }
-    else { state.heroDate = entry.date; location.hash = '#home'; setView('home'); controls.get('hero.publishAt')?.input.focus(); }
+    const view = entry.kind === 'news' ? 'news' : entry.kind === 'event' ? 'schedule' : 'home';
+    if (entry.kind === 'hero') state.heroDate = entry.date;
+    setView(view); location.hash = '#' + view;
+    if (entry.kind === 'hero') controls.get('hero.publishAt')?.input.focus();
+    else openDrawer(entry.kind, entry.index, entry.path);
   }
   function publishEntryNow(entry) {
     if (entry.kind === 'news') setPublishMode(`news.items.${entry.index}`, 'news', 'now');
@@ -846,7 +876,8 @@
     if (focus) $('main').focus({ preventScroll: true });
     if (state.data) sendPreview();
   }
-  window.addEventListener('hashchange', () => setView(location.hash.slice(1), { focus: true }));
+  // A view already shown by code (setView before changing the hash) is not rendered twice.
+  window.addEventListener('hashchange', () => { if (state.view !== location.hash.slice(1)) setView(location.hash.slice(1), { focus: true }); });
 
   // ---------- validation (unchanged rules) ----------
   function normalized() {
@@ -1050,8 +1081,36 @@
     if (autoEvents) state.api.validateEvents(autoEvents);
     state.autoEvents = clone(autoEvents || events);
     state.manualEvents = manualEvents || { version: 1, date: events.date, fields: {}, ringGame: {}, events: {}, extraEvents: [] };
+    withDraftEvents(events, state.manualEvents, state.autoEvents);
     state.live = clone({ events, news });
     return { events, news };
+  }
+  // events.json leaves out 下書き (hidden) events; they live only in events.manual.json.
+  // Put them back so they stay editable and the next export keeps them.
+  function withDraftEvents(events, manual, auto) {
+    if (!manual || manual.date !== events.date) return;
+    const ids = new Set(events.events.map((event) => event.id).filter(Boolean));
+    const drafts = [];
+    if (manual.replacement) drafts.push(...(manual.replacement.events || []).filter((event) => event?.hidden));
+    else {
+      if (auto?.date === events.date) {
+        (auto.events || []).forEach((event) => {
+          const override = event.id && manual.events?.[event.id];
+          if (!override?.hidden) return;
+          const merged = clone(event);
+          Object.entries(override).forEach(([key, value]) => { if (value === null) delete merged[key]; else merged[key] = clone(value); });
+          drafts.push(merged);
+        });
+      }
+      drafts.push(...(manual.extraEvents || []).filter((event) => event?.hidden));
+    }
+    drafts.forEach((draft) => {
+      if (draft.id && ids.has(draft.id)) return;
+      const event = { ...clone(draft), hidden: true };
+      try { state.api.validateEvents({ ...events, heroOverrides: undefined, events: [event] }); } catch { return; }
+      if (event.id) ids.add(event.id);
+      events.events.push(event);
+    });
   }
   function acceptableDraft(data) {
     if (!data || !data.events || !data.news || !Array.isArray(data.events.events) || !Array.isArray(data.news.items)) return false;
