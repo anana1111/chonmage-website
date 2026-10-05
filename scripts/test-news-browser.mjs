@@ -173,7 +173,7 @@ try {
     await page.locator('#field-news-items-0-title').fill('手動作成のNEWS');
     await page.locator('#field-news-items-0-content').fill('日本語\n中文\nEnglish');
     await page.locator('#field-news-items-0-summary').fill('短い説明');
-    await page.locator('#field-news-items-0-published').check();
+    await page.locator('#drawer .publish-control label', { hasText: '今すぐ公開' }).click();
     await page.getByRole('button', { name: '本文プレビュー', exact: true }).click();
     const frame = page.frameLocator('#news-detail-preview');
     await frame.locator('.news-body').waitFor();
@@ -223,8 +223,9 @@ try {
     const outside = await page.locator('#drawer').evaluate((dialog) => [...dialog.querySelectorAll('input,select,textarea,button')].filter((el) => { const r = el.getBoundingClientRect(); return r.width && (r.left < -1 || r.right > innerWidth + 1); }).map((el) => ({ id: el.id, type: el.type, left: el.getBoundingClientRect().left, right: el.getBoundingClientRect().right })));
     if (outside.length && shotDir) await page.screenshot({ path: path.join(shotDir, 'news-drawer-overflow.png') });
     check(outside.length === 0, 'NEWS drawer fields fit ' + width + 'px: ' + JSON.stringify(outside));
-    await page.keyboard.press('Tab');
-    check(await page.evaluate(() => document.activeElement.id.endsWith('-publishedAt')), 'Keyboard navigation reaches publication date');
+    let reached = false;
+    for (let step = 0; step < 30 && !reached; step += 1) { await page.keyboard.press('Tab'); reached = await page.evaluate(() => document.activeElement.id.endsWith('-publishedAt')); }
+    check(reached, 'Keyboard navigation reaches publication date');
     check(!errors.length, 'NEWS drawer has no console error'); await context.close();
   }
   for (const invalid of [null, { items: 'bad' }, {}]) {

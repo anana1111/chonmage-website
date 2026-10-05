@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/**'
       - 'news-core.js'
+      - 'publish-core.js'
       - 'data/events.manual.json'
       - '.github/workflows/update-events.yml'
   schedule:

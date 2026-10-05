@@ -220,4 +220,37 @@ for (const invalid of [{ status: 'bad' }, { open: '25:00' }, { mainTime: '' }, {
 assert.throws(() => validateSchedule({ ...base, heroOverrides: { '2026-02-30': hero } }));
 assert.throws(() => validateSchedule({ ...base, heroOverrides: { '2026-10-03': null } }));
 validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle: '超長い日本語の大会名'.repeat(50) } } });
+
+// 予約公開: one publishAt rule for events and home cards.
+{
+  const P = globalThis.ChonmagePublish;
+  const at = (clock) => Date.parse('2026-10-10T' + clock + ':00+09:00');
+  assert.equal(P.parse('2026-10-10T18:00'), at('18:00'));
+  assert.equal(P.parse('2026-10-10T18:00:00+09:00'), at('18:00'));
+  assert.equal(P.parse('2026-10-10T09:00:00Z'), at('18:00'));
+  for (const bad of ['', '2026-10-10', '2026-02-30T18:00', '2026-10-10T24:00', 'tomorrow', 5]) assert.ok(!Number.isFinite(P.parse(bad)), String(bad));
+  assert.equal(P.format('2026-10-10T18:00'), '2026-10-10T18:00:00+09:00');
+  assert.equal(P.format(at('00:05')), '2026-10-10T00:05:00+09:00');
+  const scheduled = { id: 'night', time: '19:10', type: 'tournament', title: 'ふるまちトナメ', description: 'details', publishAt: '2026-10-10T18:00:00+09:00' };
+  assert.equal(P.state(scheduled, at('17:59')), 'scheduled');
+  assert.equal(P.state(scheduled, at('18:00')), 'live');
+  assert.equal(P.state({ ...scheduled, hidden: true }, at('19:00')), 'draft');
+  assert.equal(P.state({ title: 'old' }, at('00:00')), 'live');
+  const day = { ...base, date: '2026-10-10', events: [{ id: 'free', time: '18:00', title: 'FREE', description: 'd' }, scheduled],
+    heroOverrides: { '2026-10-10': { ...hero, publishAt: '2026-10-10T12:00:00+09:00' } } };
+  validateSchedule(day);
+  assert.deepEqual(P.visibleSchedule(day, at('11:00')).events.map((event) => event.id), ['free']);
+  assert.equal(P.visibleSchedule(day, at('11:00')).heroOverrides, undefined);
+  assert.deepEqual(Object.keys(P.visibleSchedule(day, at('12:00')).heroOverrides), ['2026-10-10']);
+  assert.deepEqual(P.visibleSchedule(day, at('18:00')).events.map((event) => event.id), ['free', 'night']);
+  assert.notEqual(P.visibilityKey(day, at('17:59')), P.visibilityKey(day, at('18:00')));
+  assert.equal(day.events.length, 2, 'visibleSchedule does not mutate');
+  assert.throws(() => validateSchedule({ ...day, events: [{ ...scheduled, publishAt: '2026-10-10' }] }));
+  assert.throws(() => validateSchedule({ ...day, heroOverrides: { '2026-10-10': { ...hero, publishAt: 'soon' } } }));
+  // Actions keeps publishAt from the manual file for both overrides and added events.
+  const autoDay = { ...base, date: '2026-10-10', events: [{ id: 'free', time: '18:00', title: 'FREE', description: 'd' }] };
+  const merged = mergeSchedule(autoDay, { version: 1, date: '2026-10-10', events: { free: { publishAt: '2026-10-10T17:00:00+09:00' } }, extraEvents: [scheduled] });
+  assert.equal(merged.events.find((event) => event.id === 'free').publishAt, '2026-10-10T17:00:00+09:00');
+  assert.equal(merged.events.find((event) => event.id === 'night').publishAt, scheduled.publishAt);
+}
 console.log('schedule data tests passed');

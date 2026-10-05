@@ -25,6 +25,7 @@ Google Fonts、X、Google Maps 的链接需要联网。
 | `timeline.js` | TODAY 时间轴、NOW / NEXT / 本日終了 判定、Hero 的日期与营业状态 |
 | `script.js` | 菜单、滚动动效、读取并校验 `data/*.json`、日期过期判断、预览模式 |
 | `news/` / `news-core.js` / `news-view.js` / `news.css` | 站内 NEWS 列表和详情、统一 30 天规则、共享渲染与样式 |
+| `publish-core.js` | 予约公开（`publishAt`）的统一判定：公开页、管理画面和 Node 共用 |
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
 | `scripts/` | 抓取、合并、校验脚本和测试（Node 22，无依赖） |

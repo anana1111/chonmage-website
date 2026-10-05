@@ -36,6 +36,7 @@ merge はこのマップを `events.json` に引き継ぎます。古いイベ�
 - `events[].theme`：blue / orange（任意。指定する場合はこのどちらか）
 - `events[].end`：終了時刻（任意）。未指定のイベントは、次のイベント開始・CLOSE・開始から3時間のうち最も早い時刻まで NOW と表示します。
 - `events[].isMain`：Hero の MAIN 候補。未指定なら最後の tournament / special。
+- `events[].publishAt`：予約公開（任意）。日本時間の日時（例 `2026-10-10T18:00:00+09:00`）。この時刻まで公開ページに表示しません。`heroOverrides[日付].publishAt` も同じ意味です。判定は `publish-core.js`。
 - `events[].hidden`：管理画面の下書きで非表示にすると manual 差分へ変換（公開用 events.json には残りません）
 
 OPEN / RING / CLOSE は公開時に timeline card として生成するため、通常は `events[]` に重複して書きません。
