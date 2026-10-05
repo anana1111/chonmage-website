@@ -22,7 +22,7 @@ Google Fonts、X、Google Maps 的链接需要联网。
 | 路径 | 用途 |
 | --- | --- |
 | `index.html` | 页面内容和结构 |
-| `styles.css` / `v2.css` / `timeline.css` | 基础样式 / v2 页面样式 / TODAY 时间轴与 Hero 状态样式 |
+| `styles.css` / `timeline.css` | 基础样式（已合并原 v2.css）/ TODAY 时间轴与 Hero 状态样式 |
 | `timeline.js` | TODAY 时间轴、NOW / NEXT / 本日終了 判定、Hero 的日期与营业状态 |
 | `script.js` | 菜单、滚动动效、读取并校验 `data/*.json`、日期过期判断、预览模式 |
 | `news/` / `news-core.js` / `news-view.js` / `news.css` | 站内 NEWS 列表和详情、统一 30 天规则、共享渲染与样式 |
