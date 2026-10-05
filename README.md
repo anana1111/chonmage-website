@@ -6,7 +6,6 @@
 
 - 公开站点由 GitHub Pages 从 `main` 分支的仓库根目录提供（Pages 的设置在仓库 Settings → Pages 里确认）。
 - 推送到 `main` 后，Pages 会自动重新发布；`data/*.json` 的变更也一样。
-- `hosting.json` 是旧 Sites 项目的配置，网页本身不读取它。
 
 本地预览：
 
@@ -29,8 +28,8 @@ Google Fonts、X、Google Maps 的链接需要联网。
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
 | `scripts/` | 抓取、合并、校验脚本和测试（Node 22，无依赖） |
-| `images/` | 网站使用的 WebP 图片（1448px / 800px 两种尺寸）和 PNG 原图 |
-| `image-sources.json` | 图片清单：PNG 原图与对应的 WebP 发布文件 |
+| `images/` | 网站使用的 WebP 图片（1448px / 800px 两种尺寸） |
+| `_originals/` | 不发布的原始素材：`images/*.png` 原图和 `image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件） |
 
 ## 营业信息数据流
 
@@ -79,7 +78,7 @@ node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地�
 
 ## 图片
 
-`images/*.png` 是原图，网页只引用 WebP（`srcset`：800w / 1448w）。替换图片时请同时更新 WebP 和 `image-sources.json`。
+`_originals/images/*.png` 是原图，网页只引用 `images/` 里的 WebP（`srcset`：800w / 1448w）。替换图片时请同时更新 WebP 和 `_originals/image-sources.json`。以 `_` 或 `.` 开头的目录不会被 GitHub Pages 发布（仓库里没有 `.nojekyll`，请不要添加）。
 
 ## TODAY 动态优先级
 
