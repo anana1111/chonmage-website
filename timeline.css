@@ -36,7 +36,6 @@
   color: var(--ink);
   display: flex;
   flex-direction: column;
-  transition: opacity .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 .timeline-card--ring { border-top-color: #151613; }
 .timeline-card--free { border-top-color: var(--blue); }
@@ -79,6 +78,8 @@
   /* No single leftover character on the last line (e.g. 「スター/ト」). */
   text-wrap: balance;
   line-break: strict;
+  /* Breaks come from the <wbr> between words (timeline.js); a word longer than the line still wraps. */
+  word-break: keep-all;
   font-size: clamp(1.65rem, 2.4vw, 2.35rem);
   line-height: 1.08;
   letter-spacing: -.045em;
@@ -112,6 +113,16 @@
 .timeline-card__details summary::after { content: "＋"; font-size: 1rem; }
 .timeline-card__details[open] summary::after { content: "−"; }
 .timeline-card__detail-body { padding: .2rem 0 .4rem; }
+@supports selector(::details-content) {
+  .timeline-card__details { interpolate-size: allow-keywords; }
+  .timeline-card__details::details-content {
+    block-size: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: block-size 200ms var(--ease-out), opacity 200ms var(--ease-out), content-visibility 200ms allow-discrete;
+  }
+  .timeline-card__details[open]::details-content { block-size: auto; opacity: 1; }
+}
 .timeline-card__detail-body > p { margin: 0 0 1rem; font-size: .8rem; line-height: 1.75; opacity: .7; }
 .timeline-card__tags { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .8rem; }
 .timeline-card__tags span { padding: .3rem .5rem; border-radius: 99px; background: #eef0f5; font-size: .56rem; font-weight: 800; letter-spacing: .07em; }
@@ -119,18 +130,17 @@
 .timeline-card__facts dd { text-align: right; }
 .timeline-card__link { display: inline-flex; margin-top: .9rem; color: inherit; font-size: .68rem; font-weight: 800; text-underline-offset: .25em; }
 .timeline-controls { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .45rem; margin-left: -8px; }
-.timeline-dots { display: flex; flex-wrap: wrap; gap: 0; min-width: 0; }
-/* The button is the touch target (24×44px); the visible dot is drawn by ::before. */
+.timeline-dots { position: relative; display: flex; flex-wrap: wrap; gap: 0; min-width: 0; }
+/* Each button is a 32×44px touch target; its ::before is the 8px grey dot. */
 .timeline-dot {
   position: relative;
-  width: 24px;
+  width: 32px;
   height: 44px;
-  min-width: 24px;
+  min-width: 32px;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
-  transition: width .2s ease;
 }
 .timeline-dot::before {
   content: "";
@@ -142,10 +152,19 @@
   border-radius: 99px;
   background: #c4c8cf;
   transform: translate(-50%, -50%);
-  transition: width .2s ease, background .2s ease;
 }
-.timeline-dot.is-active { width: 40px; }
-.timeline-dot.is-active::before { width: 28px; background: var(--blue); }
+/* The active pill slides between dots: transform only, no layout per frame. */
+.timeline-dot-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 28px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--blue);
+  pointer-events: none;
+  transition: transform 250ms var(--ease-in-out);
+}
 .timeline-dot:focus-visible,
 .timeline-arrow:focus-visible,
 .timeline-card__details summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
@@ -203,11 +222,27 @@
   .timeline-card__type { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .timeline-card, .timeline-dot, .timeline-dot::before { transition: none; }
+  .timeline-card, .timeline-dot-indicator { transition: none; }
+  /* Reduced motion: no height movement, keep a short fade so the change is still legible. */
+  .timeline-card__details::details-content { transition: opacity 150ms ease, content-visibility 150ms allow-discrete; }
   .timeline-rail { scroll-behavior: auto; }
 }
 /* 「何して遊ぶ？」 stays on one line; narrow phones get a slightly smaller size instead. */
 .today-title-phrase { white-space: nowrap; }
 @media (max-width: 380px) {
   #today-title { font-size: clamp(2.5rem, 14vw, 3.4rem); }
+}
+
+/* Polish pass: OPEN / CLOSE are markers, not events, so they take less room. */
+.timeline-rail { display: flex; }
+.timeline-card { flex: 0 0 clamp(290px, 31vw, 380px); }
+.timeline-card--open, .timeline-card--close { flex-basis: clamp(200px, 20vw, 248px); background: transparent; border-style: dashed; border-top-style: solid; box-shadow: none; }
+.timeline-card--open .timeline-card__title, .timeline-card--close .timeline-card__title { font-size: clamp(1.25rem, 1.8vw, 1.6rem); }
+@media (max-width: 900px) {
+  .timeline-card { flex-basis: min(58vw, 360px); }
+  .timeline-card--open, .timeline-card--close { flex-basis: min(44vw, 240px); }
+}
+@media (max-width: 620px) {
+  .timeline-card { flex-basis: min(82vw, 330px); }
+  .timeline-card--open, .timeline-card--close { flex-basis: min(56vw, 220px); }
 }

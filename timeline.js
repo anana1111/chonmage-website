@@ -8,6 +8,24 @@
   const DEFAULT_EVENT_MINUTES = 180;
   const KIND_ORDER = { open: 0, ring: 1, free: 2, tournament: 3, special: 3, event: 4, close: 9 };
 
+  const reduceMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const scrollBehavior = () => (reduceMotion() ? 'auto' : 'smooth');
+
+  // Line breaks only between words (「リングゲーム｜も｜終日｜開催」), never inside one.
+  // Short hiragana particles stay with the word before them.
+  function wordBreakText(element, text) {
+    if (typeof Intl === 'undefined' || typeof Intl.Segmenter !== 'function') { element.textContent = text; return; }
+    const words = [];
+    for (const { segment } of new Intl.Segmenter('ja', { granularity: 'word' }).segment(text)) {
+      if (words.length && /^[\u3041-\u309f、。！？!?・ー〜]{1,2}$/.test(segment)) words[words.length - 1] += segment;
+      else words.push(segment);
+    }
+    words.forEach((word, index) => {
+      if (index) element.append(document.createElement('wbr'));
+      element.append(document.createTextNode(word));
+    });
+  }
+
   function node(tag, className, text) {
     const result = document.createElement(tag);
     if (className) result.className = className;
@@ -262,7 +280,8 @@
     badgeRow.append(node('span', 'timeline-card__type', item.typeLabel));
     top.append(time, badgeRow);
 
-    const title = node('h3', 'timeline-card__title', item.title);
+    const title = node('h3', 'timeline-card__title');
+    wordBreakText(title, item.title || '');
     const highlights = node('dl', 'timeline-card__highlights');
     highlightFacts(item.facts).forEach((fact) => {
       const row = node('div');
@@ -378,20 +397,33 @@
       dot.setAttribute('aria-label', '時間カード ' + (index + 1) + ' を表示');
       dot.addEventListener('click', () => {
         timelineState.userScrolled = true;
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+        card.scrollIntoView({ behavior: scrollBehavior(), block: 'nearest', inline: 'start' });
       });
       dots.append(dot);
     });
+    // One indicator slides between dots (transform only), instead of dots changing width.
+    const indicator = node('span', 'timeline-dot-indicator');
+    indicator.setAttribute('aria-hidden', 'true');
+    dots.append(indicator);
     controls.append(dots, arrows);
     wrapper.append(controls);
 
     function update() {
       const index = activeIndexForRail(rail);
       timelineState.activeIndex = index;
-      Array.from(dots.children).forEach((dot, i) => {
+      const dotButtons = Array.from(dots.querySelectorAll('.timeline-dot'));
+      dotButtons.forEach((dot, i) => {
         dot.classList.toggle('is-active', i === index);
         dot.setAttribute('aria-current', i === index ? 'true' : 'false');
       });
+      const active = dotButtons[index];
+      if (active && active.offsetWidth) {
+        const first = !indicator.dataset.placed;
+        // First placement jumps into position; later changes slide.
+        if (first) indicator.style.transition = 'none';
+        indicator.style.transform = `translate(${active.offsetLeft + active.offsetWidth / 2}px, ${active.offsetTop + active.offsetHeight / 2}px) translate(-50%, -50%)`;
+        if (first) { void indicator.offsetWidth; indicator.style.transition = ''; indicator.dataset.placed = 'true'; }
+      }
       prev.disabled = index <= 0;
       next.disabled = index >= cards.length - 1;
     }
@@ -399,7 +431,7 @@
     function move(offset) {
       timelineState.userScrolled = true;
       const index = Math.max(0, Math.min(cards.length - 1, activeIndexForRail(rail) + offset));
-      cards[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+      cards[index].scrollIntoView({ behavior: scrollBehavior(), block: 'nearest', inline: 'start' });
     }
 
     prev.addEventListener('click', () => move(-1));
@@ -464,6 +496,8 @@
     rail.addEventListener('pointercancel', stop);
     rail.addEventListener('lostpointercapture', stop);
     update();
+    timelineState.updateControls = update;
+    return update;
   }
 
   function renderTimeline(data) {
@@ -492,6 +526,7 @@
     rail.setAttribute('aria-label', '本日の営業時間とイベント。横方向にスクロールできます。');
     rail.setAttribute('aria-roledescription', '時間カード');
 
+    let updateControls = null;
     const cards = items.map((item, index) => createCard(item, states.get(item.id), index));
     cards.forEach((card) => { if (openIds.has(card.dataset.timelineId)) card.querySelector('details')?.setAttribute('open', ''); });
     if (!cards.length) {
@@ -504,7 +539,7 @@
       }
       rail.append(...cards);
       wrapper.append(rail);
-      attachControls(wrapper, rail, cards);
+      updateControls = attachControls(wrapper, rail, cards);
     }
     container.append(wrapper);
     timelineState.rail = rail;
@@ -518,6 +553,7 @@
         if (!rail.isConnected) return;
         const left = keepUserScroll ? previousScroll : target.offsetLeft - cards[0].offsetLeft;
         rail.scrollTo({ left, behavior: 'instant' });
+        updateControls?.();
       });
     }
   }
@@ -626,6 +662,9 @@
   }
 
   window.ChonmageSchedule = { businessClock, scheduleMinutes, scheduleSignature, getHeroOverride };
+  // One listener for the current rail (re-renders replace timelineState.updateControls).
+  window.addEventListener('resize', () => timelineState.updateControls?.(), { passive: true });
+
   window.renderChonmageTimeline = renderTimeline;
   window.renderChonmageTimelineHero = renderHero;
 

@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Icons: Lucide (lucide.dev), ISC License. -->
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
@@ -9,9 +10,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20261002" />
-    <link rel="stylesheet" href="./v2.css?v=20261002" />
-    <link rel="stylesheet" href="./timeline.css?v=20261002" />
+    <link rel="stylesheet" href="./styles.css?v=20261005" />
+    <link rel="stylesheet" href="./v2.css?v=20261005" />
+    <link rel="stylesheet" href="./timeline.css?v=20261005" />
     <link rel="stylesheet" href="./activity.css?v=20261004" />
     <link rel="stylesheet" href="./news.css?v=20261003news" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23273870'/%3E%3Cpath d='M12 38c8-17 32-17 40 0' fill='none' stroke='%23f4f1e8' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='23' cy='30' r='4' fill='%23f26b38'/%3E%3Ccircle cx='41' cy='30' r='4' fill='%23f26b38'/%3E%3C/svg%3E" />
@@ -64,9 +65,9 @@
         <!-- Safe default without JavaScript or before data/events.json is checked: no dated schedule is shown. -->
         <div class="hero-schedule is-stale" aria-label="最新の営業・イベント情報">
           <div class="schedule-date"><span id="hero-schedule-date">LATEST INFO</span><strong id="hero-business-status"><i></i> <span id="hero-business-status-text">最新情報はXで確認</span></strong></div>
-          <div class="hero-event-detail" data-hero-event="open" hidden><span>OPEN</span><strong>—</strong></div>
-          <a class="hero-event-detail" data-hero-event="next" href="#today" hidden><span>NEXT</span><strong>—</strong></a>
-          <a class="hero-event-detail" data-hero-event="main" href="#today" hidden><span>MAIN</span><strong>—</strong></a>
+          <div class="hero-event-detail" data-hero-event="open" hidden><span>OPEN</span><strong></strong></div>
+          <a class="hero-event-detail" data-hero-event="next" href="#today" hidden><span>NEXT</span><strong></strong></a>
+          <a class="hero-event-detail" data-hero-event="main" href="#today" hidden><span>MAIN</span><strong></strong></a>
           <a class="schedule-x" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer"><span>LATEST</span><strong>Xで確認 ↗</strong></a>
         </div>
       </section>
@@ -113,7 +114,7 @@
           <div class="first-sticky">
             <h2 id="first-title" class="reveal"><span class="first-lead">ポーカー<wbr />の店、</span><br /><em><span class="first-question">初めて<wbr />ですか？</span></em></h2>
             <p class="reveal">ルールを知らなくても、遊び方に自信がなくても大丈夫。スタッフが最初からご案内します。</p>
-            <img class="first-character reveal" src="./images/chonmage-character-400.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 620px) 116px, 168px" alt="ちょんまげのキャラクター" width="1350" height="1165" loading="lazy" decoding="async" />
+            <img class="first-character reveal" src="./images/chonmage-character-400.webp" srcset="./images/chonmage-character-400.webp 400w, ./images/chonmage-character-800.webp 800w" sizes="(max-width: 620px) 140px, 220px" alt="ちょんまげのキャラクター" width="1350" height="1165" loading="lazy" decoding="async" />
           </div>
           <div class="promise-list">
             <article class="promise reveal"><span>01</span><h3>まずは見るだけ</h3><p>店内の雰囲気を見てから決めても大丈夫です。</p></article>
@@ -155,10 +156,10 @@
         <div class="section-kicker reveal"><span>06</span><span>STAY COMFORTABLE</span></div>
         <h2 id="comfort-title" class="reveal"><span class="comfort-lead">ちゃんと、</span><br /><span class="comfort-phrase">過ごし<wbr />やすい。</span></h2>
         <div class="comfort-grid">
-          <div class="comfort-card reveal"><span>☀</span><strong>明るい店内</strong><small>OPEN & BRIGHT</small></div>
-          <div class="comfort-card reveal"><span>○</span><strong>清潔なトイレ</strong><small>CLEAN & EASY</small></div>
-          <div class="comfort-card reveal"><span>♧</span><strong>ドリンクあり</strong><small>QUICK SERVICE</small></div>
-          <div class="comfort-card reveal"><span>☺</span><strong>スタッフ常駐</strong><small>ASK US ANYTHING</small></div>
+          <div class="comfort-card reveal"><svg class="comfort-icon" aria-hidden="true" focusable="false" width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg><strong>明るい店内</strong><small>OPEN & BRIGHT</small></div>
+          <div class="comfort-card reveal"><svg class="comfort-icon" aria-hidden="true" focusable="false" width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" /> </svg><strong>清潔なトイレ</strong><small>CLEAN & EASY</small></div>
+          <div class="comfort-card reveal"><svg class="comfort-icon" aria-hidden="true" focusable="false" width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8" /> <path d="M5 8h14" /> <path d="M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0" /> <path d="m12 8 1-6h2" /> </svg><strong>ドリンクあり</strong><small>QUICK SERVICE</small></div>
+          <div class="comfort-card reveal"><svg class="comfort-icon" aria-hidden="true" focusable="false" width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M11 14h2a2 2 0 0 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16" /> <path d="m14.45 13.39 5.05-4.694C20.196 8 21 6.85 21 5.75a2.75 2.75 0 0 0-4.797-1.837.276.276 0 0 1-.406 0A2.75 2.75 0 0 0 11 5.75c0 1.2.802 2.248 1.5 2.946L16 11.95" /> <path d="m2 15 6 6" /> <path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a1 1 0 0 0-2.75-2.91" /> </svg><strong>スタッフ常駐</strong><small>ASK US ANYTHING</small></div>
         </div>
       </section>
 
@@ -182,7 +183,7 @@
       <div class="footer-word">CHONMAGE</div>
       <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><span>© 2026</span></div>
     </footer>
-    <script src="./timeline.js?v=20261004"></script>
+    <script src="./timeline.js?v=20261005"></script>
     <script src="./activity.js?v=20261004"></script>
     <script src="./news-core.js?v=20261003news"></script>
     <script src="./news-view.js?v=20261003news"></script>

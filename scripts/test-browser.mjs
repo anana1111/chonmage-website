@@ -54,18 +54,19 @@ const fixture = (overrides = {}) => ({
   ...overrides,
 });
 
-async function openPage({ width = 390, time, events, javaScriptEnabled = true, url = '/' } = {}) {
+async function openPage({ width = 390, time, events, blockActivity = false, javaScriptEnabled = true, url = '/' } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, javaScriptEnabled, locale: 'ja-JP', timezoneId: 'Asia/Tokyo' });
   const page = await context.newPage();
   const errors = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', (error) => errors.push(String(error)));
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (route) => route.fulfill({ status: 200, contentType: route.request().resourceType() === 'stylesheet' ? 'text/css' : 'text/plain', body: '' }));
+  if (blockActivity) await page.route(/\/activity\.js/, (route) => route.fulfill({ status: 404, body: '' }));
   if (events) await page.route(/\/data\/events\.json/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(events) }));
   if (time && javaScriptEnabled) await page.clock.setFixedTime(new Date(time));
   await page.goto(origin + url, { waitUntil: 'load' });
   if (javaScriptEnabled && url === '/') {
-    await page.waitForFunction(() => document.querySelector('#activity-hero') || !document.querySelector('.today-stale-message').hidden);
+    await page.waitForFunction(() => document.querySelector('#activity-hero, .timeline-rail, .timeline-empty') || !document.querySelector('.today-stale-message').hidden);
     await page.waitForTimeout(150);
   }
   return { page, context, errors };
@@ -157,15 +158,19 @@ await scenario('repository data (real events.json) at a later date', { time: jst
 });
 
 // --- finished cards stay readable: no whole-card fade, explicit 「終了」 badge -------------
+// TODAY is rendered by activity.js; the timeline cards are its fallback when activity.js
+// does not load, so this check blocks activity.js to exercise that fallback.
 {
-  const { page, context, errors } = await openPage({ time: jst('19:30'), events: fixture() });
+  const { page, context, errors } = await openPage({ time: jst('19:30'), events: fixture(), blockActivity: true });
   const past = await page.locator('.timeline-card[data-timeline-id="free-1800"]').evaluate((card) => ({
     state: card.dataset.state, opacity: getComputedStyle(card).opacity,
     badge: card.querySelector('.timeline-status--past')?.textContent || '',
   }));
   ok(past.state === 'past' && past.opacity === '1' && past.badge === '終了', 'past card is readable and marked 終了: ' + JSON.stringify(past));
   ok(!(await page.locator('.timeline-card[data-timeline-id="open"] .timeline-status--past').count()), 'OPEN card has no 終了 badge');
-  ok(!errors.length, 'past card: console errors ' + errors.join(' | '));
+  // The blocked activity.js 404 is intentional; anything else is a real error.
+  const unexpected = errors.filter((text) => !/404/.test(text));
+  ok(!unexpected.length, 'past card: console errors ' + unexpected.join(' | '));
   await context.close();
 }
 

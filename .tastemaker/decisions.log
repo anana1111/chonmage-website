@@ -1,0 +1,1 @@
+2026-10-05 | kept | surface=public-site/news (mobile <=620px) | axis=density | choice=compact rows (104px colour tile + date/title/text) instead of three full-width 4:3 colour blocks | reason=user confirmed "保留" after before/after preview
