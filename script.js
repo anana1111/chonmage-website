@@ -149,6 +149,11 @@ function safeUrl(value, allowTelephone = false) {
 
 const filled = (value) => value !== undefined && value !== '';
 
+// Without publish-core.js a scheduled item could appear early, so it is rejected instead.
+function publishAtValue(value) {
+  if (value !== undefined && !window.ChonmagePublish?.isValid(value)) throw new Error('Invalid publishAt');
+}
+
 // Kept in sync with the shared Node/admin validator.
 function validateHeroOverrides(overrides) {
   if (overrides === undefined) return;
@@ -164,6 +169,7 @@ function validateHeroOverrides(overrides) {
     if (hero.mainTime || hero.mainTitle) { requireTime(hero.mainTime); requireText(hero.mainTitle); }
     requireText(hero.latestText);
     if (hero.latestUrl) safeUrl(hero.latestUrl);
+    publishAtValue(hero.publishAt);
   });
 }
 
@@ -206,6 +212,7 @@ function validateEvents(data) {
     if (event.theme !== undefined && !['blue', 'orange'].includes(event.theme)) throw new Error('Invalid event theme');
     if (event.hidden !== undefined && typeof event.hidden !== 'boolean') throw new Error('Invalid hidden flag');
     if (event.isMain !== undefined && typeof event.isMain !== 'boolean') throw new Error('Invalid main flag');
+    publishAtValue(event.publishAt);
     if (event.heroTitle !== undefined) requireText(event.heroTitle);
     if (event.tags !== undefined && !Array.isArray(event.tags)) throw new Error('Invalid tags');
     (event.tags || []).forEach(requireText);
@@ -317,10 +324,13 @@ async function fetchData(path) {
 let liveEvents = null;
 let liveSignature = '';
 
-const signatureOf = (data) => window.ChonmageSchedule?.scheduleSignature?.(data) || '';
+// 予約公開: scheduled events and home cards stay hidden until their publishAt (JST).
+const visibleNow = (data) => window.ChonmagePublish ? window.ChonmagePublish.visibleSchedule(data) : data;
+const signatureOf = (data) => (window.ChonmageSchedule?.scheduleSignature?.(visibleNow(data)) || '') + (window.ChonmagePublish?.visibilityKey(data) || '');
 
-function showEvents(data) {
-  liveSignature = signatureOf(data);
+function showEvents(source) {
+  liveSignature = signatureOf(source);
+  const data = visibleNow(source);
   const isCurrent = isCurrentSchedule(data);
   if (isCurrent) {
     renderEvents(data);
@@ -389,11 +399,13 @@ if (isPreviewMode) {
     }
     if (message.type !== 'CHONMAGE_PREVIEW') return;
     try {
-      const events = validateEvents(message.events);
+      let events = validateEvents(message.events);
       const news = validateNews(message.news);
       if (!['selected', 'actual'].includes(message.dateMode)) throw new Error('Invalid preview date mode');
       if (message.heroDate !== undefined) dateValue(message.heroDate);
-      // Both datasets are validated before replacing any content.
+      // Both datasets are validated before replacing any content. The real-date mode
+      // shows what visitors see now; the edited-date mode also shows scheduled items.
+      if (message.dateMode === 'actual') events = visibleNow(events);
       renderEvents(events);
       renderHeroSchedule(events);
       renderNews(news);

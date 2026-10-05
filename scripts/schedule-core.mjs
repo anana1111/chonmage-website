@@ -1,4 +1,5 @@
 import '../news-core.js';
+import '../publish-core.js';
 
 // Pure schedule rules shared by the Node scripts and the admin page.
 // This file must not import Node-only modules: /admin/ loads it in the browser
@@ -37,6 +38,11 @@ export function isSafeUrl(value, allowTel = false) {
   }
 }
 
+// 予約公開: optional Japan datetime after which an event or home card is shown.
+export function isPublishAt(value) {
+  return value === undefined || globalThis.ChonmagePublish.isValid(value);
+}
+
 export function isPlaceholderText(value) {
   return typeof value === 'string' && PLACEHOLDER_TEXTS.includes(value.trim());
 }
@@ -61,6 +67,7 @@ export function validateHeroOverrides(overrides) {
     }
     requireText(hero.latestText, 'hero latest text');
     if (hero.latestUrl && !isSafeUrl(hero.latestUrl)) throw new Error('invalid hero latest URL');
+    if (!isPublishAt(hero.publishAt)) throw new Error('invalid hero publishAt');
   });
 }
 
@@ -137,6 +144,7 @@ export function validateSchedule(data) {
     if (event.theme !== undefined && !EVENT_THEMES.includes(event.theme)) throw new Error('invalid event theme');
     if (event.hidden !== undefined && typeof event.hidden !== 'boolean') throw new Error('invalid hidden flag');
     if (event.isMain !== undefined && typeof event.isMain !== 'boolean') throw new Error('invalid isMain flag');
+    if (!isPublishAt(event.publishAt)) throw new Error('invalid event publishAt: ' + index);
     if (event.tags !== undefined) {
       if (!Array.isArray(event.tags)) throw new Error('invalid tags');
       event.tags.forEach((tag) => requireText(tag, 'tag'));

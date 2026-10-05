@@ -4,9 +4,10 @@
   const frame = $('website-preview');
   const keys = ['chonmage-admin-events-draft', 'chonmage-admin-news-draft'];
   const clone = (value) => JSON.parse(JSON.stringify(value));
-  const VIEWS = { home: 'ホーム', schedule: '今日の予定', news: 'News', settings: '設定' };
+  const VIEWS = { home: 'ホーム', schedule: '今日の予定', news: 'News', scheduled: '予約公開', settings: '設定' };
   const TYPE_LABELS = { free: 'FREE ROLL', tournament: 'TOURNAMENT', special: 'SPECIAL', event: 'EVENT' };
   const newsCore = window.ChonmageNews;
+  const publish = window.ChonmagePublish;
   let newsStatusTimer;
   const NEWS_THEMES = [['schedule', 'スケジュール（青）'], ['event', 'イベント（オレンジ）'], ['result', '結果（黒）']];
   // Well-known detail rows that get their own field instead of the generic list.
@@ -15,7 +16,7 @@
   const state = {
     data: null, snapshot: '', local: false, view: 'home', request: 0, api: null, core: null,
     autoEvents: null, manualEvents: null, live: null, publishFiles: [], drawer: null, errors: new Map(),
-    heroDate: null,
+    heroDate: null, heroImplicit: {},
   };
   let timer, readyResolve, readyTimer, noticeTimer;
   const controls = new Map();
@@ -96,11 +97,21 @@
     parts.slice(0, -1).forEach((key) => { if (!target[key]) target[key] = {}; target = target[key]; });
     target[parts.at(-1)] = value;
   }
+  function unset(path) {
+    const parts = path.split('.'); const parent = get(parts.slice(0, -1).join('.'));
+    if (parent && typeof parent === 'object') delete parent[parts.at(-1)];
+  }
+  function whenLabel(time) {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(new Date(time)).map((part) => [part.type, part.value]));
+    return `${parts.month}/${parts.day}(${parts.weekday}) ${parts.hour}:${parts.minute}`;
+  }
   function heroValues() {
     const saved = state.data?.events?.heroOverrides?.[state.heroDate];
     if (saved) return saved;
     const auto = state.data?.events?.date === state.heroDate ? state.data.events : state.autoEvents?.date === state.heroDate ? state.autoEvents : null;
-    const visible = (auto?.events || []).filter((event) => !event.hidden);
+    // Scheduled events are not public yet, so a home card must not copy them as MAIN.
+    const visible = (auto?.events || []).filter((event) => publish.state(event) === 'live');
     const main = visible.find((event) => event.isMain) || visible.slice().reverse().find((event) => ['special', 'tournament'].includes(event.type));
     return { status: auto?.status || 'open', open: auto?.open || '', mainTime: main?.time || '', mainTitle: main?.heroTitle || main?.title || '', latestText: 'Xで確認', latestUrl: '' };
   }
@@ -113,7 +124,8 @@
     card.append(field('hero.date', '日付', 'date', { required: true }), field('hero.status', '営業状況', 'select', { values: [['open', '本日営業'], ['ongoing', '開催中'], ['ended', '本日終了'], ['closed', '休業']] }),
       grid(field('hero.open', 'OPEN', 'time', { required: get('hero.status') !== 'closed' }), field('hero.mainTime', 'MAIN TIME', 'time')),
       field('hero.mainTitle', 'MAIN EVENT', 'text', { hint: 'MAIN TIME と一緒に入力。両方空欄なら MAIN を表示しません。' }),
-      field('hero.latestText', 'LATEST TEXT', 'text', { required: true }), field('hero.latestUrl', 'X URL', 'url', { hint: '空欄なら現在の公式Xリンクを使います。https:// のURLのみ。' }));
+      field('hero.latestText', 'LATEST TEXT', 'text', { required: true }), field('hero.latestUrl', 'X URL', 'url', { hint: '空欄なら現在の公式Xリンクを使います。https:// のURLのみ。' }),
+      publishControl('hero', 'hero'));
     const actions = node('div', undefined, 'button-row');
     const preview = button('プレビュー', () => { setPreview(true); sendPreview(); }); preview.id = 'hero-preview';
     const save = button('保存', () => {
@@ -295,6 +307,10 @@
     if (get('events.date') > now.date) {
       alerts.append(alert('scheduled', '予約', `${dateLabel(get('events.date'))} の予定を編集中です。`, '公開しておくと、その日になったときにサイトへ表示されます。'));
     }
+    const upcoming = scheduledEntries().filter((entry) => entry.upcoming);
+    if (upcoming.length) {
+      alerts.append(alert('scheduled', '予約', `予約公開が ${upcoming.length} 件あります。`, `次は ${whenLabel(upcoming[0].at)}「${upcoming[0].title}」。`, ['予約公開を見る', () => { location.hash = '#scheduled'; }]));
+    }
     if (alerts.children.length) view.append(alerts);
 
     const editingToday = get('events.date') === now.date;
@@ -396,7 +412,8 @@
     if (!autoEventFor(event)) meta.append(chip('手動で追加', 'manual'));
     else if (eventOverridden(event)) meta.append(chip('手動編集', 'manual'));
     if (event.isMain) meta.append(chip('MAIN', 'scheduled'));
-    if (event.hidden) meta.append(chip('非表示', 'neutral'));
+    if (event.hidden) meta.append(chip('下書き・非表示', 'neutral'));
+    else if (publish.state(event) === 'scheduled') meta.append(chip(`予約 ${whenLabel(publish.parse(event.publishAt))}`, 'warning'));
     if (errorsUnder(`events.events.${index}`)) meta.append(chip('要確認', 'danger'));
     main.append(meta, node('h3', event.title || '（名前なし）', 'item-title'));
     const detail = [factValue(event, ENTRY_FACT) && `参加費 ${factValue(event, ENTRY_FACT)}`, factValue(event, LATE_FACT) && `最終受付 ${factValue(event, LATE_FACT)}`].filter(Boolean).join(' · ');
@@ -498,6 +515,164 @@
       card.append(thumb, main, actions); list.append(card);
     });
     view.append(list); updateNewsStatus();
+  }
+
+  // ---------- 予約公開 (one control for every kind of content) ----------
+  function nextHour() { return publish.format(Math.ceil((Date.now() + 60000) / 3600000) * 3600000); }
+  function publishMode(base, kind) {
+    if (kind === 'news') {
+      if (get(`${base}.published`) === false) return 'draft';
+      return newsCore.publishedTime(get(`${base}.publishedAt`)) > Date.now() ? 'scheduled' : 'now';
+    }
+    if (kind === 'event' && get(`${base}.hidden`)) return 'draft';
+    // Keep the date field on screen while it holds an unfinished value, so it can be fixed.
+    if (get(`${base}.publishAt`) !== undefined && !Number.isFinite(publish.parse(get(`${base}.publishAt`)))) return 'scheduled';
+    return publish.parse(get(`${base}.publishAt`)) > Date.now() ? 'scheduled' : 'now';
+  }
+  function setPublishMode(base, kind, mode) {
+    if (kind === 'news') {
+      const wasDraft = get(`${base}.published`) === false;
+      set(`${base}.published`, mode !== 'draft'); set(`${base}.autoUpdate`, false);
+      const at = newsCore.publishedTime(get(`${base}.publishedAt`));
+      // Publishing a draft "now" uses the current time, so an old draft is not born expired.
+      const stale = !(at <= Date.now()) || wasDraft || Date.now() - at > newsCore.WINDOW_MS;
+      const value = mode === 'scheduled' && !(at > Date.now()) ? nextHour() : mode === 'now' && stale ? newsCore.japanDateTime() : null;
+      if (value) { set(`${base}.publishedAt`, value); set(`${base}.date`, value.slice(0, 10)); }
+      return;
+    }
+    if (kind === 'hero') { setHeroPublishMode(mode); return; }
+    if (kind === 'event') { if (mode === 'draft') set(`${base}.hidden`, true); else unset(`${base}.hidden`); }
+    if (mode === 'scheduled') { if (!(publish.parse(get(`${base}.publishAt`)) > Date.now())) set(`${base}.publishAt`, nextHour()); }
+    else unset(`${base}.publishAt`);
+  }
+  // A home card override that 予約適用 created on its own is removed again by 今すぐ適用,
+  // unless the user edited it in between; otherwise the date would stay frozen to a snapshot.
+  function heroSnapshot(date) {
+    const hero = clone(state.data.events.heroOverrides?.[date] || null); if (hero) delete hero.publishAt; return JSON.stringify(hero);
+  }
+  function setHeroPublishMode(mode) {
+    const date = state.heroDate; const overrides = state.data.events.heroOverrides;
+    if (mode === 'scheduled') {
+      const created = !overrides?.[date];
+      if (created || !(publish.parse(overrides[date].publishAt) > Date.now())) set('hero.publishAt', nextHour());
+      if (created) state.heroImplicit[date] = heroSnapshot(date);
+      return;
+    }
+    if (!overrides?.[date]) return;
+    if (state.heroImplicit[date] === heroSnapshot(date)) {
+      delete overrides[date]; if (!Object.keys(overrides).length) delete state.data.events.heroOverrides;
+    } else unset(`events.heroOverrides.${date}.publishAt`);
+    delete state.heroImplicit[date];
+  }
+  function publishControl(base, kind) {
+    const wrap = node('fieldset', undefined, 'segmented-field publish-control');
+    wrap.dataset.base = base; wrap.dataset.kind = kind;
+    wrap.append(node('legend', kind === 'hero' ? '適用方法' : '公開方法'));
+    const mode = publishMode(base, kind);
+    const options = node('div', undefined, 'segmented');
+    const choices = kind === 'hero' ? [['now', '今すぐ適用'], ['scheduled', '予約適用']] : [['draft', '下書き'], ['now', '今すぐ公開'], ['scheduled', '予約公開']];
+    choices.forEach(([value, text]) => {
+      const label = node('label'); const input = node('input'); input.type = 'radio'; input.name = `publish-${kind}-${base}`; input.value = value; input.checked = mode === value;
+      input.addEventListener('change', () => {
+        const liveHero = kind === 'hero' && value === 'scheduled' && state.data.events.heroOverrides?.[state.heroDate] && mode === 'now';
+        if (liveHero && !window.confirm('いまサイトに出ているこの日のホームカードは、予約時刻まで表示されなくなります（その間は自動取得データの表示になります）。予約しますか？')) { rebuild(); return; }
+        setPublishMode(base, kind, value); rebuild();
+        document.querySelector(`.publish-control[data-base="${CSS.escape(base)}"][data-kind="${kind}"] input[value="${value}"]`)?.focus();
+      });
+      label.append(input, node('span', text)); options.append(label);
+    });
+    wrap.append(options);
+    const path = kind === 'news' ? `${base}.publishedAt` : `${base}.publishAt`;
+    if (kind === 'news' || mode === 'scheduled') {
+      wrap.append(field(path, mode === 'scheduled' ? '予約日時（JST）' : '公開日時（JST）', 'datetime-local', { required: true,
+        hint: mode === 'scheduled' ? 'この日時になるとサイトに表示されます（公開用ファイルをアップロード済みの場合）。' : kind === 'news' ? '未来の日時にすると予約公開になります。' : '' }));
+    }
+    if (kind === 'event' && mode === 'draft') wrap.append(node('p', '下書きのイベントはサイトに表示されません。', 'field-hint'));
+    return wrap;
+  }
+  // Everything with a publish time, across NEWS, events and home cards.
+  function scheduledEntries(now = Date.now()) {
+    if (!state.data) return [];
+    const entries = []; const recent = 7 * 24 * 3600000;
+    const add = (entry) => {
+      if (!Number.isFinite(entry.at)) return;
+      if (entry.at > now) entries.push({ ...entry, upcoming: true });
+      else if (now - entry.at <= recent) entries.push({ ...entry, upcoming: false });
+    };
+    (get('news.items') || []).forEach((item, index) => {
+      if (item.published === false) return;
+      add({ kind: 'news', label: 'NEWS', title: item.title || '（タイトルなし）', at: newsCore.publishedTime(item.publishedAt), index, path: `news.items.${index}.publishedAt` });
+    });
+    (get('events.events') || []).forEach((event, index) => {
+      if (event.hidden || event.publishAt === undefined) return;
+      add({ kind: 'event', label: 'EVENT', title: `${event.title || '（名前なし）'}${event.time ? '（' + dateLabel(get('events.date')) + ' ' + event.time + '〜）' : ''}`, at: publish.parse(event.publishAt), index, path: `events.events.${index}.publishAt` });
+    });
+    Object.entries(get('events.heroOverrides') || {}).forEach(([date, hero]) => {
+      if (hero.publishAt === undefined) return;
+      add({ kind: 'hero', label: 'ホームカード', title: `${dateLabel(date)} の営業カード`, at: publish.parse(hero.publishAt), date, path: `events.heroOverrides.${date}.publishAt` });
+    });
+    return entries.sort((a, b) => a.upcoming === b.upcoming ? (a.upcoming ? a.at - b.at : b.at - a.at) : a.upcoming ? -1 : 1);
+  }
+  function editEntry(entry) {
+    const view = entry.kind === 'news' ? 'news' : entry.kind === 'event' ? 'schedule' : 'home';
+    if (entry.kind === 'hero') state.heroDate = entry.date;
+    setView(view); location.hash = '#' + view;
+    if (entry.kind === 'hero') controls.get('hero.publishAt')?.input.focus();
+    else openDrawer(entry.kind, entry.index, entry.path);
+  }
+  function publishEntryNow(entry) {
+    if (entry.kind === 'news') setPublishMode(`news.items.${entry.index}`, 'news', 'now');
+    else if (entry.kind === 'event') setPublishMode(`events.events.${entry.index}`, 'event', 'now');
+    else unset(entry.path);
+    rebuild(); notice('予約を外して「今すぐ公開」にしました。公開用ファイルをアップロードするとサイトに反映されます。');
+  }
+  function cancelEntry(entry) {
+    const message = entry.kind === 'hero' ? `${entry.title} の手動設定を削除しますか？その日は自動取得データの表示に戻ります。` : `「${entry.title}」の予約を取り消して下書きに戻しますか？`;
+    if (!window.confirm(message)) return;
+    if (entry.kind === 'news') setPublishMode(`news.items.${entry.index}`, 'news', 'draft');
+    else if (entry.kind === 'event') { setPublishMode(`events.events.${entry.index}`, 'event', 'draft'); unset(entry.path); }
+    else { delete state.data.events.heroOverrides[entry.date]; if (!Object.keys(state.data.events.heroOverrides).length) delete state.data.events.heroOverrides; }
+    rebuild(); notice('予約を取り消しました。公開用ファイルをアップロードするとサイトに反映されます。');
+  }
+  function renderScheduled(view) {
+    view.append(node('p', 'NEWS・イベント・ホームカードの予約をまとめて確認できます。予約は各編集画面の「公開方法 → 予約公開」で作成します。予約した内容も「公開用ファイルを作成」→ GitHub にアップロードして初めて有効になり、その後は指定した日本時間になると自動でサイトに表示されます。', 'panel-description'));
+    const now = Date.now(); const today = japanNow().date;
+    const dayOf = (time) => publish.format(time).slice(0, 10);
+    const entries = scheduledEntries(now);
+    const groups = [
+      ['今日', entries.filter((entry) => entry.upcoming && dayOf(entry.at) === today)],
+      ['今週（7日以内）', entries.filter((entry) => entry.upcoming && dayOf(entry.at) !== today && entry.at - now <= 7 * 24 * 3600000)],
+      ['それ以降', entries.filter((entry) => entry.upcoming && entry.at - now > 7 * 24 * 3600000)],
+      ['公開済み（最近7日・新しい順に10件）', entries.filter((entry) => !entry.upcoming).slice(0, 10)],
+    ];
+    if (!entries.some((entry) => entry.upcoming)) {
+      const empty = node('div', undefined, 'empty');
+      empty.append(node('p', '予約中の内容はありません。', 'empty-title'), node('p', 'NEWS やイベントの編集画面で「予約公開」を選ぶと、ここに表示されます。'));
+      view.append(empty);
+    }
+    groups.forEach(([title, list], groupIndex) => {
+      if (!list.length) return;
+      const cards = node('div', undefined, 'card-list');
+      // Already-live items are history; keep them folded so upcoming ones stay in focus.
+      if (groupIndex === groups.length - 1) {
+        const past = node('details', undefined, 'scheduled-history'); past.append(node('summary', title, 'section-title'), cards); view.append(past);
+      } else view.append(node('h2', title, 'section-title'), cards);
+      list.forEach((entry) => {
+        const card = node('article', undefined, `item-card scheduled-card${entry.upcoming ? '' : ' is-past'}`);
+        card.append(node('span', whenLabel(entry.at).split(' ')[1], 'event-time'));
+        const main = node('div', undefined, 'item-main');
+        const meta = node('div', undefined, 'item-meta');
+        meta.append(chip(entry.label, 'type'), chip(entry.upcoming ? '予約中' : '公開済み', entry.upcoming ? 'warning' : 'success'), node('span', whenLabel(entry.at), 'item-sub'));
+        if (errorsUnder(entry.path)) meta.append(chip('要確認', 'danger'));
+        main.append(meta, node('h3', entry.title, 'item-title'));
+        if (entry.upcoming) main.append(field(entry.path, '予約日時（JST）', 'datetime-local', { id: `scheduled-${entry.path.replaceAll('.', '-')}` }));
+        const actions = node('div', undefined, 'item-actions');
+        const edit = button('編集', () => editEntry(entry)); edit.setAttribute('aria-label', `${entry.title} を編集`);
+        actions.append(edit);
+        if (entry.upcoming) actions.append(menu(`${entry.title} のその他の操作`, [['今すぐ公開', () => publishEntryNow(entry)], ['予約を取消', () => cancelEntry(entry), 'danger']]));
+        card.append(main, actions); cards.append(card);
+      });
+    });
   }
 
   function sendNewsDetailPreview() {
@@ -613,17 +788,15 @@
       inner.append(node('h3', 'タグ', 'drawer-subtitle'));
       repeatRows(inner, `${base}.tags`, 'タグ', { addLabel: '＋ タグを追加' });
       inner.append(node('h3', 'リンク', 'drawer-subtitle'), grid(field(`${base}.link.label`, 'リンクの文言'), field(`${base}.link.url`, 'URL', 'text', { hint: 'https:// または tel:' })));
-      advanced.append(inner); body.append(advanced);
+      advanced.append(inner); body.append(advanced, publishControl(base, 'event'));
       const footer = node('div', undefined, 'drawer-footer');
       eventMenuItems(index).forEach(([text, action, tone]) => footer.append(button(text, action, `text-button${tone === 'danger' ? ' danger' : ''}`)));
       body.append(footer);
     } else if (kind === 'news') {
       const base = `news.items.${index}`;
       $('drawer-title').textContent = get(`${base}.title`) || 'News';
-      body.append(newsStatusChip(index), node('p', '公開日時は日本時間（JST）。公開をONにすると、その日時から30日間掲載されます。', 'field-hint'),
+      body.append(newsStatusChip(index), node('p', '公開日時は日本時間（JST）。公開日時から30日間掲載されます。', 'field-hint'),
         field(`${base}.title`, 'タイトル', 'text', { required: get(`${base}.published`) !== false }),
-        field(`${base}.publishedAt`, '公開日時（JST）', 'datetime-local', { required: true }),
-        field(`${base}.published`, '公開する（OFFは下書き・下架）', 'checkbox'),
         field(`${base}.summary`, '短い説明（任意）', 'textarea', { hint: '空欄なら本文から作成します。' }),
         field(`${base}.content`, '本文', 'textarea', { hint: '改行を保持します。HTMLは文章として表示します。' }),
         field(`${base}.image`, '画像URL（任意）', 'text', { hint: 'https:// の画像URL、または images/ファイル名。空欄でも公開できます。' }),
@@ -633,7 +806,7 @@
       advanced.append(node('summary', '詳細設定'));
       const inner = node('div', undefined, 'advanced-body');
       inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像なしのときの文字', 'text', { hint: '例：TODAY / SPECIAL / NEWS' })), field(`${base}.theme`, 'カードの色', 'select', { values: NEWS_THEMES }), field(`${base}.pinned`, '固定表示（30日間の制限は同じ）', 'checkbox'));
-      advanced.append(inner); body.append(advanced);
+      advanced.append(inner); body.append(advanced, publishControl(base, 'news'));
       const footer = node('div', undefined, 'drawer-footer');
       footer.append(button('本文プレビュー', () => openNewsDetailPreview(index)), button('コピー', () => duplicateNews(index), 'text-button'), button('削除', () => deleteItem('news.items', index, 'この News'), 'text-button danger'));
       body.append(footer); updateNewsStatus();
@@ -651,7 +824,7 @@
     [...controls.keys()].forEach((path) => { if (!$('drawer-body').contains(controls.get(path).input)) controls.delete(path); });
     Object.keys(VIEWS).forEach((name) => { $(`view-${name}`).replaceChildren(); $(`view-${name}`).hidden = name !== state.view; });
     validate();
-    ({ home: renderHome, schedule: renderSchedule, news: renderNews, settings: renderSettings })[state.view](view);
+    ({ home: renderHome, schedule: renderSchedule, news: renderNews, scheduled: renderScheduled, settings: renderSettings })[state.view](view);
     if (state.drawer) renderDrawer();
     validate(); savedState(); updateDataStatus();
   }
@@ -674,6 +847,7 @@
     $('save-state').className = `chip ${dirty() ? 'chip-warning' : differsFromLive() ? 'chip-neutral' : 'chip-success'}`;
     $('events-count').textContent = state.data.events.events.length;
     $('news-count').textContent = state.data.news.items.length;
+    $('scheduled-count').textContent = scheduledEntries().filter((entry) => entry.upcoming).length;
   }
   function autoStatusText() {
     const auto = state.autoEvents;
@@ -702,7 +876,8 @@
     if (focus) $('main').focus({ preventScroll: true });
     if (state.data) sendPreview();
   }
-  window.addEventListener('hashchange', () => setView(location.hash.slice(1), { focus: true }));
+  // A view already shown by code (setView before changing the hash) is not rendered twice.
+  window.addEventListener('hashchange', () => { if (state.view !== location.hash.slice(1)) setView(location.hash.slice(1), { focus: true }); });
 
   // ---------- validation (unchanged rules) ----------
   function normalized() {
@@ -741,6 +916,7 @@
       if (hero.mainTime || hero.mainTitle) { inspect('mainTime', api.requireTime, 'MAIN TIME とイベント名を一緒に入力してください。'); inspect('mainTitle', api.requireText, 'MAIN EVENT を入力してください。'); }
       inspect('latestText', api.requireText, 'リンクの文言を入力してください。');
       if (hero.latestUrl) inspect('latestUrl', api.safeUrl, 'https:// で始まるURLを入力してください。');
+      if (hero.publishAt !== undefined) inspect('publishAt', (value) => { if (!publish.isValid(value)) throw new Error(); }, '日本時間の有効な予約日時を入力してください。');
     });
     (get('events.summary') || []).forEach((_, index) => text(`events.summary.${index}`));
     if (get('events.ringGame.enabled')) {
@@ -751,6 +927,7 @@
       const base = `events.events.${index}`;
       check(`${base}.time`, api.requireTime, '開始時間を入力してください（例：19:10）。'); text(`${base}.title`); text(`${base}.description`);
       if (event.end?.trim()) check(`${base}.end`, api.requireTime, '時刻を入力してください。');
+      if (event.publishAt !== undefined) check(`${base}.publishAt`, (value) => { if (!publish.isValid(value)) throw new Error(); }, '日本時間の有効な予約日時を入力してください。');
       (event.tags || []).forEach((_, i) => text(`${base}.tags.${i}`));
       (event.facts || []).forEach((_, i) => { text(`${base}.facts.${i}.label`); text(`${base}.facts.${i}.value`); });
       if (event.link?.label?.trim() || event.link?.url?.trim()) {
@@ -833,6 +1010,7 @@
     }
     let value = input.type === 'checkbox' ? input.checked : input.value;
     if (/^news\.items\.\d+\.publishedAt$/.test(path)) value = newsCore.japanDateTime(newsCore.publishedTime(input.value)) || input.value;
+    if (path.endsWith('.publishAt')) value = publish.format(input.value) || input.value;
     set(path, value);
     if (path.startsWith('news.items.')) {
       const base = path.split('.').slice(0, 3).join('.'); set(`${base}.autoUpdate`, false);
@@ -844,6 +1022,11 @@
     if (path.startsWith('hero.')) {
       if (path === 'hero.status') { rebuild('hero.status'); return; }
       const reset = $('hero-restore-auto'); if (reset) reset.disabled = false;
+    }
+    const control = input.closest('.publish-control');
+    if (control) {
+      const mode = publishMode(control.dataset.base, control.dataset.kind);
+      control.querySelectorAll('input[type="radio"]').forEach((radio) => { radio.checked = radio.value === mode; });
     }
     if (path === 'events.ringGame.enabled') $('ring-fields').hidden = !input.checked;
     if (path === 'events.status') { rebuild(); return; }
@@ -898,17 +1081,45 @@
     if (autoEvents) state.api.validateEvents(autoEvents);
     state.autoEvents = clone(autoEvents || events);
     state.manualEvents = manualEvents || { version: 1, date: events.date, fields: {}, ringGame: {}, events: {}, extraEvents: [] };
+    withDraftEvents(events, state.manualEvents, state.autoEvents);
     state.live = clone({ events, news });
     return { events, news };
+  }
+  // events.json leaves out 下書き (hidden) events; they live only in events.manual.json.
+  // Put them back so they stay editable and the next export keeps them.
+  function withDraftEvents(events, manual, auto) {
+    if (!manual || manual.date !== events.date) return;
+    const ids = new Set(events.events.map((event) => event.id).filter(Boolean));
+    const drafts = [];
+    if (manual.replacement) drafts.push(...(manual.replacement.events || []).filter((event) => event?.hidden));
+    else {
+      if (auto?.date === events.date) {
+        (auto.events || []).forEach((event) => {
+          const override = event.id && manual.events?.[event.id];
+          if (!override?.hidden) return;
+          const merged = clone(event);
+          Object.entries(override).forEach(([key, value]) => { if (value === null) delete merged[key]; else merged[key] = clone(value); });
+          drafts.push(merged);
+        });
+      }
+      drafts.push(...(manual.extraEvents || []).filter((event) => event?.hidden));
+    }
+    drafts.forEach((draft) => {
+      if (draft.id && ids.has(draft.id)) return;
+      const event = { ...clone(draft), hidden: true };
+      try { state.api.validateEvents({ ...events, heroOverrides: undefined, events: [event] }); } catch { return; }
+      if (event.id) ids.add(event.id);
+      events.events.push(event);
+    });
   }
   function acceptableDraft(data) {
     if (!data || !data.events || !data.news || !Array.isArray(data.events.events) || !Array.isArray(data.news.items)) return false;
     const strings = (obj, names) => obj && names.every((key) => obj[key] === undefined || typeof obj[key] === 'string');
     return strings(data.events, ['date', 'open', 'status', 'latestXUrl', 'schedulePostUrl']) &&
-      (data.events.heroOverrides === undefined || data.events.heroOverrides && typeof data.events.heroOverrides === 'object' && !Array.isArray(data.events.heroOverrides) && Object.values(data.events.heroOverrides).every((hero) => hero && !Array.isArray(hero) && strings(hero, ['status', 'open', 'mainTime', 'mainTitle', 'latestText', 'latestUrl']))) &&
+      (data.events.heroOverrides === undefined || data.events.heroOverrides && typeof data.events.heroOverrides === 'object' && !Array.isArray(data.events.heroOverrides) && Object.values(data.events.heroOverrides).every((hero) => hero && !Array.isArray(hero) && strings(hero, ['status', 'open', 'mainTime', 'mainTitle', 'latestText', 'latestUrl', 'publishAt']))) &&
       (!data.events.summary || Array.isArray(data.events.summary) && data.events.summary.every((row) => typeof row === 'string')) &&
       (!data.events.ringGame || typeof data.events.ringGame === 'object' && typeof data.events.ringGame.enabled === 'boolean' && strings(data.events.ringGame, ['title', 'description'])) &&
-      data.events.events.every((item) => strings(item, ['time', 'title', 'heroTitle', 'theme', 'description']) && (!item.tags || Array.isArray(item.tags) && item.tags.every((tag) => typeof tag === 'string')) && (!item.facts || Array.isArray(item.facts) && item.facts.every((fact) => strings(fact, ['label', 'value']))) && (!item.link || strings(item.link, ['label', 'url']))) &&
+      data.events.events.every((item) => strings(item, ['time', 'title', 'heroTitle', 'theme', 'description', 'publishAt']) && (!item.tags || Array.isArray(item.tags) && item.tags.every((tag) => typeof tag === 'string')) && (!item.facts || Array.isArray(item.facts) && item.facts.every((fact) => strings(fact, ['label', 'value']))) && (!item.link || strings(item.link, ['label', 'url']))) &&
       data.news.items.every((item) => strings(item, ['id', 'publishedAt', 'date', 'category', 'visualLabel', 'theme', 'title', 'summary', 'content', 'description', 'image', 'source', 'sourceUrl', 'url']) && ['published', 'pinned', 'autoUpdate'].every((key) => item[key] === undefined || typeof item[key] === 'boolean') && (item.images === undefined || Array.isArray(item.images) && item.images.every((url) => typeof url === 'string')));
   }
   async function chooseDraft(live) {
@@ -928,7 +1139,7 @@
   async function load() {
     $('load-error').hidden = true; $('loading').hidden = false; $('editor-form').hidden = true;
     try {
-      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=20261003news');
+      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=20261006');
       await prepareFrame(); const live = await fetchPublished(); const choice = await chooseDraft(live);
       state.data = clone(choice.data); state.data.news.items = state.data.news.items.map((item) => newsCore.normalizeItem(item) || item); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
       state.heroDate = japanNow().date;

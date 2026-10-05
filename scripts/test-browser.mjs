@@ -148,6 +148,24 @@ await scenario('after 25時CLOSE the old day is stale', { time: jst('01:30', '20
   assert.equal(s.stale, true);
   assert.equal(s.date, 'LATEST INFO');
 });
+// 予約公開: a scheduled event stays off the page until its publishAt, then appears without a reload.
+{
+  const scheduled = fixture({ events: fixture().events.map((event) => event.id === 'event-1910' ? { ...event, publishAt: '2026-10-02T19:00:00+09:00' } : event) });
+  const { page, context, errors } = await openPage({ time: jst('18:30'), events: scheduled });
+  let state = await heroState(page);
+  ok(state.main === null && !state.states.some((item) => item.startsWith('event-1910')), 'scheduled event hidden before publishAt: ' + JSON.stringify(state));
+  // NEWS posts may mention the event by name; only the schedule must not show it.
+  const scheduleText = (await page.locator('body').innerText()).replace(await page.locator('#news').innerText(), '');
+  ok(!scheduleText.includes('ふるまちトーナメント'), 'scheduled event title not rendered before publishAt');
+  await page.clock.setFixedTime(new Date(jst('19:00')));
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await page.waitForTimeout(150);
+  state = await heroState(page);
+  ok((state.main || state.next || '').includes('ふるまちトーナメント'), 'scheduled event appears at publishAt: ' + JSON.stringify(state));
+  ok(!errors.length, 'scheduled event: console errors ' + errors.join(' | '));
+  await context.close();
+}
+
 await scenario('old data is never shown as today', { time: jst('18:00'), events: fixture({ date: '2026-09-13' }) }, (s) => {
   assert.equal(s.stale, true);
   assert.equal(s.open, null);
@@ -237,6 +255,12 @@ await scenario('repository data (real events.json) at a later date', { time: jst
     fixture({ latestXUrl: 'javascript:alert(1)' }),
     fixture({ date: '2026-02-30' }),
     fixture({ source: { url: 'http://bad' } }),
+    fixture({ events: [{ id: 'a', time: '18:00', title: 'T', description: 'd', publishAt: '2026-10-02T17:30:00+09:00' }] }),
+    fixture({ events: [{ id: 'a', time: '18:00', title: 'T', description: 'd', publishAt: '2026-10-02T17:30' }] }),
+    fixture({ events: [{ id: 'a', time: '18:00', title: 'T', description: 'd', publishAt: '2026-10-02' }] }),
+    fixture({ events: [{ id: 'a', time: '18:00', title: 'T', description: 'd', publishAt: 1 }] }),
+    fixture({ heroOverrides: { '2026-10-02': { status: 'open', open: '17:00', latestText: 'Xで確認', publishAt: '2026-10-02T12:00:00+09:00' } } }),
+    fixture({ heroOverrides: { '2026-10-02': { status: 'open', open: '17:00', latestText: 'Xで確認', publishAt: 'noon' } } }),
     ...[{ status: 'open', open: '17:00', latestText: 'Xで確認', latestUrl: '' },
       { status: 'closed', open: '', latestText: 'Xで確認' },
       { status: 'open', open: '25:00', latestText: 'Xで確認' },
@@ -462,7 +486,20 @@ for (const width of [360, 390, 412, 768, 1440]) {
 
   await page.fill(`#field-events-events-${index}-title`, 'ナイトトーナメント');
   await page.fill(`#field-events-events-${index}-description`, '20時半スタートです。');
+  // 予約公開 from the bottom of the event editor.
+  await page.locator('#drawer .publish-control label', { hasText: '予約公開' }).click();
+  await page.fill(`#field-events-events-${index}-publishAt`, '2026-10-02T20:00');
+  ok(await page.locator('#drawer .publish-control input[value="scheduled"]').isChecked(), 'admin schedule: 予約公開 selected');
   await page.click('#close-drawer');
+  ok((await page.locator(`.event-card[data-index="${index}"]`).innerText()).includes('予約'), 'admin schedule: event card shows 予約');
+  await page.click('a[data-view-link="scheduled"] >> visible=true');
+  await page.waitForSelector('#view-scheduled:not([hidden]) .scheduled-card');
+  const scheduledText = await page.locator('#view-scheduled').innerText();
+  ok(scheduledText.includes('ナイトトーナメント') && scheduledText.includes('今日') && scheduledText.includes('EVENT'), 'admin schedule: listed under 今日 in 予約公開');
+  const upcomingCards = await page.locator('#view-scheduled .scheduled-card:not(.is-past)').count();
+  ok(upcomingCards >= 1 && await page.locator('#scheduled-count').textContent() === String(upcomingCards), 'admin schedule: nav count matches upcoming items');
+  await page.click('a[data-view-link="schedule"] >> visible=true');
+  await page.waitForSelector('#view-schedule:not([hidden]) .event-card');
   await page.locator('.event-card[data-index="0"] details.menu summary').click();
   await page.getByRole('button', { name: 'サイトで非表示' }).click();
   ok(await page.locator('.event-card[data-index="0"]').evaluate((card) => card.classList.contains('is-hidden')), 'admin: hidden event is marked in the list');
@@ -478,6 +515,7 @@ for (const width of [360, 390, 412, 768, 1440]) {
   ok(!finalEvents.events.some((event) => event.id === auto.events[0].id), 'admin: hidden auto event still published');
   ok(manual.events[auto.events[0].id]?.hidden === true, 'admin: hidden override missing in manual');
   ok(finalEvents.events.some((event) => event.title === 'ナイトトーナメント' && event.facts.some((fact) => fact.value === '¥3,000')), 'admin: added event missing');
+  ok(finalEvents.events.find((event) => event.title === 'ナイトトーナメント')?.publishAt === '2026-10-02T20:00:00+09:00', 'admin schedule: publishAt exported in JST');
   ok(!exported['export-events'].includes('詳細を入力してください'), 'admin: placeholder exported');
   ok(/まだ公開されていません/.test(await page.locator('#publish-summary').innerText()), 'admin: dialog says nothing is published yet');
   ok(!(await page.locator('#export-details').evaluate((details) => details.open)), 'admin: JSON stays folded away by default');
@@ -487,7 +525,7 @@ for (const width of [360, 390, 412, 768, 1440]) {
 
 // --- admin layout at each width ------------------------------------------------------------
 for (const width of [320, 360, 375, 390, 412, 768, 1024, 1440]) {
-  for (const view of ['home', 'schedule', 'news', 'settings']) {
+  for (const view of ['home', 'schedule', 'news', 'scheduled', 'settings']) {
     const { page, context, errors } = await openPage({ width, url: '/admin/#' + view, time: jst('18:00') });
     await page.waitForSelector('#editor-form:not([hidden])', { timeout: 20000 });
     if (view === 'schedule') {
