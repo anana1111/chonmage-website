@@ -1,3 +1,5 @@
+import '../news-core.js';
+
 // Pure schedule rules shared by the Node scripts and the admin page.
 // This file must not import Node-only modules: /admin/ loads it in the browser
 // so that its export is produced by exactly the same merge as merge-events.mjs.
@@ -39,6 +41,29 @@ export function isPlaceholderText(value) {
   return typeof value === 'string' && PLACEHOLDER_TEXTS.includes(value.trim());
 }
 
+// Homepage-only edits are scoped by Japan calendar date. They never replace
+// automatic event data or change another day's schedule.
+export function validateHeroOverrides(overrides) {
+  if (overrides === undefined) return;
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) throw new Error('invalid hero overrides');
+  Object.entries(overrides).forEach(([date, hero]) => {
+    if (!isDate(date) || !hero || typeof hero !== 'object' || Array.isArray(hero)) throw new Error('invalid hero date');
+    for (const key of ['open', 'mainTime', 'mainTitle', 'latestUrl']) {
+      if (hero[key] !== undefined && typeof hero[key] !== 'string') throw new Error('invalid hero ' + key);
+    }
+    if (!['open', 'ongoing', 'ended', 'closed'].includes(hero.status)) throw new Error('invalid hero status');
+    if (hero.status !== 'closed' || hero.open) {
+      if (!isTime(hero.open)) throw new Error('invalid hero open');
+    }
+    if (hero.mainTime || hero.mainTitle) {
+      if (!isTime(hero.mainTime)) throw new Error('invalid hero main time');
+      requireText(hero.mainTitle, 'hero main title');
+    }
+    requireText(hero.latestText, 'hero latest text');
+    if (hero.latestUrl && !isSafeUrl(hero.latestUrl)) throw new Error('invalid hero latest URL');
+  });
+}
+
 function requireText(value, label) {
   if (typeof value !== 'string' || !value.trim()) throw new Error(label + ' is required');
   if (isPlaceholderText(value)) throw new Error(label + ' still has the placeholder text');
@@ -69,6 +94,7 @@ export function sortEvents(events, open) {
 // runs both against the same fixtures so that they cannot drift apart.
 export function validateSchedule(data) {
   if (!data || typeof data !== 'object') throw new Error('schedule must be an object');
+  validateHeroOverrides(data.heroOverrides);
   if (!isDate(data.date)) throw new Error('invalid date');
   if (!['open', 'closed'].includes(data.status)) throw new Error('invalid status');
   // A closed day may omit OPEN; an open day always needs it.
@@ -134,15 +160,7 @@ export function validateSchedule(data) {
 }
 
 export function validateNews(data) {
-  if (!data || !Array.isArray(data.items)) throw new Error('news items must be an array');
-  data.items.forEach((item, index) => {
-    if (!item || typeof item !== 'object') throw new Error('invalid news ' + index);
-    if (!isDate(item.date)) throw new Error('invalid news date: ' + index);
-    ['category', 'visualLabel', 'title', 'description'].forEach((key) => requireText(item[key], 'news ' + key + ' ' + index));
-    if (!NEWS_THEMES.includes(item.theme)) throw new Error('invalid news theme: ' + index);
-    if (!isSafeUrl(item.url)) throw new Error('invalid news url: ' + index);
-  });
-  return data;
+  return globalThis.ChonmageNews.validateNews(data);
 }
 
 function mergeObject(base, override) {
@@ -166,8 +184,17 @@ export function mergeSchedule(autoData, manualData, options = {}) {
   validateSchedule(autoData);
   if (!manualData || typeof manualData !== 'object') return clone(autoData);
 
+  validateHeroOverrides(manualData.heroOverrides);
+  const withHero = (schedule) => {
+    // The date-keyed map survives a newer AUTO day; selection happens in the
+    // browser so an open page also changes correctly at Japan midnight.
+    delete schedule.heroOverrides;
+    if (Object.keys(manualData.heroOverrides || {}).length) schedule.heroOverrides = clone(manualData.heroOverrides);
+    return schedule;
+  };
+
   const manualDate = typeof manualData.date === 'string' ? manualData.date : autoData.date;
-  if (manualDate < autoData.date) return clone(autoData);
+  if (manualDate < autoData.date) return withHero(clone(autoData));
 
   if (manualData.replacement && manualDate >= autoData.date) {
     const replacement = clone(manualData.replacement);
@@ -179,10 +206,10 @@ export function mergeSchedule(autoData, manualData, options = {}) {
     replacement.events = (replacement.events || []).filter((event) => !event?.hidden);
     validateSchedule(replacement);
     sortEvents(replacement.events, replacement.open);
-    return replacement;
+    return withHero(replacement);
   }
 
-  if (manualDate > autoData.date) return clone(autoData);
+  if (manualDate > autoData.date) return withHero(clone(autoData));
 
   const result = clone(autoData);
   Object.entries(manualData.fields || {}).forEach(([key, value]) => {
@@ -223,5 +250,5 @@ export function mergeSchedule(autoData, manualData, options = {}) {
   if (hasManual) result.source = mergeObject(result.source, { mode: 'merged' });
 
   validateSchedule(result);
-  return result;
+  return withHero(result);
 }

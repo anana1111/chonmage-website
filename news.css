@@ -1,0 +1,42 @@
+/* NEWS additions only; keep the existing homepage design and tokens. */
+.news-card { min-width: 0; overflow-wrap: anywhere; }
+.news-card h3 { text-wrap: pretty; }
+.news-card h3 a { display: block; min-height: 44px; }
+.news-card .news-summary { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.news-meta { flex-wrap: wrap; overflow-wrap: anywhere; }
+.news-image--photo { position: relative; padding: 0; }
+.news-photo { margin: 0; min-width: 0; }
+.news-photo[hidden] { display: none; }
+.news-photo img { display: block; max-width: 100%; width: 100%; height: auto; }
+.news-image--photo .news-photo { position: absolute; inset: 0; background: var(--paper); z-index: 1; }
+.news-image--photo img { height: 100%; object-fit: contain; }
+.news-image-fallback { margin: auto; padding: 1rem; font-weight: 800; }
+.news-empty { grid-column: 1 / -1; padding: 1rem 0; line-height: 1.8; color: var(--blue); }
+.news-page { overflow-x: visible; }
+.news-page-header { padding: 1rem var(--pad); display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 1px solid var(--line); }
+.news-page-header .brand { color: var(--blue); min-height: 44px; }
+.news-page main { max-width: 1200px; margin: auto; padding: clamp(2rem, 6vw, 5rem) var(--pad); }
+.news-page-title { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(3.4rem, 9vw, 7rem); line-height: 1; letter-spacing: -.055em; margin: 0 0 1rem; }
+.news-page-lead { font-size: .9rem; line-height: 1.8; color: var(--blue); }
+.news-page .news-grid { grid-template-columns: minmax(0, 1fr); margin-top: 2rem; }
+.news-page .news-card:last-child { display: block; grid-column: auto; }
+.news-page .news-image strong { font-size: clamp(2.5rem, 9vw, 4rem); }
+.news-page .news-image { border-radius: 4px; }
+.news-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .7rem 1rem; border: 1px solid var(--blue); border-radius: 99px; color: var(--blue); font-size: .8rem; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.news-button:hover { background: var(--blue); color: white; }
+.news-page a:focus-visible, .news a:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+.news-backlinks { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+.news-detail { max-width: 800px; margin: 0 auto; }
+.news-detail h1 { font-size: clamp(1.65rem, 4vw, 3rem); line-height: 1.5; margin: 1rem 0 2rem; overflow-wrap: anywhere; }
+.news-detail .news-meta { font-size: .75rem; }
+.news-detail .news-photo { margin: 1.5rem 0; }
+.news-detail .news-photo img { width: auto; margin: 0 auto; max-height: 85vh; object-fit: contain; }
+.news-body { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1rem; line-height: 2; }
+.news-source { margin-top: 2rem; }
+.news-state { padding: 2rem 0; line-height: 1.8; }
+.news-state h1 { font-size: clamp(1.3rem, 4vw, 2rem); overflow-wrap: anywhere; }
+.news-page-end { padding: 1.5rem var(--pad); border-top: 1px solid var(--line); font-size: .7rem; color: var(--blue); }
+.news-skip { position: absolute; left: 1rem; top: -100px; background: white; padding: .8rem; z-index: 20; }
+.news-skip:focus { top: 1rem; }
+@media (min-width: 600px) { .news-page .news-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .news-page .news-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

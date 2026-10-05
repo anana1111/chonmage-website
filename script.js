@@ -149,8 +149,27 @@ function safeUrl(value, allowTelephone = false) {
 
 const filled = (value) => value !== undefined && value !== '';
 
+// Kept in sync with the shared Node/admin validator.
+function validateHeroOverrides(overrides) {
+  if (overrides === undefined) return;
+  if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) throw new Error('Invalid hero overrides');
+  Object.entries(overrides).forEach(([date, hero]) => {
+    dateValue(date);
+    if (!hero || typeof hero !== 'object' || Array.isArray(hero)) throw new Error('Invalid hero date');
+    for (const key of ['open', 'mainTime', 'mainTitle', 'latestUrl']) {
+      if (hero[key] !== undefined && typeof hero[key] !== 'string') throw new Error('Invalid hero ' + key);
+    }
+    if (!['open', 'ongoing', 'ended', 'closed'].includes(hero.status)) throw new Error('Invalid hero status');
+    if (hero.status !== 'closed' || hero.open) requireTime(hero.open);
+    if (hero.mainTime || hero.mainTitle) { requireTime(hero.mainTime); requireText(hero.mainTitle); }
+    requireText(hero.latestText);
+    if (hero.latestUrl) safeUrl(hero.latestUrl);
+  });
+}
+
 function validateEvents(data) {
   if (!data || typeof data !== 'object') throw new Error('Invalid schedule');
+  validateHeroOverrides(data.heroOverrides);
   dateValue(data.date);
   if (!['open', 'closed'].includes(data.status)) throw new Error('Invalid status');
   // A closed day may omit OPEN; an open day always needs it.
@@ -202,15 +221,7 @@ function validateEvents(data) {
 }
 
 function validateNews(data) {
-  if (!data || !Array.isArray(data.items)) throw new Error('Missing news items');
-  data.items.forEach((item) => {
-    if (!item || typeof item !== 'object') throw new Error('Invalid news item');
-    dateValue(item.date);
-    ['category', 'visualLabel', 'title', 'description'].forEach((key) => requireText(item[key]));
-    if (!['schedule', 'event', 'result'].includes(item.theme)) throw new Error('Invalid news theme');
-    safeUrl(item.url);
-  });
-  return data;
+  return window.ChonmageNews.validateNews(data);
 }
 
 function element(tag, className, text) {
@@ -251,8 +262,9 @@ function isCurrentSchedule(data, now = new Date()) {
   return data.date === getJapanDate(now);
 }
 
-function applyStaleState(isStale, latestXUrl = officialXUrl) {
+function applyStaleState(isStale, latestXUrl = officialXUrl, heroIsStale = isStale) {
   if (!todaySection) return;
+  if (isStale) window.ChonmageActivity?.clear();
   const live = todaySection.querySelector('.today-live-content');
   const message = todaySection.querySelector('.today-stale-message');
   if (live) live.hidden = isStale;
@@ -261,10 +273,12 @@ function applyStaleState(isStale, latestXUrl = officialXUrl) {
   todaySection.setAttribute('aria-labelledby', isStale ? 'today-stale-title' : 'today-title');
   todaySection.querySelector('.today-stale-x')?.setAttribute('href', latestXUrl);
   const schedule = document.querySelector('.hero-schedule');
-  schedule?.classList.toggle('is-stale', isStale);
-  schedule?.setAttribute('aria-label', isStale ? '最新の営業・イベント情報' : '本日の営業とイベント');
-  schedule?.querySelector('.schedule-x')?.setAttribute('href', latestXUrl);
-  if (isStale) {
+  schedule?.classList.toggle('is-stale', heroIsStale);
+  schedule?.setAttribute('aria-label', heroIsStale ? '最新の営業・イベント情報' : '本日の営業とイベント');
+  if (heroIsStale) schedule?.querySelector('.schedule-x')?.setAttribute('href', latestXUrl);
+  if (heroIsStale) {
+    const latest = schedule?.querySelector('.schedule-x strong');
+    if (latest) latest.textContent = 'Xで確認 ↗';
     document.querySelectorAll('.hero-event-detail').forEach((item) => { item.hidden = true; });
     const date = document.getElementById('hero-schedule-date');
     const status = document.getElementById('hero-business-status-text');
@@ -273,27 +287,25 @@ function applyStaleState(isStale, latestXUrl = officialXUrl) {
   }
 }
 
-function renderNews(data) {
+let liveNews = null;
+let newsTimer = null;
+let newsSignature = '';
+function renderNews(data, now = Date.now()) {
   const grid = document.querySelector('.news-grid');
-  if (!grid) return;
+  if (!grid || !window.ChonmageNews || !window.ChonmageNewsView) return;
   const cards = document.createDocumentFragment();
-  data.items.forEach((item) => {
-    const card = element('article', 'news-card reveal in');
-    const image = contentLink(`news-image news-image--${item.theme}`, '', item.url);
-    image.setAttribute('aria-label', `${item.title}を公式Xで見る`);
-    const arrow = element('span', 'news-image-arrow', '↗');
-    arrow.setAttribute('aria-hidden', 'true');
-    image.append(element('span', 'news-image-category', item.category), element('strong', '', item.visualLabel), arrow);
-    const meta = element('div', 'news-meta');
-    const time = element('time', '', item.date.replaceAll('-', '.'));
-    time.setAttribute('datetime', item.date);
-    meta.append(time, element('span', '', item.category));
-    const title = element('h3');
-    title.append(contentLink('', item.title, item.url));
-    card.append(image, meta, title, element('p', '', item.description));
-    cards.append(card);
-  });
+  const items = window.ChonmageNews.visibleItems(data, now, 3);
+  const root = new URL('./', location.href);
+  items.forEach((item) => cards.append(window.ChonmageNewsView.card(item, root)));
+  if (!items.length) cards.append(element('p', 'news-empty', '最近30日間のニュースはありません。'));
   grid.replaceChildren(cards);
+}
+function refreshNews() {
+  if (!liveNews || !window.ChonmageNews) return;
+  const signature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+  if (signature !== newsSignature) { renderNews(liveNews); newsSignature = signature; }
+  clearTimeout(newsTimer);
+  newsTimer = setTimeout(refreshNews, window.ChonmageNews.nextRefreshDelay(liveNews));
 }
 
 async function fetchData(path) {
@@ -312,9 +324,10 @@ function showEvents(data) {
   const isCurrent = isCurrentSchedule(data);
   if (isCurrent) {
     renderEvents(data);
-    renderHeroSchedule(data);
   }
-  applyStaleState(!isCurrent, safeUrl(data.latestXUrl));
+  const hasHero = Boolean(window.ChonmageSchedule?.getHeroOverride?.(data));
+  if (isCurrent || hasHero) renderHeroSchedule(data);
+  applyStaleState(!isCurrent, safeUrl(data.latestXUrl), !isCurrent && !hasHero);
 }
 
 async function loadEvents() {
@@ -339,9 +352,15 @@ function refreshEvents() {
 
 async function loadNews() {
   try {
-    renderNews(validateNews(await fetchData('./data/news.json')));
+    liveNews = await fetchData('./data/news.json');
+    if (!liveNews || !Array.isArray(liveNews.items)) throw new Error('Missing news items');
+    renderNews(liveNews);
+    newsSignature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+    refreshNews();
   } catch (error) {
-    console.warn('ニュースを読み込めません。表示中の情報または公式Xをご確認ください。', error);
+    const grid = document.querySelector('.news-grid');
+    if (grid) grid.replaceChildren(element('p', 'news-empty', 'ニュースを読み込めませんでした。NEWS一覧で再度お試しください。'));
+    console.warn('ニュースを読み込めません。', error);
   }
 }
 
@@ -350,6 +369,15 @@ const isPreviewMode = new URLSearchParams(window.location.search).get('preview')
 if (isPreviewMode) {
   applyStaleState(true);
   let previewSection = null;
+  let previewScrollPending = false;
+  const positionPreview = () => {
+    if (!previewScrollPending || window.frameElement && !window.frameElement.getClientRects().length) return;
+    const target = document.getElementById(previewSection === 'news' ? 'news' : previewSection === 'today' ? 'activity-hero' : 'top') || document.getElementById('today');
+    if (!target || !target.getClientRects().length) return;
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
+    previewScrollPending = false;
+  };
+  window.addEventListener('resize', () => { if (previewScrollPending) requestAnimationFrame(positionPreview); });
   const tellParent = (message) => window.parent.postMessage(message, window.location.origin);
   window.addEventListener('message', (event) => {
     if (event.origin !== window.location.origin || event.source !== window.parent) return;
@@ -364,16 +392,21 @@ if (isPreviewMode) {
       const events = validateEvents(message.events);
       const news = validateNews(message.news);
       if (!['selected', 'actual'].includes(message.dateMode)) throw new Error('Invalid preview date mode');
+      if (message.heroDate !== undefined) dateValue(message.heroDate);
       // Both datasets are validated before replacing any content.
       renderEvents(events);
       renderHeroSchedule(events);
       renderNews(news);
-      applyStaleState(message.dateMode === 'actual' && !isCurrentSchedule(events), safeUrl(events.latestXUrl));
+      const hasHero = Boolean(window.ChonmageSchedule?.getHeroOverride?.(events));
+      const heroStale = message.dateMode === 'actual' ? !isCurrentSchedule(events) && !hasHero :
+        Boolean(message.heroDate && message.heroDate !== events.date && !hasHero);
+      applyStaleState(message.dateMode === 'actual' && !isCurrentSchedule(events), safeUrl(events.latestXUrl), heroStale);
       if (previewSection !== message.section) {
         previewSection = message.section;
-        const target = document.getElementById(previewSection === 'news' ? 'news' : 'top');
-        if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
+        previewScrollPending = true;
       }
+      // Hidden iframe scrolls are ignored by browsers; retry when it is shown.
+      if (previewScrollPending) requestAnimationFrame(positionPreview);
       tellParent({ type: 'CHONMAGE_PREVIEW_RENDERED', requestId: message.requestId });
     } catch (error) {
       console.warn('下書きのプレビューを更新できません。', error);
@@ -384,6 +417,15 @@ if (isPreviewMode) {
 } else {
   loadEvents();
   loadNews();
-  setInterval(refreshEvents, 60 * 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshEvents(); });
+  let activityTimer;
+  const scheduleRefresh = () => {
+    clearTimeout(activityTimer);
+    if (window.ChonmageActivity?.testTime) return;
+    activityTimer = setTimeout(() => { refreshEvents(); scheduleRefresh(); }, window.ChonmageActivity?.nextMinuteDelay() ?? 60000 - (Date.now() % 60000) + 20);
+  };
+  scheduleRefresh();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { refreshEvents(); scheduleRefresh(); refreshNews(); }
+  });
+  window.addEventListener('pageshow', refreshNews);
 }

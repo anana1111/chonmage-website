@@ -6,6 +6,8 @@
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const VIEWS = { home: 'ホーム', schedule: '今日の予定', news: 'News', settings: '設定' };
   const TYPE_LABELS = { free: 'FREE ROLL', tournament: 'TOURNAMENT', special: 'SPECIAL', event: 'EVENT' };
+  const newsCore = window.ChonmageNews;
+  let newsStatusTimer;
   const NEWS_THEMES = [['schedule', 'スケジュール（青）'], ['event', 'イベント（オレンジ）'], ['result', '結果（黒）']];
   // Well-known detail rows that get their own field instead of the generic list.
   const ENTRY_FACT = /^(entry|参加費|参加料金)$/i;
@@ -13,6 +15,7 @@
   const state = {
     data: null, snapshot: '', local: false, view: 'home', request: 0, api: null, core: null,
     autoEvents: null, manualEvents: null, live: null, publishFiles: [], drawer: null, errors: new Map(),
+    heroDate: null,
   };
   let timer, readyResolve, readyTimer, noticeTimer;
   const controls = new Map();
@@ -75,11 +78,63 @@
   // ---------- data access ----------
   function dirty() { return state.data && JSON.stringify(state.data) !== state.snapshot; }
   function differsFromLive() { return state.data && state.live && JSON.stringify(state.data) !== JSON.stringify(state.live); }
-  function get(path) { return path.split('.').reduce((value, key) => value?.[key], state.data); }
+  function get(path) {
+    if (path === 'hero.date') return state.heroDate;
+    if (path.startsWith('hero.')) return heroValues()[path.slice(5)];
+    return path.split('.').reduce((value, key) => value?.[key], state.data);
+  }
   function set(path, value) {
+    if (path === 'hero.date') { state.heroDate = value; return; }
+    if (path.startsWith('hero.')) {
+      if (!state.core.isDate(state.heroDate)) return;
+      if (!state.data.events.heroOverrides) state.data.events.heroOverrides = {};
+      if (!state.data.events.heroOverrides[state.heroDate]) state.data.events.heroOverrides[state.heroDate] = heroValues();
+      state.data.events.heroOverrides[state.heroDate][path.slice(5)] = value;
+      return;
+    }
     const parts = path.split('.'); let target = state.data;
     parts.slice(0, -1).forEach((key) => { if (!target[key]) target[key] = {}; target = target[key]; });
     target[parts.at(-1)] = value;
+  }
+  function heroValues() {
+    const saved = state.data?.events?.heroOverrides?.[state.heroDate];
+    if (saved) return saved;
+    const auto = state.data?.events?.date === state.heroDate ? state.data.events : state.autoEvents?.date === state.heroDate ? state.autoEvents : null;
+    const visible = (auto?.events || []).filter((event) => !event.hidden);
+    const main = visible.find((event) => event.isMain) || visible.slice().reverse().find((event) => ['special', 'tournament'].includes(event.type));
+    return { status: auto?.status || 'open', open: auto?.open || '', mainTime: main?.time || '', mainTitle: main?.heroTitle || main?.title || '', latestText: 'Xで確認', latestUrl: '' };
+  }
+  function renderHeroEditor(view) {
+    const card = panel('今日のゲーム', 'ホームの営業カードだけを編集します。手動設定は選んだ日付にだけ適用されます。');
+    card.id = 'hero-editor';
+    const manual = Boolean(state.data.events.heroOverrides?.[state.heroDate]);
+    card.append(chip(manual ? '手動 override' : '既存の予定データ', manual ? 'manual' : 'neutral'));
+    if (!manual && state.autoEvents?.date !== state.heroDate && state.data.events.date !== state.heroDate) card.append(node('p', 'この日の予定データはまだありません。手動設定がなければ公式Xへの案内を表示します。', 'panel-description'));
+    card.append(field('hero.date', '日付', 'date', { required: true }), field('hero.status', '営業状況', 'select', { values: [['open', '本日営業'], ['ongoing', '開催中'], ['ended', '本日終了'], ['closed', '休業']] }),
+      grid(field('hero.open', 'OPEN', 'time', { required: get('hero.status') !== 'closed' }), field('hero.mainTime', 'MAIN TIME', 'time')),
+      field('hero.mainTitle', 'MAIN EVENT', 'text', { hint: 'MAIN TIME と一緒に入力。両方空欄なら MAIN を表示しません。' }),
+      field('hero.latestText', 'LATEST TEXT', 'text', { required: true }), field('hero.latestUrl', 'X URL', 'url', { hint: '空欄なら現在の公式Xリンクを使います。https:// のURLのみ。' }));
+    const actions = node('div', undefined, 'button-row');
+    const preview = button('プレビュー', () => { setPreview(true); sendPreview(); }); preview.id = 'hero-preview';
+    const save = button('保存', () => {
+      if (!state.core.isDate(state.heroDate)) { notice('有効な日付を入力してください。', 'error'); return; }
+      if (!state.data.events.heroOverrides?.[state.heroDate]) set('hero.status', get('hero.status'));
+      const result = validate();
+      if (!result.valid) { notice('保存できません。入力を確認してください。', 'error'); jumpToError(result.errors); return; }
+      if (saveDraft()) { notice('保存しました（このブラウザの下書き）。公開用ファイルを作成し、GitHubにアップロードするとサイトに反映されます。'); changed(); }
+    }, 'button primary'); save.id = 'hero-save';
+    const reset = button('自動取得データに戻す', restoreHeroAuto); reset.id = 'hero-restore-auto'; reset.disabled = !manual;
+    actions.append(preview, save, reset); card.append(actions, node('p', '下書き保存は公開ではありません。既存の「公開用ファイルを作成」から公開してください。', 'field-hint'));
+    view.append(card);
+  }
+  function restoreHeroAuto() {
+    const date = state.heroDate;
+    if (!state.data.events.heroOverrides?.[date] || !window.confirm(`${dateLabel(date)} のホームカードの手動設定を削除し、自動取得データに戻しますか？他の日付やイベント編集は残ります。`)) return;
+    const before = clone(state.data.events.heroOverrides);
+    delete state.data.events.heroOverrides[date];
+    if (!Object.keys(state.data.events.heroOverrides).length) delete state.data.events.heroOverrides;
+    if (!saveDraft()) { state.data.events.heroOverrides = before; rebuild(); return; }
+    rebuild(); sendPreview(); notice('この日の手動設定を削除しました。公開用ファイルをアップロードすると公開サイトも自動取得データに戻ります。');
   }
   function autoEventFor(event) {
     return event?.id ? state.autoEvents?.events?.find((item) => item.id === event.id) : undefined;
@@ -138,7 +193,9 @@
     input.id = id; input.dataset.path = path;
     if (options.optionalFact) input.dataset.optionalFact = 'true';
     if (options.placeholder) input.placeholder = options.placeholder;
-    if (type === 'checkbox') input.checked = Boolean(get(path)); else input.value = get(path) ?? '';
+    if (type === 'checkbox') input.checked = Boolean(get(path));
+    else if (type === 'datetime-local') { input.value = newsCore.japanDateTime(newsCore.publishedTime(get(path))).slice(0, 19); input.step = '1'; }
+    else input.value = get(path) ?? '';
     if (options.required) input.required = true;
     const hint = node('p', options.hint || '', 'field-hint'); hint.id = `${id}-hint`; hint.hidden = !options.hint;
     const error = node('p', '', 'error-text'); error.id = `${id}-error`; error.hidden = true;
@@ -221,6 +278,7 @@
     const head = node('div', undefined, 'home-head');
     head.append(node('p', `${greeting} 👋`, 'greeting'), node('p', dateLabel(now.date), 'today-date'));
     view.append(head);
+    renderHeroEditor(view);
 
     const alerts = node('div', undefined, 'alerts');
     const live = state.live?.events;
@@ -376,13 +434,36 @@
     // Clear the drawer first: its close event arrives later and must not re-render the removed item.
     state.drawer = null;
     if ($('drawer').open) $('drawer').close();
+    if (path === 'news.items') {
+      const sourceUrl = newsCore.xUrl(get(path)[index]?.sourceUrl || get(path)[index]?.url, true);
+      if (sourceUrl) state.data.news.excludedSourceUrls = [...new Set([...(state.data.news.excludedSourceUrls || []), sourceUrl])];
+    }
     get(path).splice(index, 1); rebuild();
   }
 
+  function newsStatusChip(index) {
+    const label = chip(''); label.dataset.newsStatusIndex = index; return label;
+  }
+  function updateNewsStatus() {
+    if (!state.data) return;
+    document.querySelectorAll('[data-news-status-index]').forEach((label) => {
+      const value = newsCore.status(get(`news.items.${label.dataset.newsStatusIndex}`));
+      const labels = { Draft: 'Draft / 下書き', Scheduled: 'Scheduled / 公開予約', Published: 'Published / 掲載中', Expired: 'Expired / 掲載終了', Invalid: '要確認' };
+      const tones = { Published: 'success', Scheduled: 'warning', Invalid: 'danger' };
+      label.textContent = labels[value]; label.className = `chip chip-${tones[value] || 'neutral'}`;
+    });
+    clearTimeout(newsStatusTimer); newsStatusTimer = setTimeout(updateNewsStatus, newsCore.nextRefreshDelay(state.data.news));
+  }
+  function newNewsId() { return 'manual-news-' + (window.crypto?.randomUUID?.() || Date.now().toString(36) + '-' + Math.random().toString(36).slice(2)); }
+  function duplicateNews(index) {
+    const copy = clone(get(`news.items.${index}`));
+    copy.id = newNewsId(); copy.published = false; copy.publishedAt = newsCore.japanDateTime(); copy.date = japanNow().date; copy.autoUpdate = false;
+    get('news.items').unshift(copy); render(); changed(); openDrawer('news', 0, 'news.items.0.title');
+  }
   function renderNews(view) {
     const listHead = node('div', undefined, 'list-head');
-    listHead.append(node('p', '上から順にサイトの NEWS に表示されます。', 'panel-description'), button('＋ News を追加', () => {
-      get('news.items').unshift({ date: japanNow().date, category: 'EVENT', visualLabel: 'NEWS', theme: 'event', title: '', description: '', url: '' });
+    listHead.append(node('p', '掲載中の NEWS は最近30日間のみ。公開日時の新しい順（固定を優先）で表示します。履歴はこの画面に残ります。', 'panel-description'), button('＋ News を追加', () => {
+      get('news.items').unshift({ id: newNewsId(), date: japanNow().date, publishedAt: newsCore.japanDateTime(), category: 'EVENT', visualLabel: 'NEWS', theme: 'event', title: '', summary: '', description: '', content: '', image: '', source: 'manual', sourceUrl: '', published: false, pinned: false, autoUpdate: false });
       render(); changed(); openDrawer('news', 0, 'news.items.0.title');
     }, 'button primary-soft'));
     view.append(listHead);
@@ -390,34 +471,57 @@
     const items = get('news.items') || [];
     if (!items.length) {
       const empty = node('div', undefined, 'empty');
-      empty.append(node('p', 'News はまだありません。', 'empty-title'), node('p', '公式Xの投稿を紹介するときに追加してください。'));
+      empty.append(node('p', 'News はまだありません。', 'empty-title'), node('p', 'Xを使わずにお知らせを作成することもできます。'));
       list.append(empty);
     }
     const liveItems = state.live?.news?.items || [];
-    items.forEach((item, index) => {
+    const indexes = items.map((_, index) => index).sort((a, b) => newsCore.publishedTime(items[b].publishedAt) - newsCore.publishedTime(items[a].publishedAt));
+    indexes.forEach((index) => {
+      const item = items[index];
       const card = node('article', undefined, 'item-card news-card');
       const thumb = node('span', item.visualLabel || 'NEWS', `news-thumb news-thumb-${item.theme || 'event'}`); thumb.setAttribute('aria-hidden', 'true');
       const main = node('div', undefined, 'item-main');
-      const meta = node('div', undefined, 'item-meta');
-      const published = liveItems.some((liveItem) => JSON.stringify(liveItem) === JSON.stringify(item));
-      meta.append(published ? chip('公開中', 'success') : chip(liveItems.some((liveItem) => liveItem.url && liveItem.url === item.url) ? '変更あり' : '下書き', 'neutral'));
+      const meta = node('div', undefined, 'item-meta'); meta.append(newsStatusChip(index));
+      if (!liveItems.some((liveItem) => JSON.stringify(liveItem) === JSON.stringify(item))) meta.append(chip('未反映の編集', 'neutral'));
       if (errorsUnder(`news.items.${index}`)) meta.append(chip('要確認', 'danger'));
-      meta.append(node('span', `${(item.date || '').replaceAll('-', '.')} · ${item.category || ''}`, 'item-sub'));
+      meta.append(node('span', `${(item.publishedAt || item.date || '').replace('T', ' ')} · ${item.category || 'NEWS'}`, 'item-sub'));
       main.append(meta, node('h3', item.title || '（タイトルなし）', 'item-title'));
-      if (item.description) main.append(node('p', item.description, 'item-detail clamp'));
+      if (item.summary || item.description) main.append(node('p', item.summary || item.description, 'item-detail clamp'));
       const actions = node('div', undefined, 'item-actions');
       const edit = button('編集', () => openDrawer('news', index)); edit.setAttribute('aria-label', `${item.title || 'News'} を編集`);
-      const move = (offset) => { const list2 = get('news.items'); [list2[index], list2[index + offset]] = [list2[index + offset], list2[index]]; rebuild(); };
       actions.append(edit, menu(`${item.title || 'News'} のその他の操作`, [
-        index > 0 && ['上へ移動', () => move(-1)],
-        index < items.length - 1 && ['下へ移動', () => move(1)],
+        [item.published === false ? '公開する' : '下書きに戻す', () => { item.published = item.published === false; item.autoUpdate = false; rebuild(); }],
+        ['今すぐ再公開', () => { item.publishedAt = newsCore.japanDateTime(); item.date = japanNow().date; item.published = true; item.autoUpdate = false; rebuild(); }],
+        ['コピーして下書きを作成', () => duplicateNews(index)],
         ['削除', () => deleteItem('news.items', index, 'この News'), 'danger'],
       ]));
-      card.append(thumb, main, actions);
-      list.append(card);
+      card.append(thumb, main, actions); list.append(card);
     });
-    view.append(list);
+    view.append(list); updateNewsStatus();
   }
+
+  function sendNewsDetailPreview() {
+    const preview = $('news-detail-preview');
+    if (!preview || state.drawer?.kind !== 'news') return;
+    const item = get(`news.items.${state.drawer.index}`);
+    try { newsCore.validateNews({ items: [item] }); } catch { return; }
+    preview.contentWindow.postMessage({ type: 'CHONMAGE_NEWS_PREVIEW', news: { items: [item] } }, location.origin);
+  }
+  function openNewsDetailPreview(index) {
+    const item = get(`news.items.${index}`);
+    try { newsCore.validateNews({ items: [item] }); }
+    catch { notice('プレビューする前に日付やURLを確認してください。', 'error'); return; }
+    let preview = $('news-detail-preview');
+    if (!preview) {
+      preview = node('iframe', undefined, 'news-detail-preview'); preview.id = 'news-detail-preview'; preview.title = '編集中のNEWS本文プレビュー';
+      preview.src = `../news/?preview=1&id=${encodeURIComponent(newsCore.normalizeItem(item).id)}`;
+      $('drawer-body').append(node('p', '本文プレビュー（下書き・掲載終了も確認できます。公開サイトは変わりません。）', 'field-hint'), preview);
+    }
+    preview.scrollIntoView({ block: 'nearest' }); sendNewsDetailPreview();
+  }
+  window.addEventListener('message', (event) => {
+    if (event.origin === location.origin && event.source === $('news-detail-preview')?.contentWindow && event.data?.type === 'CHONMAGE_NEWS_PREVIEW_READY') sendNewsDetailPreview();
+  });
 
   function renderSettings(view) {
     const links = panel('公式X', 'サイトの「Xで確認」ボタンなどのリンク先です。');
@@ -516,19 +620,23 @@
     } else if (kind === 'news') {
       const base = `news.items.${index}`;
       $('drawer-title').textContent = get(`${base}.title`) || 'News';
-      body.append(
-        field(`${base}.title`, 'タイトル', 'text', { required: true }),
-        grid(field(`${base}.date`, '投稿日', 'date', { required: true }), field(`${base}.url`, 'X の投稿 URL', 'url', { required: true })),
-        field(`${base}.description`, '説明', 'textarea', { required: true }),
+      body.append(newsStatusChip(index), node('p', '公開日時は日本時間（JST）。公開をONにすると、その日時から30日間掲載されます。', 'field-hint'),
+        field(`${base}.title`, 'タイトル', 'text', { required: get(`${base}.published`) !== false }),
+        field(`${base}.publishedAt`, '公開日時（JST）', 'datetime-local', { required: true }),
+        field(`${base}.published`, '公開する（OFFは下書き・下架）', 'checkbox'),
+        field(`${base}.summary`, '短い説明（任意）', 'textarea', { hint: '空欄なら本文から作成します。' }),
+        field(`${base}.content`, '本文', 'textarea', { hint: '改行を保持します。HTMLは文章として表示します。' }),
+        field(`${base}.image`, '画像URL（任意）', 'text', { hint: 'https:// の画像URL、または images/ファイル名。空欄でも公開できます。' }),
+        grid(field(`${base}.source`, '情報源', 'select', { values: [['manual', '手動のお知らせ'], ['x', 'Xの投稿']] }), field(`${base}.sourceUrl`, 'X の元投稿 URL（任意）', 'url')),
       );
       const advanced = node('details', undefined, 'advanced'); advanced.open = Boolean(openDetails);
       advanced.append(node('summary', '詳細設定'));
       const inner = node('div', undefined, 'advanced-body');
-      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { required: true, hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像の大きな文字', 'text', { required: true, hint: '例：TODAY / SPECIAL' })), field(`${base}.theme`, '画像の色', 'select', { values: NEWS_THEMES }));
+      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像なしのときの文字', 'text', { hint: '例：TODAY / SPECIAL / NEWS' })), field(`${base}.theme`, 'カードの色', 'select', { values: NEWS_THEMES }), field(`${base}.pinned`, '固定表示（30日間の制限は同じ）', 'checkbox'));
       advanced.append(inner); body.append(advanced);
       const footer = node('div', undefined, 'drawer-footer');
-      footer.append(button('削除', () => deleteItem('news.items', index, 'この News'), 'text-button danger'));
-      body.append(footer);
+      footer.append(button('本文プレビュー', () => openNewsDetailPreview(index)), button('コピー', () => duplicateNews(index), 'text-button'), button('削除', () => deleteItem('news.items', index, 'この News'), 'text-button danger'));
+      body.append(footer); updateNewsStatus();
     }
     validate();
   }
@@ -548,7 +656,7 @@
     validate(); savedState(); updateDataStatus();
   }
   function changed() {
-    savedState(); validate(); clearTimeout(timer); timer = setTimeout(sendPreview, 200);
+    savedState(); validate(); updateNewsStatus(); clearTimeout(timer); timer = setTimeout(() => { sendPreview(); sendNewsDetailPreview(); }, 200);
   }
   function rebuild(focusPath) {
     const content = $('main'); const scroll = content.scrollTop; const pageScroll = window.scrollY;
@@ -623,6 +731,17 @@
       if (placeholder(get(path))) errors.set(path, '「' + get(path).trim() + '」は仮の文言です。公開する内容に書き換えてください。');
       else check(path, api.requireText, '入力してください。');
     };
+    if (state.view === 'home') check('hero.date', api.dateValue, '有効な日付を入力してください。');
+    Object.entries(get('events.heroOverrides') || {}).forEach(([date, hero]) => {
+      const base = date === state.heroDate ? 'hero' : `events.heroOverrides.${date}`;
+      const inspect = (key, fn, message) => { try { fn(hero[key]); } catch { errors.set(`${base}.${key}`, message); } };
+      try { api.dateValue(date); } catch { errors.set('hero.date', '有効な日付を入力してください。'); }
+      if (!['open', 'ongoing', 'ended', 'closed'].includes(hero.status)) errors.set(`${base}.status`, '営業状況を選択してください。');
+      if (hero.status !== 'closed' || hero.open) inspect('open', api.requireTime, '時刻を入力してください（例：17:00）。');
+      if (hero.mainTime || hero.mainTitle) { inspect('mainTime', api.requireTime, 'MAIN TIME とイベント名を一緒に入力してください。'); inspect('mainTitle', api.requireText, 'MAIN EVENT を入力してください。'); }
+      inspect('latestText', api.requireText, 'リンクの文言を入力してください。');
+      if (hero.latestUrl) inspect('latestUrl', api.safeUrl, 'https:// で始まるURLを入力してください。');
+    });
     (get('events.summary') || []).forEach((_, index) => text(`events.summary.${index}`));
     if (get('events.ringGame.enabled')) {
       if (get('events.ringGame.start')?.trim()) check('events.ringGame.start', api.requireTime, '時刻を入力してください（例：17:00）。');
@@ -640,9 +759,10 @@
     });
     get('news.items').forEach((item, index) => {
       const base = `news.items.${index}`;
-      check(`${base}.date`, api.dateValue, '有効な投稿日を入力してください。');
-      ['category', 'visualLabel', 'title', 'description'].forEach((key) => text(`${base}.${key}`));
-      check(`${base}.url`, api.safeUrl, 'https:// で始まるURLを入力してください。');
+      check(`${base}.publishedAt`, (value) => { if (!Number.isFinite(newsCore.publishedTime(value))) throw new Error(); }, '日本時間の有効な公開日時を入力してください。');
+      if (item.published !== false) text(`${base}.title`);
+      if (item.sourceUrl?.trim()) check(`${base}.sourceUrl`, (value) => { if (!newsCore.xUrl(value)) throw new Error(); }, 'https://x.com/ の元投稿URLを入力してください。');
+      if (item.image?.trim()) check(`${base}.image`, (value) => { if (!newsCore.imageUrl(value)) throw new Error(); }, 'https:// の画像URL、または images/ のパスを入力してください。');
     });
     controls.forEach(({ input, error, hint }, path) => {
       error.textContent = errors.get(path) || ''; error.hidden = !errors.has(path); input.setAttribute('aria-invalid', String(errors.has(path)));
@@ -664,7 +784,12 @@
     if (!path) return;
     const eventMatch = path.match(/^events\.events\.(\d+)\./);
     const newsMatch = path.match(/^news\.items\.(\d+)\./);
-    if (eventMatch) { location.hash = '#schedule'; openDrawer('event', Number(eventMatch[1]), path); }
+    const heroMatch = path.match(/^events\.heroOverrides\.(\d{4}-\d{2}-\d{2})\.(.+)$/);
+    if (path.startsWith('hero.') || heroMatch) {
+      if (heroMatch) state.heroDate = heroMatch[1];
+      location.hash = '#home'; setView('home'); controls.get(heroMatch ? `hero.${heroMatch[2]}` : path)?.input.focus();
+    }
+    else if (eventMatch) { location.hash = '#schedule'; openDrawer('event', Number(eventMatch[1]), path); }
     else if (newsMatch) { location.hash = '#news'; openDrawer('news', Number(newsMatch[1]), path); }
     else if (/^events\.(date|status|open|close|ringGame)/.test(path)) { location.hash = '#schedule'; openDrawer('hours', null, path); }
     else { location.hash = '#settings'; setView('settings'); controls.get(path)?.input.focus(); }
@@ -677,7 +802,8 @@
       $('preview-feedback').textContent = '入力を確認してください。最後の正しいプレビューを表示しています。'; $('preview-feedback').classList.add('error'); return;
     }
     $('preview-feedback').classList.remove('error'); $('preview-feedback').textContent = 'プレビューを更新しています…';
-    frame.contentWindow.postMessage({ type: 'CHONMAGE_PREVIEW', events: result.data.events, news: result.data.news, dateMode: $('date-mode').value, section: state.view === 'news' ? 'news' : 'today', requestId: ++state.request }, location.origin);
+    frame.contentWindow.postMessage({ type: 'CHONMAGE_PREVIEW', events: result.data.events, news: result.data.news, dateMode: $('date-mode').value,
+      ...(state.view === 'home' ? { heroDate: state.heroDate } : {}), section: state.view === 'news' ? 'news' : state.view === 'home' ? 'top' : 'today', requestId: ++state.request }, location.origin);
   }
   function setPreview(open) {
     $('preview-panel').hidden = !open;
@@ -700,11 +826,25 @@
     const input = event.target; if (!input.dataset?.path || !state.data) return;
     if (input.type === 'radio' && !input.checked) return;
     const path = input.dataset.path;
+    if (path === 'hero.date') { set(path, input.value); rebuild('hero.date'); return; }
     // Clearing 参加費 / 最終受付 removes that row instead of leaving an empty one.
     if (input.dataset.optionalFact && event.type === 'change' && !input.value.trim()) {
       const parts = path.split('.'); get(parts.slice(0, 4).join('.')).splice(Number(parts[4]), 1); rebuild(); return;
     }
-    set(path, input.type === 'checkbox' ? input.checked : input.value);
+    let value = input.type === 'checkbox' ? input.checked : input.value;
+    if (/^news\.items\.\d+\.publishedAt$/.test(path)) value = newsCore.japanDateTime(newsCore.publishedTime(input.value)) || input.value;
+    set(path, value);
+    if (path.startsWith('news.items.')) {
+      const base = path.split('.').slice(0, 3).join('.'); set(`${base}.autoUpdate`, false);
+      if (path.endsWith('.publishedAt') && value) set(`${base}.date`, value.slice(0, 10));
+      if (path.endsWith('.summary')) set(`${base}.description`, value);
+      if (path.endsWith('.sourceUrl')) set(`${base}.url`, value);
+      if (path.endsWith('.image')) set(`${base}.images`, []);
+    }
+    if (path.startsWith('hero.')) {
+      if (path === 'hero.status') { rebuild('hero.status'); return; }
+      const reset = $('hero-restore-auto'); if (reset) reset.disabled = false;
+    }
     if (path === 'events.ringGame.enabled') $('ring-fields').hidden = !input.checked;
     if (path === 'events.status') { rebuild(); return; }
     if (state.drawer?.kind === 'event' && path === `events.events.${state.drawer.index}.title`) $('drawer-title').textContent = input.value || 'イベント';
@@ -754,6 +894,7 @@
     ]);
     state.api.validateEvents(events);
     state.api.validateNews(news);
+    news.items = newsCore.itemsOf(news);
     if (autoEvents) state.api.validateEvents(autoEvents);
     state.autoEvents = clone(autoEvents || events);
     state.manualEvents = manualEvents || { version: 1, date: events.date, fields: {}, ringGame: {}, events: {}, extraEvents: [] };
@@ -764,10 +905,11 @@
     if (!data || !data.events || !data.news || !Array.isArray(data.events.events) || !Array.isArray(data.news.items)) return false;
     const strings = (obj, names) => obj && names.every((key) => obj[key] === undefined || typeof obj[key] === 'string');
     return strings(data.events, ['date', 'open', 'status', 'latestXUrl', 'schedulePostUrl']) &&
+      (data.events.heroOverrides === undefined || data.events.heroOverrides && typeof data.events.heroOverrides === 'object' && !Array.isArray(data.events.heroOverrides) && Object.values(data.events.heroOverrides).every((hero) => hero && !Array.isArray(hero) && strings(hero, ['status', 'open', 'mainTime', 'mainTitle', 'latestText', 'latestUrl']))) &&
       (!data.events.summary || Array.isArray(data.events.summary) && data.events.summary.every((row) => typeof row === 'string')) &&
       (!data.events.ringGame || typeof data.events.ringGame === 'object' && typeof data.events.ringGame.enabled === 'boolean' && strings(data.events.ringGame, ['title', 'description'])) &&
       data.events.events.every((item) => strings(item, ['time', 'title', 'heroTitle', 'theme', 'description']) && (!item.tags || Array.isArray(item.tags) && item.tags.every((tag) => typeof tag === 'string')) && (!item.facts || Array.isArray(item.facts) && item.facts.every((fact) => strings(fact, ['label', 'value']))) && (!item.link || strings(item.link, ['label', 'url']))) &&
-      data.news.items.every((item) => strings(item, ['date', 'category', 'visualLabel', 'theme', 'title', 'description', 'url']));
+      data.news.items.every((item) => strings(item, ['id', 'publishedAt', 'date', 'category', 'visualLabel', 'theme', 'title', 'summary', 'content', 'description', 'image', 'source', 'sourceUrl', 'url']) && ['published', 'pinned', 'autoUpdate'].every((key) => item[key] === undefined || typeof item[key] === 'boolean') && (item.images === undefined || Array.isArray(item.images) && item.images.every((url) => typeof url === 'string')));
   }
   async function chooseDraft(live) {
     let stored;
@@ -786,9 +928,10 @@
   async function load() {
     $('load-error').hidden = true; $('loading').hidden = false; $('editor-form').hidden = true;
     try {
-      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=2');
+      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=20261003news');
       await prepareFrame(); const live = await fetchPublished(); const choice = await chooseDraft(live);
-      state.data = clone(choice.data); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
+      state.data = clone(choice.data); state.data.news.items = state.data.news.items.map((item) => newsCore.normalizeItem(item) || item); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
+      state.heroDate = japanNow().date;
       $('editor-form').hidden = false; $('loading').hidden = true;
       ['save-draft', 'prepare-publish'].forEach((id) => { $(id).disabled = false; });
       setView(location.hash.slice(1));
@@ -837,9 +980,17 @@
   // ---------- export (same merge as GitHub Actions) ----------
   function buildManualOverrides(finalEvents) {
     const auto = state.autoEvents;
-    if (!auto) return { version: 1, date: finalEvents.date, replacement: clone(finalEvents) };
+    const heroOverrides = clone(finalEvents.heroOverrides || {});
+    const baseEvents = clone(finalEvents); delete baseEvents.heroOverrides;
+    const liveEvents = clone(state.live?.events || {}); delete liveEvents.heroOverrides;
+    if (state.manualEvents && JSON.stringify(baseEvents) === JSON.stringify(liveEvents)) {
+      const manual = clone(state.manualEvents); manual.heroOverrides = heroOverrides;
+      if (manual.replacement) delete manual.replacement.heroOverrides;
+      return manual;
+    }
+    if (!auto) return { version: 1, date: finalEvents.date, replacement: baseEvents, heroOverrides };
     if (finalEvents.date !== auto.date) {
-      return { version: 1, date: finalEvents.date, replacement: clone(finalEvents) };
+      return { version: 1, date: finalEvents.date, replacement: baseEvents, heroOverrides };
     }
     const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const fields = {};
@@ -869,7 +1020,7 @@
       if (Object.keys(override).length) events[event.id] = override;
     });
     autoById.forEach((event, id) => { events[id] = { hidden: true }; });
-    return { version: 1, date: finalEvents.date, fields, ringGame, events, extraEvents };
+    return { version: 1, date: finalEvents.date, fields, ringGame, events, extraEvents, heroOverrides };
   }
   function downloadFile(filename, text) {
     const url = URL.createObjectURL(new Blob([text], { type: 'application/json;charset=utf-8' }));
@@ -888,7 +1039,9 @@
     const manual = buildManualOverrides(result.data.events);
     let finalEvents;
     try {
-      if (state.autoEvents && result.data.events.date < state.autoEvents.date) {
+      const schedule = clone(result.data.events); delete schedule.heroOverrides;
+      const published = clone(state.live.events); delete published.heroOverrides;
+      if (state.autoEvents && result.data.events.date < state.autoEvents.date && JSON.stringify(schedule) !== JSON.stringify(published)) {
         throw new Error(`日付が自動取得の予定（${dateLabel(state.autoEvents.date)}）より前なので、この内容は公開されません。日付を確認してください。`);
       }
       finalEvents = state.core.mergeSchedule(state.autoEvents || result.data.events, manual);

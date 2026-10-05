@@ -7,10 +7,11 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { validateSchedule, mergeSchedule } from './schedule-core.mjs';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const shotDir = process.argv[2] || '';
 const require = createRequire(import.meta.url);
 let chromium;
@@ -31,7 +32,7 @@ const server = http.createServer((request, response) => {
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
 const origin = 'http://127.0.0.1:' + server.address().port;
-const browser = await chromium.launch(fs.existsSync('/opt/pw-browsers/chromium') ? {} : {});
+const browser = await chromium.launch(process.env.BROWSER_CHANNEL ? { channel: process.env.BROWSER_CHANNEL } : {});
 const problems = [];
 let checks = 0;
 const ok = (condition, message) => { checks += 1; if (!condition) problems.push(message); };
@@ -64,7 +65,7 @@ async function openPage({ width = 390, time, events, javaScriptEnabled = true, u
   if (time && javaScriptEnabled) await page.clock.setFixedTime(new Date(time));
   await page.goto(origin + url, { waitUntil: 'load' });
   if (javaScriptEnabled && url === '/') {
-    await page.waitForFunction(() => document.querySelector('.timeline-rail, .timeline-empty') || !document.querySelector('.today-stale-message').hidden);
+    await page.waitForFunction(() => document.querySelector('#activity-hero') || !document.querySelector('.today-stale-message').hidden);
     await page.waitForTimeout(150);
   }
   return { page, context, errors };
@@ -77,18 +78,15 @@ async function heroState(page) {
       const el = document.querySelector(`[data-hero-event="${name}"]`);
       return el.hidden ? null : el.querySelector('span').textContent + ' ' + el.querySelector('strong').textContent;
     };
-    const states = [...document.querySelectorAll('.timeline-card')].map((card) => card.querySelector('.timeline-card__time').textContent + ':' + (card.dataset.state || '-'));
-    const rail = document.querySelector('.timeline-rail');
-    const cards = [...document.querySelectorAll('.timeline-card')];
-    const focused = rail ? cards.findIndex((card) => Math.abs(card.offsetLeft - cards[0].offsetLeft - rail.scrollLeft) < 4) : -1;
+    const states = [...document.querySelectorAll('[data-activity-event]')].map((card) => card.dataset.activityEvent + ':' + card.dataset.eventStatus);
     return {
       date: text('#hero-schedule-date'),
       status: text('#hero-business-status-text'),
       open: item('open'), next: item('next'), main: item('main'),
-      states, focused,
+      states, activity: document.body.dataset.activityState,
       stale: !document.querySelector('.today-stale-message').hidden,
-      ended: Boolean(document.querySelector('.timeline-ended')),
-      empty: text('.timeline-empty') || '',
+      ended: document.body.dataset.activityState === 'after-close',
+      empty: text('#activity-value') || '',
       summary: text('.today-summary p'),
     };
   });
@@ -111,20 +109,18 @@ await scenario('before open', { time: jst('16:00'), events: fixture() }, (s) => 
   assert.equal(s.next, 'NEXT 18:00 FREE ROLL');
   assert.equal(s.main, 'MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.stale, false);
-  assert.equal(s.states[0], '17:00:next');
-  assert.equal(s.focused, 0);
+  assert.equal(s.activity, 'before-open');
   assert.equal(s.summary, '本日の開催情報です。当日の変更は公式Xでお知らせします。');
 });
 await scenario('event without end just started stays NOW', { time: jst('18:05'), events: fixture() }, (s) => {
   assert.equal(s.status, '営業中');
-  assert.deepEqual(s.states, ['17:00:past', '17:00:now', '18:00:now', '19:10:next', '23:30:-']);
-  assert.equal(s.focused, 2, 'NOW event is scrolled into view');
+  assert.deepEqual(s.states, ['free-1800:running', 'event-1910:upcoming']);
+  assert.equal(s.activity, 'open-ring');
   assert.equal(s.next, 'NEXT · MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.main, null, 'MAIN is not repeated');
 });
 await scenario('NOW preferred over NEXT', { time: jst('19:30'), events: fixture() }, (s) => {
-  assert.deepEqual(s.states, ['17:00:past', '17:00:now', '18:00:past', '19:10:now', '23:30:-']);
-  assert.equal(s.focused, 3);
+  assert.deepEqual(s.states, ['free-1800:running', 'event-1910:running']);
   assert.equal(s.next, 'NOW · MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.main, null);
 });
@@ -132,21 +128,20 @@ await scenario('after close shows 本日終了', { time: jst('23:45'), events: f
   assert.equal(s.status, '本日終了');
   assert.equal(s.next, null);
   assert.equal(s.ended, true);
-  assert.ok(s.states.every((row) => row.endsWith(':past')));
+  assert.deepEqual(s.states, []);
   assert.equal(s.stale, false);
 });
 await scenario('closed day', { time: jst('18:00'), events: fixture({ status: 'closed', open: undefined, close: undefined, ringGame: { enabled: false }, events: [], summary: ['本日は休業です。'] }) }, (s) => {
   assert.equal(s.status, '本日休業');
   assert.equal(s.open, null);
   assert.equal(s.next, null);
-  assert.equal(s.empty, '本日は休業です。');
+  assert.equal(s.empty, '本日は休業です');
 });
 await scenario('25時CLOSE is still today after midnight', { time: jst('00:30', '2026-10-03'), events: fixture({ close: '01:00', events: [...fixture().events, { id: 'late', time: '00:15', title: 'LATE', heroTitle: 'LATE', type: 'event', description: 'd' }] }) }, (s) => {
   assert.equal(s.stale, false);
   assert.equal(s.date, '2026.10.02 · FRI');
   assert.equal(s.status, '営業中');
-  assert.deepEqual(s.states.map((row) => row.split(':').slice(0, 2).join(':')), ['17:00', '17:00', '18:00', '19:10', '00:15', '01:00']);
-  assert.equal(s.states[4], '00:15:now');
+  assert.deepEqual(s.states, ['late:running']);
 });
 await scenario('after 25時CLOSE the old day is stale', { time: jst('01:30', '2026-10-03'), events: fixture({ close: '01:00' }) }, (s) => {
   assert.equal(s.stale, true);
@@ -157,7 +152,7 @@ await scenario('old data is never shown as today', { time: jst('18:00'), events:
   assert.equal(s.open, null);
   assert.equal(s.next, null);
 });
-await scenario('repository data (real events.json) at a later date', { time: jst('18:00') }, (s) => {
+await scenario('repository data (real events.json) at a later date', { time: jst('18:00', '2026-12-31') }, (s) => {
   assert.equal(s.stale, true);
 });
 
@@ -177,36 +172,31 @@ await scenario('repository data (real events.json) at a later date', { time: jst
 // --- page left open: the minute refresh follows the clock without closing open details ---
 {
   const { page, context, errors } = await openPage({ time: jst('18:55'), events: fixture() });
-  await page.locator('.timeline-card[data-timeline-id="free-1800"] summary').click();
+  await page.locator('[data-activity-event="free-1800"] summary').click();
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
-  ok(await page.locator('.timeline-card[data-timeline-id="free-1800"] details').evaluate((d) => d.open), 'refresh without changes keeps details open');
+  ok(await page.locator('[data-activity-event="free-1800"] details').evaluate((d) => d.open), 'refresh without changes keeps details open');
   await page.clock.setFixedTime(new Date(jst('19:15')));
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   await page.waitForTimeout(100);
   const s = await heroState(page);
-  ok(s.states[3] === '19:10:now' && s.states[2] === '18:00:past', 'refresh updates NOW/past after the clock moves: ' + s.states.join(','));
-  ok(await page.locator('.timeline-card[data-timeline-id="free-1800"] details').evaluate((d) => d.open), 'refresh with changes keeps details open');
+  ok(s.states.includes('event-1910:running'), 'refresh updates upcoming event after the clock moves: ' + s.states.join(','));
+  ok(await page.locator('[data-activity-event="free-1800"] details').evaluate((d) => d.open), 'refresh with changes keeps details open');
   ok(!errors.length, 'refresh: console errors ' + errors.join(' | '));
   await context.close();
 }
 
-// --- desktop mouse: click opens details, drag scrolls the rail without toggling ----------
+// --- activity details work with pointer and keyboard ---------------------------
 {
   const { page, context, errors } = await openPage({ width: 1280, time: jst('12:00'), events: fixture() });
-  const summary = page.locator('.timeline-card[data-timeline-id="ring"] summary');
+  const details = page.locator('[data-activity-details="ring"]');
+  const summary = details.locator('summary');
   await summary.click();
-  ok(await page.locator('.timeline-card[data-timeline-id="ring"] details').evaluate((d) => d.open), 'mouse click opens 詳細を見る');
-  const box = await summary.boundingBox();
-  const before = await page.locator('.timeline-rail').evaluate((rail) => rail.scrollLeft);
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x - 150, box.y + box.height / 2, { steps: 8 });
-  await page.mouse.up();
-  await page.waitForTimeout(400);
-  const after = await page.locator('.timeline-rail').evaluate((rail) => rail.scrollLeft);
-  ok(after > before, 'mouse drag scrolls the rail (' + before + ' -> ' + after + ')');
-  ok(await page.locator('.timeline-card[data-timeline-id="ring"] details').evaluate((d) => d.open), 'drag does not toggle details');
-  ok(!errors.length, 'mouse: console errors ' + errors.join(' | '));
+  ok(await details.evaluate((d) => d.open), 'mouse click opens ring details');
+  await summary.focus(); await page.keyboard.press('Enter');
+  ok(!(await details.evaluate((d) => d.open)), 'keyboard closes ring details');
+  await page.keyboard.press('Enter');
+  ok(await details.evaluate((d) => d.open), 'keyboard opens ring details');
+  ok(!errors.length, 'activity details: console errors ' + errors.join(' | '));
   await context.close();
 }
 
@@ -242,6 +232,13 @@ await scenario('repository data (real events.json) at a later date', { time: jst
     fixture({ latestXUrl: 'javascript:alert(1)' }),
     fixture({ date: '2026-02-30' }),
     fixture({ source: { url: 'http://bad' } }),
+    ...[{ status: 'open', open: '17:00', latestText: 'Xで確認', latestUrl: '' },
+      { status: 'closed', open: '', latestText: 'Xで確認' },
+      { status: 'open', open: '25:00', latestText: 'Xで確認' },
+      { status: 'ended', open: '17:00', mainTime: '18:00', mainTitle: '', latestText: 'Xで確認' },
+      { status: 'open', open: '17:00', latestText: 'Xで確認', latestUrl: 'javascript:alert(1)' },
+      { status: 'closed', open: 0, latestText: 'Xで確認' }, null]
+      .map((hero) => fixture({ heroOverrides: { '2026-10-02': hero } })),
   ];
   const { page, context, errors } = await openPage({ time: jst('18:00'), events: fixture() });
   const browserResults = await page.evaluate((list) => list.map((item) => { try { window.validateEvents(item); return true; } catch { return false; } }), JSON.parse(JSON.stringify(cases)));
@@ -252,7 +249,7 @@ await scenario('repository data (real events.json) at a later date', { time: jst
 }
 
 // --- layout at each width ---------------------------------------------------------------
-const widths = [320, 375, 390, 620, 768, 1024, 1440];
+const widths = [320, 360, 375, 390, 412, 620, 768, 1024, 1440];
 for (const width of widths) {
   for (const mode of ['live', 'stale']) {
     const { page, context, errors } = await openPage({ width, time: jst('18:05'), events: mode === 'live' ? fixture() : fixture({ date: '2026-09-13' }) });
@@ -284,7 +281,7 @@ for (const width of widths) {
       });
       const small = [];
       if (window.innerWidth <= 900) {
-        document.querySelectorAll('.site-header a, .site-header button, .timeline-dot, .timeline-card__details summary').forEach((el) => {
+        document.querySelectorAll('.site-header a, .site-header button, .activity-details summary').forEach((el) => {
           const rect = el.getBoundingClientRect();
           if (!rect.width || el.closest('[hidden]') || getComputedStyle(el).display === 'none') return;
           // Dots sit in a row: 24px wide (WCAG 2.5.8) and 44px tall without overlapping.
@@ -317,7 +314,7 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   await page.goto(origin + '/', { waitUntil: 'load' });
   for (let y = 0; y < 30; y += 1) { await page.mouse.wheel(0, 700); await page.waitForTimeout(60); }
   await page.waitForFunction(() => [...document.images].every((img) => img.complete));
-  const images = await page.evaluate(() => [...document.images].map((img) => ({
+  const images = await page.evaluate(() => [...document.images].filter((img) => !img.closest('#news')).map((img) => ({
     src: img.currentSrc.split('/').pop(), natural: img.naturalWidth, shown: img.getBoundingClientRect().width,
     fit: getComputedStyle(img).objectFit, box: [img.getBoundingClientRect().width, img.getBoundingClientRect().height], ratio: img.naturalWidth / img.naturalHeight,
   })));
@@ -333,16 +330,101 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   await context.close();
 }
 
+// Homepage overrides: actual rendered card and the existing admin draft/export workflow.
+const heroDraft = { status: 'ended', open: '17:00', mainTime: '18:00', mainTitle: '王者決定戦', latestText: '当日のXで確認', latestUrl: '' };
+for (const [status, label] of [['open', '本日営業'], ['ongoing', '開催中'], ['ended', '本日終了'], ['closed', '休業']]) {
+  const { page, context } = await openPage({ time: jst('18:00'), events: fixture({ date: '2026-09-13', heroOverrides: { '2026-10-02': { ...heroDraft, status } } }) });
+  const rendered = await heroState(page);
+  ok(rendered.stale && rendered.status === label, 'hero override: ' + status + ' works without current automatic data');
+  ok(status !== 'closed' || rendered.open === null && rendered.main === null, 'hero override: closed hides times');
+  await context.close();
+}
+{
+  const { page, context } = await openPage({ time: jst('23:59'), events: fixture({ heroOverrides: { '2026-10-02': heroDraft } }) });
+  await page.clock.setFixedTime(new Date(jst('00:01', '2026-10-03')));
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  ok((await heroState(page)).date === 'LATEST INFO', 'hero override: midnight expires old card');
+  await page.evaluate((data) => window.dispatchEvent(new MessageEvent('message', { origin: location.origin, source: window, data: { type: 'CHONMAGE_PREVIEW', dateMode: 'selected', events: data, news: { items: [] } } })), fixture({ heroOverrides: { '2026-10-02': heroDraft } }));
+  ok((await heroState(page)).date === 'LATEST INFO', 'normal homepage ignores preview messages');
+  await context.close();
+}
+for (const width of [360, 390, 412, 768, 1440]) {
+  const data = fixture({ heroOverrides: { '2026-10-02': { ...heroDraft, mainTitle: '長い日本語の大会名と初めて参加する方へのご案内'.repeat(8) } } });
+  const { page, context, errors } = await openPage({ width, time: jst('18:05'), events: data });
+  const rendered = await heroState(page);
+  ok(rendered.status === '本日終了' && rendered.date === '2026.10.02 · FRI', 'hero override ' + width + ': status/date');
+  ok(rendered.open === 'OPEN 17:00' && rendered.main?.includes('18:00'), 'hero override ' + width + ': times');
+  ok(await page.locator('.schedule-x').getAttribute('href') === data.latestXUrl, 'hero override: blank URL fallback');
+  ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'hero override ' + width + ': long-title overflow');
+  ok(!errors.length, 'hero override ' + width + ': errors ' + errors.join(' | '));
+  if (shotDir) await page.screenshot({ path: path.join(shotDir, 'hero-override-' + width + '.png'), fullPage: true });
+  await context.close();
+}
+{
+  const { page, context, errors } = await openPage({ width: 1440, url: '/admin/', time: jst('18:05') });
+  let confirmReset = true;
+  page.on('dialog', (dialog) => confirmReset ? dialog.accept() : dialog.dismiss());
+  await page.waitForSelector('#hero-editor');
+  const fill = (key, value) => page.fill('#field-hero-' + key, value);
+  await fill('date', '2026-10-04');
+  await fill('open', '17:00'); await fill('mainTime', '18:00'); await fill('mainTitle', '下書きの王者決定戦');
+  await page.selectOption('#field-hero-status', 'ongoing');
+  await fill('latestText', '当日のXで確認'); await fill('latestUrl', 'https://x.com/ChonmageNiigata/status/123');
+  await page.click('#hero-preview');
+  const preview = page.frameLocator('#website-preview');
+  await preview.locator('[data-hero-event="main"] strong').getByText('下書きの王者決定戦', { exact: false }).waitFor();
+  ok(await preview.locator('#hero-schedule-date').textContent() === '2026.10.04 · SUN', 'admin hero: future selected day and weekday');
+  ok(await preview.locator('#hero-business-status-text').textContent() === '開催中', 'admin hero: unsaved status');
+  ok(await page.evaluate(() => !localStorage.getItem('chonmage-admin-events-draft')), 'admin hero: preview is unsaved');
+  await page.selectOption('#date-mode', 'actual');
+  await page.waitForTimeout(350);
+  ok(!(await preview.locator('[data-hero-event="main"]').getAttribute('hidden') === null && (await preview.locator('[data-hero-event="main"]').textContent()).includes('下書き')), 'admin hero: Japan actual-date ignores future override');
+  await page.selectOption('#date-mode', 'selected');
+  await page.click('#close-preview');
+  await fill('latestUrl', 'javascript:alert(1)');
+  await page.click('#hero-save');
+  ok(/https/.test(await page.locator('#field-hero-latestUrl-error').textContent()), 'admin hero: invalid URL visible');
+  ok(await page.evaluate(() => !localStorage.getItem('chonmage-admin-events-draft')), 'admin hero: invalid save blocked');
+  await fill('latestUrl', ''); await page.click('#hero-save');
+  ok(/保存しました/.test(await page.locator('#notice-text').textContent()), 'admin hero: save confirmation');
+  await page.evaluate(() => { window.originalStorageSet = Storage.prototype.setItem; Storage.prototype.setItem = () => { throw new Error('QA storage unavailable'); }; });
+  await fill('mainTitle', '保存失敗のテスト'); await page.click('#hero-save');
+  ok(/保存できませんでした/.test(await page.locator('#notice-text').textContent()), 'admin hero: save failure visible');
+  await page.evaluate(() => { Storage.prototype.setItem = window.originalStorageSet; });
+  await fill('mainTitle', '下書きの王者決定戦'); await page.click('#hero-save');
+  await page.reload(); await page.waitForSelector('#draft-dialog[open]'); await page.click('#restore-draft');
+  await page.waitForSelector('#hero-editor'); await fill('date', '2026-10-04');
+  ok(await page.inputValue('#field-hero-mainTitle') === '下書きの王者決定戦', 'admin hero: saved draft survives refresh');
+  await fill('date', '2026-10-05'); await fill('open', '13:00'); await page.click('#hero-save');
+  await fill('date', '2026-10-04');
+  confirmReset = false; await page.click('#hero-restore-auto');
+  ok(await page.inputValue('#field-hero-mainTitle') === '下書きの王者決定戦', 'admin hero: reset cancel retains data');
+  confirmReset = true; await page.click('#hero-restore-auto');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('chonmage-admin-events-draft')));
+  ok(!stored.heroOverrides['2026-10-04'] && stored.heroOverrides['2026-10-05'].open === '13:00', 'admin hero: reset only removes selected day');
+  await page.click('#prepare-publish'); await page.waitForSelector('#export-dialog[open]');
+  const manual = JSON.parse(await page.inputValue('#export-events-manual'));
+  const output = JSON.parse(await page.inputValue('#export-events'));
+  ok(output.heroOverrides['2026-10-05'].open === '13:00', 'admin hero: export contains override');
+  const originalManual = JSON.parse(fs.readFileSync(path.join(root, 'data/events.manual.json'), 'utf8'));
+  ok(JSON.stringify(manual.replacement) === JSON.stringify(originalManual.replacement), 'admin hero: existing schedule replacement preserved');
+  validateSchedule(output);
+  ok(!errors.length, 'admin hero: errors ' + errors.join(' | '));
+  await context.close();
+}
+
 // --- admin flow -----------------------------------------------------------------------------
 {
-  const { page, context, errors } = await openPage({ width: 1280, url: '/admin/', time: jst('18:00') });
+  const automatic = JSON.parse(fs.readFileSync(path.join(root, 'data/events.auto.json'), 'utf8'));
+  const { page, context, errors } = await openPage({ width: 1280, url: '/admin/', time: jst('18:00'), events: automatic });
   page.on('dialog', (dialog) => dialog.accept());
   await page.waitForSelector('#editor-form:not([hidden])', { timeout: 20000 });
   const bodyText = await page.locator('body').innerText();
   ok(await page.locator('#prepare-publish').textContent() === '公開用ファイルを作成', 'admin: publish button renamed');
   ok(!bodyText.includes('GitHubに公開'), 'admin: misleading label removed');
-  // Home answers "what needs attention": the published data (9/13) is not today.
-  ok(/要確認/.test(bodyText) && /9月13日/.test(bodyText), 'admin home: stale published data is flagged');
+  // Use the current fixture date; daily Actions must not make the test stale.
+  const expectedDate = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: 'long', day: 'numeric' }).format(new Date(automatic.date + 'T12:00:00+09:00'));
+  ok(/要確認/.test(bodyText) && bodyText.includes(expectedDate), 'admin home: stale published data is flagged');
   ok(await page.locator('.stat').count() === 4, 'admin home: four summary cards');
 
   await page.click('a[data-view-link="schedule"] >> visible=true');
@@ -355,7 +437,7 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   await page.fill('#field-events-events-0-title', 'フリーロール（手動）');
   ok(await page.locator('#drawer .field-source:visible').count() === 1, 'admin: 手動編集 appears on the changed field only');
   await page.locator('#drawer .field-source:visible .text-button').click();
-  ok(await page.inputValue('#field-events-events-0-title') === 'フリーロールトーナメント', 'admin: 自動の値に戻す restores the automatic value');
+  ok(await page.inputValue('#field-events-events-0-title') === automatic.events[0].title, 'admin: 自動の値に戻す restores the automatic value');
   await page.click('#close-drawer');
 
   // A new event cannot be published with the placeholder text.
@@ -399,7 +481,7 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
 }
 
 // --- admin layout at each width ------------------------------------------------------------
-for (const width of [320, 375, 390, 768, 1024, 1440]) {
+for (const width of [320, 360, 375, 390, 412, 768, 1024, 1440]) {
   for (const view of ['home', 'schedule', 'news', 'settings']) {
     const { page, context, errors } = await openPage({ width, url: '/admin/#' + view, time: jst('18:00') });
     await page.waitForSelector('#editor-form:not([hidden])', { timeout: 20000 });

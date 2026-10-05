@@ -16,6 +16,12 @@
 
 merge は `scripts/schedule-core.mjs` の `mergeSchedule()` です。`scripts/merge-events.mjs`（Actions）と管理画面の書き出しは同じコードを使います。
 
+## 日付ごとのホームカード上書き
+
+既存の `events.manual.json` に任意の `heroOverrides` オブジェクトを追加できます。キーは日本のカレンダー日付、値は `status`（open / ongoing / ended / closed）、`open`、`mainTime`、`mainTitle`、`latestText`、`latestUrl` です。時刻は HH:MM、MAIN は時刻・名称を一緒に入力、リンクは HTTPS または空欄です。
+
+merge はこのマップを `events.json` に引き継ぎます。古いイベント手動設定が期限切れでも、未来日のカード設定は残ります。公開ページは日本時間の今日に一致するカードのみ適用し、他の日の自動更新を妨げません。ホームカードだけが対象で、イベント詳細・リングゲーム・News は変更しません。日付のキーを削除すると、その日は従来のデータと公式X案内へ戻ります。
+
 ## events.json の主な項目
 
 - `date`：開催日（YYYY-MM-DD）
@@ -49,7 +55,7 @@ OPEN / RING / CLOSE は公開時に timeline card として生成するため、
 - 毎日 09:07 / 12:07 / 13:07 / 15:07
 - 平日 16:17〜19:47（30分ごと。17:00 OPEN 前後の当日投稿に合わせる）
 - 土日 11:17〜13:47（30分ごと。13:00 OPEN 前後）
-- `workflow_dispatch`、および main の `scripts/**` / `data/events.manual.json` / workflow の変更時
+- `workflow_dispatch`、および main の `scripts/**` / `news-core.js` / `data/events.manual.json` / workflow の変更時
 
 処理順：
 
@@ -87,7 +93,11 @@ GitHub Pages の静的サイトなので、ブラウザには GitHub token を�
 
 ## News
 
-`news.json` は引き続き既存構造を使用します。Schedule / Event / Result の分類を保ち、公開サイトは `data/news.json` のみを読みます。
+`news.json` は引き続き `{ "items": [...] }` を使用し、既存の `date` / `description` / `url` も読めます。新しい項目は `id`、`publishedAt`（JST）、`title`、`summary`、`content`、`image` / `images`、`source`（manual / x）、`sourceUrl`、`published`、`pinned`。分類と画像なしの visualLabel/theme も継続します。
+
+`news-core.js` が表示期限・状態・ソート・入力検証を一元管理します。公開 ON、公開日時到達、公開から30日以内の NEWS のみ表示します。30日を超えた記録は Expired ですが削除しません。下書き・予約・掲載終了の詳細URLも本文を公開しません。日時のない古いレコードは日本時間の `date` で判断します。
+
+同じ取得処理から保存した X snapshots は `scripts/sync-news.mjs` で最新の news.json に merge します。原投稿URLで重複を防ぎ、`autoUpdate: false` の手動編集は維持します。削除したX投稿のURLはトップレベルの `excludedSourceUrls` に残して再追加を防ぎます。失敗時・元投稿がなくなった時も既存の NEWS は保持します。画像はHTTPSのURLまたは `images/` / `assets/` の相対パスです。元の画像が消えた時は画像だけを隠し本文は保持します。
 
 ## 失敗時
 

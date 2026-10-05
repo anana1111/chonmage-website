@@ -200,4 +200,24 @@ assert.deepEqual(overnight.events.map((event) => event.id), ['one', 'late']);
 const replacementWithHidden = mergeSchedule(auto, { version: 1, date: '2026-10-03', replacement: { ...base, date: '2026-10-03', events: [{ id: 'x', time: '18:00', title: 'X', description: 'd', hidden: true }] } });
 assert.equal(replacementWithHidden.events.length, 0);
 
+// Homepage overrides coexist with older/future schedule edits and automatic updates.
+const hero = { status: 'ended', open: '17:00', mainTime: '18:00', mainTitle: '王者決定戦', latestText: 'Xで確認', latestUrl: '' };
+const heroOverrides = { '2026-10-03': hero, '2026-10-04': { ...hero, status: 'closed', open: '', mainTime: '', mainTitle: '' } };
+for (const manualDate of ['2026-09-01', auto.date, '2026-12-01']) {
+  const result = mergeSchedule(auto, { version: 1, date: manualDate, heroOverrides });
+  assert.deepEqual(result.heroOverrides, heroOverrides);
+  assert.equal(result.date, auto.date);
+  validateSchedule(result);
+}
+const advanced = mergeSchedule({ ...auto, date: '2026-10-05' }, { version: 1, date: auto.date, heroOverrides });
+assert.equal(advanced.date, '2026-10-05');
+assert.deepEqual(advanced.heroOverrides, heroOverrides);
+assert.deepEqual(advanced.events, auto.events);
+assert.equal(mergeSchedule(auto, { version: 1, date: auto.date, heroOverrides: {} }).heroOverrides, undefined);
+for (const invalid of [{ status: 'bad' }, { open: '25:00' }, { mainTime: '' }, { latestUrl: 'javascript:alert(1)' }, { latestUrl: 'https://user:password@x.com/a' }, { latestText: '' }]) {
+  assert.throws(() => validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, ...invalid } } }));
+}
+assert.throws(() => validateSchedule({ ...base, heroOverrides: { '2026-02-30': hero } }));
+assert.throws(() => validateSchedule({ ...base, heroOverrides: { '2026-10-03': null } }));
+validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle: '超長い日本語の大会名'.repeat(50) } } });
 console.log('schedule data tests passed');
