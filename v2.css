@@ -420,7 +420,7 @@
 }
 
 /* Mobile & tablet hero (< 1100px): beginner sticker beside the headline. Desktop keeps the layout above. */
-@media (max-width: 1099px) {
+@media (max-width: 1099.98px) {
   .hero.hero-v2 { --hero-pad: clamp(20px, 6.4vw, 72px); --hero-canvas: max(100svh, 640px); min-height: 0; }
   .hero-v2 .hero-slides { inset: 0 0 auto; height: calc(var(--hero-canvas) * .72); }
   .hero-v2 .hero-slide img { object-position: 50% 30%; transform: none; animation: none; }
@@ -437,7 +437,7 @@
   .hero-v2 .round-link { display: none; }
   .hero-v2 .hero-schedule { position: relative; inset: auto; }
 }
-@media (min-width: 700px) and (max-width: 1099px) {
+@media (min-width: 700px) and (max-width: 1099.98px) {
   .hero.hero-v2 { --hero-canvas: max(100svh, 900px); }
   .hero-v2 .hero-slides { height: calc(var(--hero-canvas) * .76); }
   .hero-v2 h1 { font-size: min(10vw, 112px); }
