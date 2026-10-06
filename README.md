@@ -31,7 +31,7 @@ python3 -m http.server 8000
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
 | `scripts/` | 抓取、合并、校验脚本和测试（Node 22，无依赖） |
-| `images/` | 网站使用的 AVIF / WebP 图片（1448px / 800px 两种尺寸；手机 Hero 另有 1086px / 800px，贴纸有 240 / 400 / 800px）、分享预览图 `og-image.jpg`（1200×630），以及 `images/news/`：自动更新从 X 复制来的 NEWS 照片（`<ID>.webp` 最大 1200px，`<ID>-680.webp` 给卡片用） |
+| `images/` | 网站使用的 AVIF / WebP 图片（1448px / 800px 两种尺寸；手机 Hero 另有 1086px / 800px，贴纸有 240 / 400 / 800px）、分享预览图 `og-image.jpg`（1200×630），以及 `images/news/`：自动更新从 X 复制来的 NEWS 照片（`x-<ID>.webp` 最大 1200px，`x-<ID>-680.webp` 给卡片用） |
 | `fonts/` | 自托管的英文标题字体 Archivo Black（拉丁子集）和它的授权 `OFL.txt` |
 | `robots.txt` / `sitemap.xml` | 给搜索引擎的抓取规则和页面清单（新增公开页面时一起更新 sitemap） |
 | `_originals/` | 不发布的原始素材：`images/*.png` 原图、`image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件），以及分享预览图 `images/og-image.jpg` 的源文件 `og-image.html`（用本地预览打开后截 1200×630 的图即可重新生成。LINE 只显示中间的正方形，文字要放在中间 630×630 以内；换图后把 `index.html` 和 `news/index.html` 里 og:image 的 `?v=` 加 1） |

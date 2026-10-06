@@ -52,7 +52,7 @@ jobs:
       - name: Copy NEWS photos from X into the site
         run: |
           node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
-          node scripts/news-images.mjs data/news.json
+          node scripts/news-images.mjs data/news.json || echo "::warning::NEWS photos were not copied; the X links stay."
 
       - name: Merge manual overrides over automatic data
         run: node scripts/merge-events.mjs
@@ -79,7 +79,8 @@ jobs:
             cp "$AUTO_TMP" data/events.auto.json
             node scripts/merge-events.mjs
             node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
-            node scripts/news-images.mjs data/news.json
+            # A photo problem must never block the schedule update, so it only warns.
+            node scripts/news-images.mjs data/news.json || echo "::warning::NEWS photos were not copied; the X links stay."
             node scripts/validate-events.mjs data/events.json data/news.json
             if git diff --quiet -- data/events.auto.json data/events.json data/news.json; then
               echo "No schedule or NEWS data changes."

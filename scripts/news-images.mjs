@@ -2,6 +2,7 @@
 // X itself serves WebP at fixed sizes, so no image tool is needed: name=medium (up to 1200px,
 // the size the old direct links showed) is the file news.json points at, and name=small
 // (up to 680px) sits next to it as NAME-680.webp for the small card tiles.
+// Files are named x-<media id>: an id may start with "_", which GitHub Pages would not publish.
 import fs from 'node:fs';
 import path from 'node:path';
 import '../news-core.js';
@@ -9,6 +10,8 @@ const core = globalThis.ChonmageNews;
 export const NEWS_IMAGE_DIR = 'images/news';
 const TYPES = ['webp', 'jpg', 'png'];
 const MAX_BYTES = 8 * 1024 * 1024;
+// Keeps a slow X from holding up the schedule update; the rest is copied on the next run.
+const TIME_BUDGET_MS = 90 * 1000;
 
 export function xImageName(url) {
   let parsed;
@@ -26,7 +29,7 @@ function imageType(bytes) {
 
 async function download(fetchImpl, name, size, format) {
   const url = 'https://pbs.twimg.com/media/' + name + '?format=' + format + '&name=' + size;
-  const response = await fetchImpl(url, { signal: AbortSignal.timeout(20000) });
+  const response = await fetchImpl(url, { signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error('HTTP ' + response.status + ' for ' + url);
   const bytes = Buffer.from(await response.arrayBuffer());
   if (bytes.length > MAX_BYTES) throw new Error('too large: ' + url);
@@ -40,35 +43,39 @@ function storedType(dir, name) {
   return TYPES.find((type) => fs.existsSync(path.join(dir, name + '.' + type)) && fs.existsSync(path.join(dir, name + '-680.' + type))) || '';
 }
 
-async function copyImage(fetchImpl, dir, name, stats) {
+async function copyImage(fetchImpl, dir, id, stats, deadline) {
+  const name = 'x-' + id;
   const stored = storedType(dir, name);
-  if (stored) { stats.reused++; return stored; }
-  const large = await download(fetchImpl, name, 'medium', 'webp');
+  if (stored) { stats.reused++; return name + '.' + stored; }
+  if (Date.now() > deadline) throw new Error('out of time for this run');
+  const large = await download(fetchImpl, id, 'medium', 'webp');
   // The thumbnail is asked for in the same format so its path can be derived from the large one.
-  const small = await download(fetchImpl, name, 'small', large.type);
-  if (small.type !== large.type) throw new Error('sizes came back in different formats for ' + name);
+  const small = await download(fetchImpl, id, 'small', large.type);
+  if (small.type !== large.type) throw new Error('sizes came back in different formats for ' + id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, name + '-680.' + small.type), small.bytes);
   fs.writeFileSync(path.join(dir, name + '.' + large.type), large.bytes);
-  stats.downloaded++; stats.bytes += large.bytes.length + small.bytes.length;
-  return large.type;
+  stats.downloaded++; stats.bytes += large.bytes.length; stats.smallBytes += small.bytes.length;
+  stats.types[large.type] = (stats.types[large.type] || 0) + 1;
+  return name + '.' + large.type;
 }
 
 // Expired NEWS stays in the archive with its original links; nobody outside the admin sees it.
-export async function mirrorNewsImages(data, { fetch: fetchImpl = globalThis.fetch, dir = NEWS_IMAGE_DIR, now = Date.now(), warn = console.warn } = {}) {
+export async function mirrorNewsImages(data, { fetch: fetchImpl = globalThis.fetch, dir = NEWS_IMAGE_DIR, now = Date.now(), warn = console.warn, timeBudgetMs = TIME_BUDGET_MS } = {}) {
   core.validateNews(data);
   const result = JSON.parse(JSON.stringify(data));
-  const stats = { downloaded: 0, reused: 0, failed: 0, bytes: 0 };
+  const stats = { downloaded: 0, reused: 0, failed: 0, bytes: 0, smallBytes: 0, types: {} };
   const copies = new Map();
+  const deadline = Date.now() + timeBudgetMs;
   async function local(url) {
-    const name = xImageName(url);
-    if (!name) return url;
-    if (!copies.has(name)) {
-      copies.set(name, copyImage(fetchImpl, dir, name, stats).then((type) => NEWS_IMAGE_DIR + '/' + name + '.' + type, (error) => {
+    const id = xImageName(url);
+    if (!id) return url;
+    if (!copies.has(id)) {
+      copies.set(id, copyImage(fetchImpl, dir, id, stats, deadline).then((file) => NEWS_IMAGE_DIR + '/' + file, (error) => {
         stats.failed++; warn('NEWS photo not copied, keeping the X link: ' + url + ' (' + (error?.message || error) + ')'); return '';
       }));
     }
-    return (await copies.get(name)) || url;
+    return (await copies.get(id)) || url;
   }
   const rows = Array.isArray(result) ? result : result.items;
   for (const item of rows) {
@@ -87,7 +94,8 @@ export async function mirrorNewsImages(data, { fetch: fetchImpl = globalThis.fet
 export async function mirrorNewsFile(file = 'data/news.json', options = {}) {
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
   const { data: next, stats } = await mirrorNewsImages(data, options);
-  console.log('NEWS photos: ' + stats.downloaded + ' copied (' + Math.round(stats.bytes / 1024) + ' KiB), ' + stats.reused + ' already copied, ' + stats.failed + ' kept as X links');
+  const kib = (bytes) => Math.round(bytes / 1024) + ' KiB';
+  console.log('NEWS photos: ' + stats.downloaded + ' copied ' + JSON.stringify(stats.types) + ' (full size ' + kib(stats.bytes) + ', 680px ' + kib(stats.smallBytes) + '), ' + stats.reused + ' already copied, ' + stats.failed + ' kept as X links');
   if (JSON.stringify(data) === JSON.stringify(next)) return false;
   fs.writeFileSync(file, JSON.stringify(next, null, 2) + '\n');
   console.log('updated ' + file + ' to use the copied photos');

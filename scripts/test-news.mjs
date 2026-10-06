@@ -120,15 +120,15 @@ try {
     item({ id: 'local', image: 'images/interior-wide.webp' }),
   ] };
   const first = await mirrorNewsImages(source, { ...quiet, fetch: fakeX((url) => new Response(url.searchParams.get('name') === 'small' ? webp(10) : webp(30))) });
-  equal(first.data.items[0].image, 'images/news/A1.webp');
-  equal(first.data.items[0].images, ['images/news/A1.webp', 'images/news/B-2.webp', 'https://example.com/c.jpg']);
+  equal(first.data.items[0].image, 'images/news/x-A1.webp');
+  equal(first.data.items[0].images, ['images/news/x-A1.webp', 'images/news/x-B-2.webp', 'https://example.com/c.jpg']);
   equal(first.data.items[1].image, x('OLD')); // Expired archive keeps its original link.
   equal(first.data.items[2].image, 'images/interior-wide.webp');
   equal(source.items[0].image, x('A1')); // Input is not modified.
   equal(requests.sort(), ['https://pbs.twimg.com/media/A1?format=webp&name=medium', 'https://pbs.twimg.com/media/A1?format=webp&name=small', 'https://pbs.twimg.com/media/B-2?format=webp&name=medium', 'https://pbs.twimg.com/media/B-2?format=webp&name=small']);
-  equal(fs.readFileSync(path.join(dir, 'A1.webp')).length, 46);
-  equal(fs.readFileSync(path.join(dir, 'A1-680.webp')).length, 26);
-  equal(first.stats, { downloaded: 2, reused: 0, failed: 0, bytes: 144 });
+  equal(fs.readFileSync(path.join(dir, 'x-A1.webp')).length, 46);
+  equal(fs.readFileSync(path.join(dir, 'x-A1-680.webp')).length, 26);
+  equal(first.stats, { downloaded: 2, reused: 0, failed: 0, bytes: 92, smallBytes: 52, types: { webp: 2 } });
   n.validateNews(first.data); checks++;
   // A second run (and the X links sync puts back on auto-updated posts) reuses the files.
   requests.length = 0;
@@ -138,16 +138,22 @@ try {
   // X answering with JPEG keeps both sizes as JPEG so the small file name still matches.
   requests.length = 0;
   const jpg = await mirrorNewsImages({ items: [item({ image: x('J1') })] }, { ...quiet, fetch: fakeX(() => new Response(jpeg(20))) });
-  equal(jpg.data.items[0].image, 'images/news/J1.jpg'); equal(requests[1], 'https://pbs.twimg.com/media/J1?format=jpg&name=small');
-  equal(fs.existsSync(path.join(dir, 'J1-680.jpg')), true);
+  equal(jpg.data.items[0].image, 'images/news/x-J1.jpg'); equal(requests[1], 'https://pbs.twimg.com/media/J1?format=jpg&name=small');
+  equal(fs.existsSync(path.join(dir, 'x-J1-680.jpg')), true);
   // Failures keep the X link and write nothing: HTTP errors, HTML pages, a missing small size.
   const warnings = [];
   for (const [id, reply] of [['E404', () => new Response('', { status: 404 })], ['EHTML', () => new Response('<html>')], ['ESMALL', (url) => url.searchParams.get('name') === 'small' ? new Response('', { status: 500 }) : new Response(webp(5))], ['EMIX', (url) => new Response(url.searchParams.get('name') === 'small' ? jpeg(5) : webp(5))]]) {
     const failed = await mirrorNewsImages({ items: [item({ image: x(id) })] }, { ...quiet, warn: (message) => warnings.push(message), fetch: fakeX(reply) });
     equal(failed.data.items[0].image, x(id)); equal(failed.stats.failed, 1);
-    equal(fs.readdirSync(dir).filter((file) => file.startsWith(id)), []);
+    equal(fs.readdirSync(dir).filter((file) => file.startsWith('x-' + id)), []);
   }
   equal(warnings.length, 4);
+  // Ids starting with "_" are still published (Jekyll skips files starting with "_").
+  equal((await mirrorNewsImages({ items: [item({ image: x('_U1') })] }, { ...quiet, fetch: fakeX(() => new Response(webp(1))) })).data.items[0].image, 'images/news/x-_U1.webp');
+  // Out of time: nothing new is downloaded, copies already made are still used.
+  requests.length = 0;
+  const late = await mirrorNewsImages({ items: [item({ image: x('A1'), images: [x('A1'), x('LATE')] })] }, { ...quiet, timeBudgetMs: -1, fetch: fakeX(() => new Response(webp(1))) });
+  equal(late.data.items[0].images, ['images/news/x-A1.webp', x('LATE')]); equal(requests.length, 0); equal(late.stats.failed, 1);
   fs.rmSync(dir, { recursive: true, force: true });
 }
 console.log('NEWS tests passed (' + checks + ' checks)');
