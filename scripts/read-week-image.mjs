@@ -97,12 +97,13 @@ async function askModel(imageBytes, type, token, fetchImpl) {
   return JSON.parse(JSON.parse(body).choices[0].message.content);
 }
 
-export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, now = new Date() } = {}) {
-  if (!postsPath || !fs.existsSync(postsPath)) { console.log('No logged-in X posts; week picture not checked.'); return false; }
-  const post = findWeekPost(JSON.parse(fs.readFileSync(postsPath, 'utf8')), now);
+export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, weekPostsPath = process.env.X_WEEK_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, now = new Date() } = {}) {
+  const files = [postsPath, weekPostsPath].filter((file) => file && fs.existsSync(file));
+  if (!files.length) { console.log('No logged-in X posts; week picture not checked.'); return false; }
+  const tweets = files.flatMap((file) => { try { const value = JSON.parse(fs.readFileSync(file, 'utf8')); return Array.isArray(value?.data) ? value.data : []; } catch { return []; } });
+  const post = findWeekPost(tweets, now);
   if (!post) {
-    const all = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
-    const rows = Array.isArray(all?.data) ? all.data : [];
+    const rows = tweets;
     const oldest = rows.map((tweet) => tweet.createdAtISO || tweet.createdAt).filter(Boolean).sort()[0] || '?';
     console.log('No week schedule picture in the recent ' + rows.length + ' posts (oldest ' + oldest + ').');
     for (const tweet of rows.filter((row) => /スケジュール/.test(row.text || ''))) console.log('  schedule-like post ' + tweet.id + ' ' + (tweet.createdAtISO || '') + ' media=' + (tweet.media || []).map((item) => item.type).join(',') + ': ' + String(tweet.text).replace(/\s+/g, ' ').slice(0, 80));
