@@ -105,7 +105,12 @@ async function askModel(imageBytes, type, token, fetchImpl) {
     }
     return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g, ''));
   }
-  throw new Error('GitHub Models did not answer: ' + problems.join(' | '));
+  // One small text-only request tells a size problem apart from no access at all.
+  const probe = await fetchImpl(ENDPOINTS[0], { method: 'POST', signal: AbortSignal.timeout(30000),
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ model: MODEL, messages: [{ role: 'user', content: 'Reply with the word ready.' }] }) })
+    .then(async (r) => 'HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200), (error) => String(error?.message || error));
+  throw new Error('GitHub Models did not answer: ' + problems.join(' | ') + ' | text-only probe: ' + probe + ' | picture ' + imageBytes.length + ' bytes');
 }
 
 export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, weekPostsPath = process.env.X_WEEK_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, now = new Date() } = {}) {
@@ -124,7 +129,7 @@ export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, week
   try { current = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
   if (current?.sourceUrl === post.url && !force) { console.log('Week schedule already read from ' + post.url); return false; }
   if (!token) throw new Error('GITHUB_TOKEN is missing');
-  const image = await fetchImpl(post.image + '?format=jpg&name=large', { signal: AbortSignal.timeout(20000) });
+  const image = await fetchImpl(post.image + '?format=jpg&name=medium', { signal: AbortSignal.timeout(20000) });
   if (!image.ok) throw new Error('picture HTTP ' + image.status);
   const bytes = Buffer.from(await image.arrayBuffer());
   const type = (image.headers.get('content-type') || 'image/jpeg').split(';')[0];
