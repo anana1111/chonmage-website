@@ -6,6 +6,8 @@
 
 - 公开站点由 GitHub Pages 从 `main` 分支的仓库根目录提供（Pages 的设置在仓库 Settings → Pages 里确认）。
 - 推送到 `main` 后，Pages 会自动重新发布；`data/*.json` 的变更也一样。
+- 正式域名是 https://chonmagepoker.com/ （`CNAME` 文件；DNS 在 Cloudflare，旧的 github.io 地址会自动跳转）。
+- `_config.yml` 只用来让 Pages 不发布各处的 README（内部说明）。
 
 本地预览：
 
@@ -29,8 +31,9 @@ Google Fonts、X、Google Maps 的链接需要联网。
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
 | `scripts/` | 抓取、合并、校验脚本和测试（Node 22，无依赖） |
-| `images/` | 网站使用的 WebP 图片（1448px / 800px 两种尺寸） |
-| `_originals/` | 不发布的原始素材：`images/*.png` 原图和 `image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件） |
+| `images/` | 网站使用的 WebP 图片（1448px / 800px 两种尺寸），以及分享预览图 `og-image.jpg`（1200×630） |
+| `robots.txt` / `sitemap.xml` | 给搜索引擎的抓取规则和页面清单（新增公开页面时一起更新 sitemap） |
+| `_originals/` | 不发布的原始素材：`images/*.png` 原图、`image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件），以及分享预览图 `images/og-image.jpg` 的源文件 `og-image.html`（用本地预览打开后截 1200×630 的图即可重新生成） |
 
 ## 营业信息数据流
 
