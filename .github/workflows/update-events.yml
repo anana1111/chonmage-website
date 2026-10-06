@@ -48,6 +48,12 @@ jobs:
           NEWS_CANDIDATES_PATH: ${{ runner.temp }}/chonmage-news-candidates.json
         run: node scripts/fetch-events.mjs
 
+      # Downloads the X photos of current NEWS once; the commit step below reuses these files.
+      - name: Copy NEWS photos from X into the site
+        run: |
+          node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
+          node scripts/news-images.mjs data/news.json
+
       - name: Merge manual overrides over automatic data
         run: node scripts/merge-events.mjs
 
@@ -73,12 +79,14 @@ jobs:
             cp "$AUTO_TMP" data/events.auto.json
             node scripts/merge-events.mjs
             node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
+            node scripts/news-images.mjs data/news.json
             node scripts/validate-events.mjs data/events.json data/news.json
             if git diff --quiet -- data/events.auto.json data/events.json data/news.json; then
               echo "No schedule or NEWS data changes."
               exit 0
             fi
             git add data/events.auto.json data/events.json data/news.json
+            if [ -d images/news ]; then git add images/news; fi
             git commit --quiet -m "Update daily events and NEWS for $DATE"
             if git push origin HEAD:main; then
               exit 0

@@ -31,6 +31,7 @@ const data = { items: [
 ] };
 const validCount = core.visibleItems(data, clock).length;
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.png': 'image/png' };
+const photoRequests = [];
 const server = http.createServer((request, response) => {
   let pathname = new URL(request.url, 'http://local').pathname;
   if (pathname.startsWith('/chonmage-website/')) pathname = pathname.slice('/chonmage-website'.length);
@@ -38,6 +39,9 @@ const server = http.createServer((request, response) => {
     const [w, h] = pathname.includes('wide') ? [1600, 120] : [120, 1600];
     response.writeHead(200, { 'content-type': 'image/svg+xml' }).end(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#273870"/></svg>`); return;
   }
+  // Stand-ins for photos copied from X; the -680 file of "nothumb" is missing on purpose.
+  const copied = pathname.match(/\/images\/news\/(test-photo|test-photo-680|test-nothumb)\.webp$/);
+  if (copied) { photoRequests.push(copied[1]); response.writeHead(200, { 'content-type': 'image/webp' }); fs.createReadStream(path.join(root, 'images/interior-wide-800.webp')).pipe(response); return; }
   if (pathname.endsWith('/assets/broken.svg')) { response.writeHead(200, { 'content-type': 'image/svg+xml' }).end('invalid image'); return; }
   let file = path.join(root, decodeURIComponent(pathname));
   if (!file.startsWith(root + path.sep) && file !== root) { response.writeHead(403).end(); return; }
@@ -241,6 +245,23 @@ try {
     check(await page.locator('.site-header').isVisible(), 'Invalid NEWS JSON leaves homepage header working');
     check(await page.locator('#today').count() === 1, 'NEWS failure leaves activities on the page');
     check(!errors.length, 'Invalid JSON is caught without JS console error'); await context.close();
+  }
+  {
+    // Photos copied from X: cards pick the 680px file; detail pages and a missing small file use the full photo.
+    const photos = { items: [record('photo', { source: 'x', sourceUrl: 'https://x.com/ChonmageNiigata/status/9', image: 'images/news/test-photo.webp' }), record('nothumb', { publishedAt: '2026-10-03T11:00:00+09:00', image: 'images/news/test-nothumb.webp' })] };
+    for (const width of [390, 1440]) {
+      const { page, context } = await open('/news/', width, photos);
+      await page.waitForFunction(() => [...document.querySelectorAll('.news-photo img')].every((img) => img.complete && img.naturalWidth > 0));
+      const cards = await page.locator('.news-photo img').evaluateAll((images) => images.map((img) => ({ current: img.currentSrc.split('/').pop(), srcset: img.getAttribute('srcset') || '', hidden: img.closest('figure').hidden })));
+      check(cards[0].current === 'test-photo-680.webp' && cards[0].srcset.includes('test-photo-680.webp 680w') && cards[0].srcset.includes('test-photo.webp 1200w'), width + 'px: card uses the 680px copy');
+      check(cards[1].current === 'test-nothumb.webp' && !cards[1].srcset && !cards[1].hidden, width + 'px: missing small copy falls back to the full photo');
+      await context.close();
+    }
+    photoRequests.length = 0;
+    const { page, context, errors } = await open('/news/?id=photo', 390, photos);
+    const detail = await page.locator('.news-photo img').evaluate((img) => ({ current: img.currentSrc.split('/').pop(), srcset: img.hasAttribute('srcset') }));
+    check(detail.current === 'test-photo.webp' && !detail.srcset && !photoRequests.includes('test-photo-680'), 'Detail page shows only the full copied photo');
+    check(!errors.length, 'Copied photo detail page has no console errors'); await context.close();
   }
   console.log('NEWS browser tests passed (' + checks + ' checks)');
 } finally { await browser.close(); server.close(); }
