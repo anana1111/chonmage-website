@@ -54,10 +54,13 @@
         ]
       }
     </script>
+    <link rel="preload" href="./fonts/archivo-black-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20261005" />
+    <!-- Japanese web font loads without blocking the first paint; text shows in the phone font until it arrives. -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" /></noscript>
+    <link rel="stylesheet" href="./styles.css?v=20261006perf" />
     <link rel="stylesheet" href="./v2.css?v=20261006desktop" />
     <link rel="stylesheet" href="./timeline.css?v=20261005" />
     <link rel="stylesheet" href="./activity.css?v=20261004" />
@@ -91,12 +94,20 @@
         <a href="#price">PRICE</a>
         <a href="#access">ACCESS</a>
       </nav>
+      <script>
+        // Collapse the mobile menu the same way script.js does, before the first paint, so the hero does not jump down and back up.
+        if (typeof window.matchMedia === 'function') {
+          document.getElementById('mobile-nav').hidden = true;
+          document.querySelector('.site-header .menu-button').hidden = !window.matchMedia('(max-width: 900px)').matches;
+          document.querySelector('.site-header').classList.add('nav-ready');
+        }
+      </script>
     </header>
 
     <main id="top">
       <section class="hero hero-v2" aria-labelledby="hero-title">
         <div class="hero-slides" aria-hidden="true">
-          <figure class="hero-slide hero-slide--one"><picture><source media="(max-width: 480px)" srcset="./images/interior-mobile.webp" /><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="" width="1448" height="1086" fetchpriority="high" decoding="async" /></picture></figure>
+          <figure class="hero-slide hero-slide--one"><picture><source media="(max-width: 480px)" type="image/avif" srcset="./images/interior-mobile-800.avif 800w, ./images/interior-mobile.avif 1086w" sizes="100vw" /><source media="(max-width: 480px)" srcset="./images/interior-mobile-800.webp 800w, ./images/interior-mobile.webp 1086w" sizes="100vw" /><source type="image/avif" srcset="./images/interior-wide-800.avif 800w, ./images/interior-wide.avif 1448w" sizes="100vw" /><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="" width="1448" height="1086" fetchpriority="high" decoding="async" /></picture></figure>
         </div>
         <div class="hero-wash" aria-hidden="true"></div>
         <div class="hero-copy">
@@ -104,7 +115,7 @@
           <div class="hero-message">
             <div class="hero-headline-row">
               <h1 id="hero-title" class="reveal"><span>古町で、</span><span>気軽に</span><span class="accent-word">ポーカーを。</span></h1>
-              <img class="hero-sticker" src="./images/hero-sticker.webp" srcset="./images/hero-sticker.webp 400w, ./images/hero-sticker-800.webp 800w" sizes="(min-width: 1100px) 275px, (min-width: 700px) 300px, 28vw" alt="はじめてでも安心" width="400" height="400" decoding="async" />
+              <img class="hero-sticker" src="./images/hero-sticker.webp" srcset="./images/hero-sticker-240.webp 240w, ./images/hero-sticker.webp 400w, ./images/hero-sticker-800.webp 800w" sizes="(min-width: 1100px) 275px, (min-width: 700px) 300px, 28vw" alt="はじめてでも安心" width="400" height="400" decoding="async" />
             </div>
             <div class="hero-bottom reveal">
               <p>初めてでも、ひとりでも。<br />明るい空間で、今日から一緒に。</p>
@@ -181,9 +192,9 @@
           <p class="reveal">“ポーカー店は入りにくい”を、ここでは忘れてください。白く開放的な空間に、3台のテーブル。遊ぶ人の距離も、ちょうどいい。</p>
         </div>
         <div class="photo-rail" data-drag-scroll>
-          <figure class="photo-card photo-card--wide"><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 84vw, min(75vw, 920px)" alt="白を基調とした明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>01</span>3 TABLES · OPEN SPACE</figcaption></figure>
-          <figure class="photo-card"><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" alt="ポーカーテーブルと椅子が並ぶ店内" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>02</span>PLAY TOGETHER</figcaption></figure>
-          <figure class="photo-card"><img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" alt="古町モールに面したちょんまげの夜の外観" width="1448" height="1086" loading="lazy" decoding="async" /><figcaption><span>03</span>RIGHT IN FURUMACHI</figcaption></figure>
+          <figure class="photo-card photo-card--wide"><picture><source type="image/avif" srcset="./images/interior-wide-800.avif 800w, ./images/interior-wide.avif 1448w" sizes="(max-width: 900px) 84vw, min(75vw, 920px)" /><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="(max-width: 900px) 84vw, min(75vw, 920px)" alt="白を基調とした明るい店内" width="1448" height="1086" loading="lazy" decoding="async" /></picture><figcaption><span>01</span>3 TABLES · OPEN SPACE</figcaption></figure>
+          <figure class="photo-card"><picture><source type="image/avif" srcset="./images/poker-table-detail-800.avif 800w, ./images/poker-table-detail.avif 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" /><img src="./images/poker-table-detail.webp" srcset="./images/poker-table-detail-800.webp 800w, ./images/poker-table-detail.webp 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" alt="ポーカーテーブルと椅子が並ぶ店内" width="1448" height="1086" loading="lazy" decoding="async" /></picture><figcaption><span>02</span>PLAY TOGETHER</figcaption></figure>
+          <figure class="photo-card"><picture><source type="image/avif" srcset="./images/storefront-night-800.avif 800w, ./images/storefront-night.avif 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" /><img src="./images/storefront-night.webp" srcset="./images/storefront-night-800.webp 800w, ./images/storefront-night.webp 1448w" sizes="(max-width: 900px) 84vw, min(72vw, 867px)" alt="古町モールに面したちょんまげの夜の外観" width="1448" height="1086" loading="lazy" decoding="async" /></picture><figcaption><span>03</span>RIGHT IN FURUMACHI</figcaption></figure>
         </div>
         <p class="drag-hint">DRAG TO EXPLORE <span>→</span></p>
       </section>
