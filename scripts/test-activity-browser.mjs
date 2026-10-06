@@ -28,6 +28,7 @@ const equal = (actual, expected, label) => { assert.deepEqual(actual, expected, 
 const yes = (actual, label) => { assert(actual, label); checks++; };
 async function open({ width = 390, time = '13:55', data = fixture(), zone = 'Asia/Tokyo', url = '/', reducedMotion = 'no-preference', ticking = false } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 844 }, timezoneId: zone, reducedMotion });
+  await context.addInitScript(() => { try { localStorage.setItem('chonmage-admin-unlock', '9e06018654272ea14463bc3c1652fd88ac344865948d75336ccf7b8f21c04360'); } catch {} });
   const page = await context.newPage(), errors = [];
   page.on('pageerror', (error) => errors.push(String(error)));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
