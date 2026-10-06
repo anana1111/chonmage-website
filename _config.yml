@@ -1,0 +1,7 @@
+# GitHub Pages (Jekyll) settings. The site itself is plain static HTML.
+# Pages turns every Markdown file into a public HTML page; these are internal
+# notes, so keep them off the public site and out of search results.
+exclude:
+  - README.md
+  - admin/README.md
+  - data/README.md
