@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "date": "2026-10-06",
+  "fields": {},
+  "ringGame": {},
+  "events": {
+    "event-1800": {
+      "description": "🚗 駐車券のご提示でEntryがさらにお得に！\n🐦 EARLY BIRD\nレベル2（18:45）までの着席でエントリー無料‼️\n早めの着席は、三文以上の得。",
+      "facts": [
+        {
+          "label": "ENTRY",
+          "value": "¥2,000 / 20,000pt"
+        },
+        {
+          "label": "RE-ENTRY",
+          "value": "¥2,000"
+        },
+        {
+          "label": "最終受付",
+          "value": "20:10"
+        }
+      ]
+    }
+  },
+  "extraEvents": [],
+  "heroOverrides": {}
+}
