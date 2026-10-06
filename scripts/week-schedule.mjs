@@ -3,7 +3,7 @@
 // events.auto.json so the cards are not empty. A daily post for the same day still wins.
 import fs from 'node:fs';
 import { validateSchedule } from './validate-events.mjs';
-import { scheduleMinutes } from './schedule-core.mjs';
+import { fillClose, isTime } from './schedule-core.mjs';
 
 export const WEEK_FILE = 'data/week.json';
 const PROFILE_URL = 'https://x.com/ChonmageNiigata';
@@ -59,23 +59,13 @@ export function weekDaySchedule(week, date, now = new Date()) {
     delete schedule.open;
   }
   if (day.close && day.open) schedule.close = day.close;
-  return validateSchedule(schedule);
+  return validateSchedule(fillClose(schedule));
 }
 
-// The shop's usual closing time (also in index.html openingHoursSpecification).
-export const DEFAULT_CLOSE = '23:30';
-
-// The daily X post often gives only OPEN. Without a CLOSE the site would say 営業中 all night,
-// so an open day without one takes the week picture's CLOSE for that date, or the usual time.
-export function fillClose(schedule, week) {
-  if (!schedule || schedule.status !== 'open' || !schedule.open || schedule.close) return schedule;
-  const day = (week?.days || []).find((row) => row && row.date === schedule.date && row.open);
-  const close = day?.close || DEFAULT_CLOSE;
-  const closeMinute = scheduleMinutes(close, schedule.open);
-  // A game starting at or after that time means the day runs later; leave CLOSE unknown then.
-  const starts = [schedule.open, ...(schedule.events || []).filter((event) => !event.hidden).map((event) => event.time)];
-  if (starts.every((time) => scheduleMinutes(time, schedule.open) < closeMinute)) schedule.close = close;
-  return schedule;
+// Today's CLOSE from the week picture, when that row has a valid one.
+export function weekClose(week, date) {
+  const day = (Array.isArray(week?.days) ? week.days : []).find((row) => row && row.date === date && row.open);
+  return isTime(day?.close) ? day.close : '';
 }
 
 export function readWeek(file = WEEK_FILE) {

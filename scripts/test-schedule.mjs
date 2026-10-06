@@ -287,25 +287,39 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
   assert.deepEqual(JSON.parse(fsm.readFileSync(out, 'utf8')), daily);
   fsm.rmSync(dir, { recursive: true });
 }
-// A daily post with only OPEN gets the week picture's CLOSE, or the usual 23:30.
+// An open day without CLOSE gets the week picture's CLOSE, or the usual 23:30.
 {
-  const { fillClose, DEFAULT_CLOSE } = await import('./week-schedule.mjs');
+  const { fillClose, DEFAULT_CLOSE } = await import('./schedule-core.mjs');
+  const { weekClose, weekDaySchedule } = await import('./week-schedule.mjs');
   const week = { version: 1, days: [{ date: '2026-10-06', open: '17:00', close: '01:00', ringGame: true, events: [] }] };
   const daily = (changes = {}) => ({ version: 2, date: '2026-10-06', status: 'open', open: '17:00', events: [{ id: 'the-daily-1800', time: '18:00', title: 'THE DAILY' }], ...changes });
   assert.equal(DEFAULT_CLOSE, '23:30');
-  assert.equal(fillClose(daily(), week).close, '01:00');
-  assert.equal(fillClose(daily(), null).close, '23:30');
-  assert.equal(fillClose(daily({ date: '2026-10-07' }), week).close, '23:30');
-  assert.equal(fillClose(daily({ close: '22:00' }), week).close, '22:00', 'a CLOSE in the post wins');
-  assert.equal(fillClose(daily({ status: 'closed', open: undefined }), week).close, undefined);
-  assert.equal(fillClose(daily({ events: [{ id: 'late', time: '23:45', title: 'LATE' }] }), null).close, undefined, 'a later game keeps CLOSE unknown');
-  assert.equal(fillClose(daily({ events: [{ id: 'late', time: '23:45', title: 'LATE' }] }), week).close, '01:00');
-  const closedWeekDay = { version: 1, days: [{ date: '2026-10-06', open: '', close: '', ringGame: false, events: [] }] };
-  assert.equal(fillClose(daily(), closedWeekDay).close, '23:30');
-  const { weekDaySchedule } = await import('./week-schedule.mjs');
-  const valid = weekDaySchedule({ version: 1, days: [{ date: '2026-10-06', open: '17:00', ringGame: true, events: [{ time: '18:00', title: 'THE DAILY' }] }] }, '2026-10-06');
-  assert.equal(valid.close, undefined);
-  assert.equal(validateSchedule(fillClose(valid, null)).close, '23:30');
+  assert.equal(weekClose(week, '2026-10-06'), '01:00');
+  assert.equal(weekClose(week, '2026-10-07'), '');
+  assert.equal(weekClose({ days: {} }, '2026-10-06'), '', 'a broken week.json is ignored');
+  assert.equal(weekClose({ days: [{ date: '2026-10-06', open: '17:00', close: '25:00' }] }, '2026-10-06'), '', 'an invalid CLOSE is ignored');
+  assert.equal(fillClose(daily(), weekClose(week, '2026-10-06')).close, '01:00');
+  assert.equal(fillClose(daily()).close, '23:30');
+  assert.equal(fillClose(daily(), '').close, '23:30');
+  assert.equal(fillClose(daily(), '25:00').close, '23:30');
+  assert.equal(fillClose(daily({ close: '22:00' })).close, '22:00', 'a CLOSE in the post wins');
+  assert.equal(fillClose(daily({ status: 'closed', open: undefined })).close, undefined);
+  assert.equal(fillClose(daily({ events: [{ id: 'late', time: '23:45', title: 'LATE' }] })).close, undefined, 'a later game keeps CLOSE unknown');
+  assert.equal(fillClose(daily({ events: [{ id: 'late', time: '23:45', title: 'LATE', hidden: true }] })).close, '23:30');
+  assert.equal(fillClose(daily({ events: [{ id: 'late', time: '23:45', title: 'LATE' }] }), '01:00').close, '01:00');
+  // The week picture path: a row whose CLOSE was not read still ends the day.
+  const noClose = weekDaySchedule({ version: 1, days: [{ date: '2026-10-06', open: '17:00', close: '', ringGame: true, events: [{ time: '18:00', title: 'THE DAILY' }] }] }, '2026-10-06');
+  assert.equal(noClose.close, '23:30');
+  // Manual data (admin) can drop CLOSE; the published file still has one.
+  const auto = { ...noClose };
+  assert.equal(mergeSchedule(auto, { date: '2026-10-06', fields: { close: null } }).close, '23:30');
+  const replacement = { ...noClose, events: [] };
+  delete replacement.close;
+  assert.equal(mergeSchedule(auto, { date: '2026-10-06', replacement }).close, '23:30');
+  assert.equal(mergeSchedule(auto, { date: '2026-10-06', fields: { close: '01:00' } }).close, '01:00');
+  const closedAuto = weekDaySchedule({ version: 1, days: [{ date: '2026-10-06', open: '', close: '', events: [] }] }, '2026-10-06');
+  assert.equal(mergeSchedule(closedAuto, {}).close, undefined);
+  assert.equal(mergeSchedule(closedAuto, { date: '2026-10-06', fields: { status: 'open', open: '17:00' } }).close, '23:30');
 }
 // Week picture read by GitHub Models: only a sane answer becomes week.json.
 {
