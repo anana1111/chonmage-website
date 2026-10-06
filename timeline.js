@@ -584,6 +584,7 @@
       const statusText = document.getElementById('hero-business-status-text');
       if (statusText) statusText.textContent = { open: '本日営業', ongoing: '開催中', ended: '本日終了', closed: '休業' }[hero.status];
       if (openItem) {
+        if (openItem.querySelector('span')) openItem.querySelector('span').textContent = 'OPEN';
         openItem.hidden = hero.status === 'closed' || !validTime(hero.open);
         if (openItem.querySelector('strong')) openItem.querySelector('strong').textContent = hero.open || '';
       }
@@ -607,7 +608,9 @@
     const dateLabel = document.getElementById('hero-schedule-date');
     if (dateLabel) dateLabel.textContent = heroDateLabel(data.date);
     const statusText = document.getElementById('hero-business-status-text');
-    const statusLabels = { closed: '本日休業', scheduled: '本日営業', before: '本日 ' + open + ' OPEN', open: '営業中', ended: '本日終了' };
+    // After CLOSE the status says when the shop opens next (「明日 13:00 OPEN」), like 「本日 13:00 OPEN」 before OPEN.
+    const nextOpen = (closed || phase === 'ended') && data.nextOpen ? data.nextOpen : null;
+    const statusLabels = { closed: '本日休業', scheduled: '本日営業', before: '本日 ' + open + ' OPEN', open: '営業中', ended: phase === 'ended' && nextOpen ? nextOpen.label + ' OPEN' : '本日終了' };
     if (statusText) statusText.textContent = statusLabels[phase];
     const status = document.getElementById('hero-business-status');
     if (status) status.dataset.phase = phase;
@@ -625,13 +628,18 @@
         nextLabel = 'NOW';
       }
     }
-    const mainEvent = closed ? null : (events.find((event) => event.isMain) ||
+    const mainEvent = closed || phase === 'ended' ? null : (events.find((event) => event.isMain) ||
       events.slice().reverse().find((event) => ['special', 'tournament'].includes(normalizedType(event))) || null);
 
     if (openItem) {
-      openItem.hidden = closed || !validTime(open);
+      // On a 休業 day the OPEN cell tells when the shop opens next; after CLOSE the status line already does.
+      const nextCell = closed && nextOpen;
+      const label = openItem.querySelector('span');
       const strong = openItem.querySelector('strong');
-      if (strong && validTime(open)) strong.textContent = open;
+      if (label) label.textContent = nextCell ? 'NEXT OPEN' : 'OPEN';
+      openItem.hidden = nextCell ? false : closed || !validTime(open) || Boolean(nextOpen);
+      if (strong && nextCell) strong.textContent = nextOpen.label;
+      else if (strong && validTime(open)) strong.textContent = open;
     }
     if (nextEvent && nextEvent === mainEvent) {
       setHeroItem(nextItem, nextLabel + ' · MAIN', nextEvent);

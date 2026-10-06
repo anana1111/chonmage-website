@@ -195,6 +195,7 @@
   line-height: 1.7;
 }
 .timeline-ended strong { font-size: .95rem; font-weight: 900; letter-spacing: .04em; }
+#hero-business-status[data-phase="stale"] i,
 #hero-business-status[data-phase="ended"] i,
 #hero-business-status[data-phase="closed"] i { background: #9aa09c; box-shadow: 0 0 0 5px rgba(154, 160, 156, .18); }
 #hero-business-status[data-phase="before"] i { background: #ffb39b; box-shadow: 0 0 0 5px rgba(255, 179, 155, .16); }

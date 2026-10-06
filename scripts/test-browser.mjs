@@ -54,7 +54,7 @@ const fixture = (overrides = {}) => ({
   ...overrides,
 });
 
-async function openPage({ width = 390, time, events, blockActivity = false, javaScriptEnabled = true, url = '/' } = {}) {
+async function openPage({ width = 390, time, events, week, blockActivity = false, javaScriptEnabled = true, url = '/' } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, javaScriptEnabled, locale: 'ja-JP', timezoneId: 'Asia/Tokyo' });
   await context.addInitScript(() => { try { localStorage.setItem('chonmage-admin-unlock', '9e06018654272ea14463bc3c1652fd88ac344865948d75336ccf7b8f21c04360'); } catch {} });
   const page = await context.newPage();
@@ -64,6 +64,8 @@ async function openPage({ width = 390, time, events, blockActivity = false, java
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (route) => route.fulfill({ status: 200, contentType: route.request().resourceType() === 'stylesheet' ? 'text/css' : 'text/plain', body: '' }));
   if (blockActivity) await page.route(/\/activity\.js/, (route) => route.fulfill({ status: 404, body: '' }));
   if (events) await page.route(/\/data\/events\.json/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(events) }));
+  // Fixture pages get an empty week picture unless a test passes one; the real file changes weekly.
+  if (events || week) await page.route(/\/data\/week\.json/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(week || { version: 1, days: [] }) }));
   if (time && javaScriptEnabled) await page.clock.setFixedTime(new Date(time));
   await page.goto(origin + url, { waitUntil: 'load' });
   if (javaScriptEnabled && url === '/') {
@@ -132,6 +134,45 @@ await scenario('after close shows 本日終了', { time: jst('23:45'), events: f
   assert.equal(s.ended, true);
   assert.deepEqual(s.states, []);
   assert.equal(s.stale, false);
+});
+// Week picture: the page switches to the new day at midnight and says when the shop opens next.
+const weekFixture = { version: 1, sourceUrl: 'https://x.com/ChonmageNiigata/status/2', days: [
+  { date: '2026-10-02', open: '17:00', close: '23:30', ringGame: true, events: [{ time: '18:00', title: 'THE DAILY', entry: '¥1,500〜', reentry: '¥2,000' }] },
+  { date: '2026-10-03', open: '13:00', close: '23:30', ringGame: true, events: [{ time: '14:00', title: 'フリーロール', entry: '無料', reentry: '¥500' }] },
+  { date: '2026-10-04', open: '', close: '', ringGame: false, events: [] },
+  { date: '2026-10-05', open: '17:00', close: '', ringGame: true, events: [] }] };
+await scenario('after close says when the shop opens next', { time: jst('23:45'), events: fixture(), week: weekFixture }, (s) => {
+  assert.equal(s.status, '明日 13:00 OPEN');
+  assert.equal(s.open, null, 'OPEN is not repeated');
+  assert.equal(s.main, null, 'no MAIN after CLOSE');
+  assert.equal(s.ended, true);
+});
+await scenario('after close without a week picture', { time: jst('23:45'), events: fixture() }, (s) => {
+  assert.equal(s.status, '本日終了');
+});
+await scenario('before close the OPEN cell is unchanged', { time: jst('20:00'), events: fixture(), week: weekFixture }, (s) => {
+  assert.equal(s.open, 'OPEN 17:00');
+});
+await scenario('after midnight the week picture is today', { time: jst('00:30', '2026-10-03'), events: fixture(), week: weekFixture }, (s) => {
+  assert.equal(s.stale, false);
+  assert.equal(s.date, '2026.10.03 · SAT');
+  assert.equal(s.status, '本日 13:00 OPEN');
+  assert.equal(s.next, 'NEXT 14:00 FREE ROLL');
+  assert.equal(s.activity, 'before-open');
+});
+await scenario('the new day from the week picture ends at its CLOSE', { time: jst('23:40', '2026-10-03'), events: fixture(), week: weekFixture }, (s) => {
+  assert.equal(s.status, '10/5（月） 17:00 OPEN', 'skips the 休業 day');
+});
+await scenario('a 休業 day from the week picture', { time: jst('15:00', '2026-10-04'), events: fixture(), week: weekFixture }, (s) => {
+  assert.equal(s.status, '本日休業');
+  assert.equal(s.open, 'NEXT OPEN 明日 17:00');
+});
+await scenario('no week row for today stays stale', { time: jst('12:00', '2026-10-09'), events: fixture(), week: weekFixture }, (s) => {
+  assert.equal(s.stale, true);
+  assert.equal(s.date, 'LATEST INFO');
+});
+await scenario('the daily data wins over the week picture', { time: jst('18:30'), events: fixture(), week: weekFixture }, (s) => {
+  assert.equal(s.next, 'NEXT · MAIN 19:10 ふるまちトーナメント');
 });
 await scenario('closed day', { time: jst('18:00'), events: fixture({ status: 'closed', open: undefined, close: undefined, ringGame: { enabled: false }, events: [], summary: ['本日は休業です。'] }) }, (s) => {
   assert.equal(s.status, '本日休業');

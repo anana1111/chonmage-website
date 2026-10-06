@@ -291,6 +291,8 @@ function applyStaleState(isStale, latestXUrl = officialXUrl, heroIsStale = isSta
     const status = document.getElementById('hero-business-status-text');
     if (date) date.textContent = 'LATEST INFO';
     if (status) status.textContent = '最新情報はXで確認';
+    const dot = document.getElementById('hero-business-status');
+    if (dot) dot.dataset.phase = 'stale';
   }
 }
 
@@ -322,15 +324,32 @@ async function fetchData(path) {
 }
 
 let liveEvents = null;
+let liveWeek = null;
 let liveSignature = '';
 
 // 予約公開: scheduled events and home cards stay hidden until their publishAt (JST).
 const visibleNow = (data) => window.ChonmagePublish ? window.ChonmagePublish.visibleSchedule(data) : data;
-const signatureOf = (data) => (window.ChonmageSchedule?.scheduleSignature?.(visibleNow(data)) || '') + (window.ChonmagePublish?.visibilityKey(data) || '');
+// After midnight, before GitHub Actions has written the new day, today's row of the week
+// picture stands in so the page never waits for a job. A 25時CLOSE day stays until it closes.
+function effectiveSchedule(source) {
+  let data = visibleNow(source);
+  const week = window.ChonmageWeek;
+  if (!week || !liveWeek) return data;
+  if (!isCurrentSchedule(data)) {
+    try {
+      const fromWeek = week.daySchedule(liveWeek, getJapanDate());
+      if (fromWeek) data = { ...validateEvents(fromWeek), heroOverrides: data.heroOverrides };
+    } catch (error) { console.warn('週間スケジュールを使えません。', error); }
+  }
+  // 本日終了 and 休業 say when the shop opens next.
+  const next = isCurrentSchedule(data) ? week.nextOpening(liveWeek, data.date) : null;
+  return next ? { ...data, nextOpen: next } : data;
+}
+const signatureOf = (data) => (window.ChonmageSchedule?.scheduleSignature?.(effectiveSchedule(data)) || '') + (window.ChonmagePublish?.visibilityKey(data) || '') + getJapanDate();
 
 function showEvents(source) {
   liveSignature = signatureOf(source);
-  const data = visibleNow(source);
+  const data = effectiveSchedule(source);
   const isCurrent = isCurrentSchedule(data);
   if (isCurrent) {
     renderEvents(data);
@@ -345,7 +364,12 @@ async function loadEvents() {
   // Prevent old static times appearing as today's schedule while loading or on failure.
   applyStaleState(true);
   try {
-    liveEvents = validateEvents(await fetchData('./data/events.json'));
+    const [events, week] = await Promise.all([
+      fetchData('./data/events.json'),
+      fetchData('./data/week.json').catch(() => null),
+    ]);
+    liveWeek = week;
+    liveEvents = validateEvents(events);
     showEvents(liveEvents);
   } catch (error) {
     liveEvents = null;
