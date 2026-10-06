@@ -8,6 +8,7 @@ on:
       - 'scripts/**'
       - 'news-core.js'
       - 'publish-core.js'
+      - 'data/news.json'
       - 'data/events.manual.json'
       - 'data/week.json'
       - '.github/workflows/update-events.yml'
@@ -97,6 +98,9 @@ jobs:
       - name: Validate final public schedule
         run: node scripts/validate-events.mjs data/events.json data/news.json
 
+      - name: Generate crawlable NEWS pages and sitemap
+        run: node scripts/generate-news-pages.mjs
+
       - name: Commit only real data changes
         if: github.ref == 'refs/heads/main'
         shell: bash
@@ -122,13 +126,15 @@ jobs:
             # A photo problem must never block the schedule update, so it only warns.
             node scripts/news-images.mjs data/news.json || echo "::warning::NEWS photos were not copied; the X links stay."
             node scripts/validate-events.mjs data/events.json data/news.json
-            if git diff --quiet -- data/events.auto.json data/events.json data/news.json data/week.json; then
-              echo "No schedule or NEWS data changes."
+            node scripts/generate-news-pages.mjs
+            git add data/events.auto.json data/events.json data/news.json data/week.json
+            git add -A data/news-pages.generated.json news sitemap.xml
+            if [ -d images/news ]; then git add images/news; fi
+            if git diff --cached --quiet; then
+              echo "No schedule, NEWS or SEO page changes."
               exit 0
             fi
-            git add data/events.auto.json data/events.json data/news.json data/week.json
-            if [ -d images/news ]; then git add images/news; fi
-            git commit --quiet -m "Update daily events and NEWS for $DATE"
+            git commit --quiet -m "Update daily events, NEWS and SEO pages for $DATE"
             if git push origin HEAD:main; then
               exit 0
             fi

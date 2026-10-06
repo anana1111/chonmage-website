@@ -38,7 +38,7 @@
   }
   function card(item, siteRoot) {
     const result = node('article', 'news-card');
-    const href = new URL('news/?id=' + encodeURIComponent(item.id), siteRoot).href;
+    const href = new URL('news/' + encodeURIComponent(item.id) + '/', siteRoot).href;
     const visual = link('', href, 'news-image news-image--' + item.theme);
     visual.setAttribute('aria-label', item.title + 'を読む');
     if (item.image) {
