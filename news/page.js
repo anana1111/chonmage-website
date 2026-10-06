@@ -20,6 +20,8 @@
       if (!item) state('ニュースが見つかりませんでした。');
       else if (core.status(item, now) === 'Expired') state('このニュースは掲載終了しました。');
       else if (core.status(item, now) !== 'Published') state('このニュースは現在公開されていません。');
+      // Old shared links (/news/?id=…) move to the item's own crawlable page.
+      else if (/^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/.test(id)) location.replace(new URL('news/' + id + '/', siteRoot).href);
       else { title(item.title); container.replaceChildren(view.detail(item, siteRoot)); }
     } else {
       title('NEWS');
