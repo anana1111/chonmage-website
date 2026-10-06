@@ -61,6 +61,7 @@ python3 -m http.server 8000
 - 步骤：测试 → 抓取公式 X → 合并 manual → 校验 → 只有数据真的变化时才 commit。
 - push 前会重新同步最新的 `main` 并重新合并，因此运行期间上传的 `events.manual.json` 不会被覆盖；push 被拒时最多重试 3 次。
 - 权限只有 `contents: write`。
+- 读取 X：先用登录小号读取（仓库 Secrets `X_AUTH_TOKEN`、`X_CT0`，即小号浏览器 cookie 的 `auth_token`、`ct0`；用固定版本的 `twitter-cli` 读最近 20 条）。没有 Secrets、cookie 失效或读取失败时，自动退回未登录的 syndication / HTML / Jina / RSS。cookie 失效时在 X 网页版重新登录小号，把新值更新到 Secrets 即可。请勿使用店铺主账号。
 - 抓取不到当天信息（X 返回 403/429、格式变化等）时不会清空现有数据。
 
 ## 管理画面 `/admin/`
