@@ -468,5 +468,5 @@
 @media (prefers-reduced-motion: reduce) { .hero-sticker { animation: none; } }
 
 /* Home header: the shop's character logo (white lines for the dark hero photo). */
-.brand--logo img { display: block; height: 68px; width: auto; filter: drop-shadow(0 1px 8px rgba(0, 0, 0, .45)); }
+.brand--logo img { display: block; height: 68px; width: auto; filter: drop-shadow(0 1px 6px rgba(0, 0, 0, .35)); }
 @media (max-width: 900px) { .brand--logo img { height: 46px; } }
