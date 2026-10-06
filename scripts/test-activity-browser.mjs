@@ -12,7 +12,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const shots = process.argv.slice(2).find((value) => !value.startsWith('--'));
 const fontCheck = process.argv.includes('--font-check');
 if (shots) fs.mkdirSync(shots, { recursive: true });
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.avif': 'image/avif', '.woff2': 'font/woff2' };
 const server = http.createServer((req, res) => {
   let file = path.join(root, new URL(req.url, 'http://local').pathname);
   if (!file.startsWith(root)) return res.writeHead(403).end();
