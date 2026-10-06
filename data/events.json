@@ -7,7 +7,7 @@
   "source": {
     "type": "x",
     "url": "https://x.com/ChonmageNiigata/status/2106713700346515720",
-    "mode": "auto"
+    "mode": "merged"
   },
   "open": "17:00",
   "status": "open",
@@ -30,15 +30,19 @@
       "heroTitle": "THE DAILY",
       "theme": "orange",
       "tags": [],
-      "description": "週間スケジュールより。当日の変更は公式Xでお知らせします。",
+      "description": "🚗 駐車券のご提示でEntryがさらにお得に！\n🐦 EARLY BIRD\nレベル2（18:45）までの着席でエントリー無料‼️\n早めの着席は、三文以上の得。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "¥1,500〜"
+          "value": "¥2,000 / 20,000pt"
         },
         {
           "label": "RE-ENTRY",
           "value": "¥2,000"
+        },
+        {
+          "label": "最終受付",
+          "value": "20:10"
         }
       ],
       "link": {
