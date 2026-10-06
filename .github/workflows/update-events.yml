@@ -52,7 +52,7 @@ jobs:
           TWITTER_CT0: ${{ secrets.X_CT0 }}
         run: |
           if [ -z "$TWITTER_AUTH_TOKEN" ] || [ -z "$TWITTER_CT0" ]; then echo "No X login secrets; skipping."; exit 0; fi
-          python3 -m pip install --quiet --disable-pip-version-check twitter-cli==0.8.6
+          python3 -m pip install --quiet --disable-pip-version-check twitter-cli==0.8.5
           if ! twitter user-posts ChonmageNiigata --max 20 --json > "$RUNNER_TEMP/x-posts.json"; then
             head -c 400 "$RUNNER_TEMP/x-posts.json" >&2; rm -f "$RUNNER_TEMP/x-posts.json"; exit 1
           fi
