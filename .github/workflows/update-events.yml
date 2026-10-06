@@ -9,6 +9,7 @@ on:
       - 'news-core.js'
       - 'publish-core.js'
       - 'data/events.manual.json'
+      - 'data/week.json'
       - '.github/workflows/update-events.yml'
   schedule:
     # Cron is UTC (JST = UTC+9). Minutes are offset from :00 to avoid the busiest slot.
@@ -19,9 +20,15 @@ on:
     # Weekends: 13:00 OPEN -> JST 11:17 – 13:47 every 30 min
     - cron: '17,47 2-4 * * 0,6'
   workflow_dispatch:
+    inputs:
+      reread_week:
+        description: 'Read the latest week schedule picture again'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+  models: read
 
 concurrency:
   group: update-daily-events
@@ -57,6 +64,20 @@ jobs:
             head -c 400 "$RUNNER_TEMP/x-posts.json" >&2; rm -f "$RUNNER_TEMP/x-posts.json"; exit 1
           fi
           node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('logged-in X read: ok=' + d.ok + ', posts=' + (Array.isArray(d.data) ? d.data.length : 0))" "$RUNNER_TEMP/x-posts.json"
+          # The Sunday week picture is pinned, and twitter-cli leaves the pinned post out of user-posts.
+          if ! python3 scripts/x-pinned-post.py ChonmageNiigata > "$RUNNER_TEMP/x-week-posts.json"; then rm -f "$RUNNER_TEMP/x-week-posts.json"; fi
+          [ -f "$RUNNER_TEMP/x-week-posts.json" ] && node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('pinned post: ' + (d.data||[]).map(t=>t.id+' '+String(t.text).slice(0,30)).join(' / '))" "$RUNNER_TEMP/x-week-posts.json" || true
+
+      # The Sunday week picture is read once by GitHub Models (free with GITHUB_TOKEN).
+      # A failure only warns: the old week.json and the daily OPEN posts still work.
+      - name: Read the week schedule picture
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          X_POSTS_PATH: ${{ runner.temp }}/x-posts.json
+          X_WEEK_POSTS_PATH: ${{ runner.temp }}/x-week-posts.json
+          WEEK_CHANGED_PATH: ${{ runner.temp }}/week-changed
+          REREAD_WEEK: ${{ inputs.reread_week }}
+        run: node scripts/read-week-image.mjs || echo "::warning::The week schedule picture was not read; keeping data/week.json."
 
       - name: Fetch official X schedule and NEWS when publicly available
         env:
@@ -85,6 +106,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           AUTO_TMP="$(mktemp)"
           cp data/events.auto.json "$AUTO_TMP"
+          WEEK_TMP="$(mktemp)"
+          cp data/week.json "$WEEK_TMP"
           DATE="$(node -e "const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const o=Object.fromEntries(p.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));process.stdout.write(o.year+'-'+o.month+'-'+o.day)")"
           for attempt in 1 2 3; do
             # main may have changed while this job ran (e.g. staff uploaded events.manual.json).
@@ -93,16 +116,17 @@ jobs:
             git fetch --quiet origin main
             git reset --quiet --hard origin/main
             cp "$AUTO_TMP" data/events.auto.json
+            if [ -f "$RUNNER_TEMP/week-changed" ]; then cp "$WEEK_TMP" data/week.json; fi
             node scripts/merge-events.mjs
             node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
             # A photo problem must never block the schedule update, so it only warns.
             node scripts/news-images.mjs data/news.json || echo "::warning::NEWS photos were not copied; the X links stay."
             node scripts/validate-events.mjs data/events.json data/news.json
-            if git diff --quiet -- data/events.auto.json data/events.json data/news.json; then
+            if git diff --quiet -- data/events.auto.json data/events.json data/news.json data/week.json; then
               echo "No schedule or NEWS data changes."
               exit 0
             fi
-            git add data/events.auto.json data/events.json data/news.json
+            git add data/events.auto.json data/events.json data/news.json data/week.json
             if [ -d images/news ]; then git add images/news; fi
             git commit --quiet -m "Update daily events and NEWS for $DATE"
             if git push origin HEAD:main; then

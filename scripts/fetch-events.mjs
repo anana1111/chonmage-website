@@ -3,6 +3,7 @@ import { normalizeScheduleText } from './normalize-events.mjs';
 import { validateSchedule } from './validate-events.mjs';
 import { readerCandidatesFromText, rssCandidatesFromText } from './x-reader.mjs';
 import { syncNewsFile } from './sync-news.mjs';
+import { readWeek, weekDaySchedule } from './week-schedule.mjs';
 
 const HANDLE = 'ChonmageNiigata';
 const PROFILE_URL = 'https://x.com/' + HANDLE;
@@ -251,6 +252,21 @@ export function writeSchedule(normalized, output = OUTPUT) {
   return true;
 }
 
+// Today's row of the Sunday week picture, unless today's daily post was already read earlier.
+export function useWeekSchedule(now = new Date(), output = OUTPUT, week = readWeek()) {
+  const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(now);
+  let current = null;
+  try { current = JSON.parse(fs.readFileSync(output, 'utf8')); } catch {}
+  if (current?.date === today && current?.source?.url !== week?.sourceUrl) return false;
+  const schedule = week && weekDaySchedule(week, today, now);
+  if (!schedule) return false;
+  // Same day again: keep the old time stamp so an unchanged week makes no new commit.
+  if (current?.date === today && current.updatedAt) schedule.updatedAt = current.updatedAt;
+  writeSchedule(schedule, output);
+  console.log('used the week schedule for ' + today + ' (no daily post yet)');
+  return true;
+}
+
 async function main() {
   let candidates = [];
   try {
@@ -262,6 +278,7 @@ async function main() {
   if (process.env.NEWS_CANDIDATES_PATH) fs.writeFileSync(process.env.NEWS_CANDIDATES_PATH, JSON.stringify(candidates) + '\n');
   else syncNewsFile(candidates);
   const normalized = pickSchedule(candidates);
+  if (!normalized && useWeekSchedule()) return;
   if (!normalized) {
     warn('公式Xから当日のScheduleを十分な確度で識別できませんでした。既存のevents.auto.jsonを保持します。');
     // The posts are public; a short list shows whether today's post is missing or in a new format.

@@ -259,4 +259,74 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
   assert.equal(daily.open, '17:00');
   assert.deepEqual(daily.events.map((event) => event.time + ' ' + event.title), ['18:00 THE DAILY']);
 }
+// Sunday week picture: today's row fills the cards until the daily post is read.
+{
+  const { weekDaySchedule } = await import('./week-schedule.mjs');
+  const { useWeekSchedule } = await import('./fetch-events.mjs');
+  const fsm = await import('node:fs');
+  const os = await import('node:os');
+  const pathm = await import('node:path');
+  const week = { version: 1, sourceUrl: 'https://x.com/ChonmageNiigata/status/1', days: [
+    { date: '2026-10-07', open: '17:00', close: '23:30', ringGame: true, events: [
+      { time: '18:00', title: 'フリーロール', entry: '無料', reentry: '¥500' },
+      { time: '19:10', title: 'PLOトーナメント', entry: '¥3,000', reentry: '¥3,000' }] }] };
+  const day = weekDaySchedule(week, '2026-10-07', new Date('2026-10-07T00:00:00Z'));
+  assert.equal(day.open, '17:00');
+  assert.equal(day.close, '23:30');
+  assert.deepEqual(day.events.map((event) => event.type), ['free', 'tournament']);
+  assert.equal(weekDaySchedule(week, '2026-10-08'), null);
+  const dir = fsm.mkdtempSync(pathm.join(os.tmpdir(), 'week-'));
+  const out = pathm.join(dir, 'auto.json');
+  const morning = new Date('2026-10-07T00:07:00Z');
+  fsm.writeFileSync(out, JSON.stringify({ date: '2026-10-06', source: { url: 'https://x.com/ChonmageNiigata/status/9' } }));
+  assert.equal(useWeekSchedule(morning, out, week), true);
+  assert.equal(JSON.parse(fsm.readFileSync(out, 'utf8')).date, '2026-10-07');
+  const daily = { date: '2026-10-07', source: { url: 'https://x.com/ChonmageNiigata/status/99' } };
+  fsm.writeFileSync(out, JSON.stringify(daily));
+  assert.equal(useWeekSchedule(morning, out, week), false);
+  assert.deepEqual(JSON.parse(fsm.readFileSync(out, 'utf8')), daily);
+  fsm.rmSync(dir, { recursive: true });
+}
+// Week picture read by GitHub Models: only a sane answer becomes week.json.
+{
+  const { findWeekPost, weekFromAnswer, readWeekImage } = await import('./read-week-image.mjs');
+  const { weekDaySchedule } = await import('./week-schedule.mjs');
+  const fsm = await import('node:fs');
+  const os = await import('node:os');
+  const pathm = await import('node:path');
+  const now = new Date('2026-10-05T03:00:00Z');
+  const tweet = { id: '2106713700346515720', text: '10月5日(月)からのスケジュール', isRetweet: false, author: { screenName: 'ChonmageNiigata' },
+    createdAtISO: '2026-10-04T11:51:00+00:00', media: [{ type: 'photo', url: 'https://pbs.twimg.com/media/ABC.jpg' }] };
+  const post = findWeekPost({ ok: true, data: [{ ...tweet, id: '1', text: '5日(月)17時OPEN' }, tweet] }, now);
+  assert.equal(post.url, 'https://x.com/ChonmageNiigata/status/2106713700346515720');
+  assert.equal(findWeekPost({ data: [{ ...tweet, isRetweet: true }] }, now), null);
+  assert.equal(findWeekPost({ data: [tweet] }, new Date('2026-10-20T00:00:00Z')), null);
+  const answer = { days: [
+    { month: 10, day: 5, open: '17:00', close: '23:30', ringGame: true, events: [{ time: '18:00', title: 'THE DAILY', entry: '¥1,500〜', reentry: '¥2,000' }] },
+    { month: 10, day: 6, open: '', close: '', ringGame: false, events: [] }] };
+  const week = weekFromAnswer(answer, post);
+  assert.deepEqual(week.days.map((day) => day.date), ['2026-10-05', '2026-10-06']);
+  assert.equal(weekDaySchedule(week, '2026-10-06').status, 'closed');
+  assert.throws(() => weekFromAnswer({ days: [{ month: 11, day: 30, open: '17:00', events: [] }] }, post));
+  assert.throws(() => weekFromAnswer({ days: [{ month: 10, day: 7, open: '7pm', events: [] }] }, post));
+  assert.throws(() => weekFromAnswer({ days: [] }, post));
+  const decemberPost = { ...post, postedAt: new Date('2026-12-27T03:00:00Z') };
+  assert.equal(weekFromAnswer({ days: [{ month: 1, day: 2, open: '13:00', events: [] }] }, decemberPost).days[0].date, '2027-01-02');
+  const dir = fsm.mkdtempSync(pathm.join(os.tmpdir(), 'weekimg-'));
+  const posts = pathm.join(dir, 'posts.json');
+  const file = pathm.join(dir, 'week.json');
+  fsm.writeFileSync(posts, JSON.stringify({ ok: true, data: [tweet] }));
+  const calls = [];
+  const fakeFetch = async (url, init) => {
+    calls.push(url);
+    if (url.startsWith('https://pbs.twimg.com/')) return new Response(new Uint8Array([0xff, 0xd8, 0xff, 1]), { headers: { 'content-type': 'image/jpeg' } });
+    assert.match(init.headers.Authorization, /^Bearer t$/);
+    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(answer) } }] }));
+  };
+  assert.equal(await readWeekImage({ postsPath: posts, token: 't', fetch: fakeFetch, file, now }), true);
+  assert.equal(JSON.parse(fsm.readFileSync(file, 'utf8')).days.length, 2);
+  assert.equal(await readWeekImage({ postsPath: posts, token: 't', fetch: fakeFetch, file, now }), false);
+  assert.equal(calls.length, 2);
+  fsm.rmSync(dir, { recursive: true });
+}
 console.log('schedule data tests passed');
