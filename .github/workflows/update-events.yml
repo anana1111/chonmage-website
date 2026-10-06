@@ -8,6 +8,7 @@ on:
       - 'scripts/**'
       - 'news-core.js'
       - 'publish-core.js'
+      - 'data/news.json'
       - 'data/events.manual.json'
       - 'data/week.json'
       - '.github/workflows/update-events.yml'
