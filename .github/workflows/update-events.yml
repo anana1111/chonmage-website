@@ -65,7 +65,11 @@ jobs:
           fi
           node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('logged-in X read: ok=' + d.ok + ', posts=' + (Array.isArray(d.data) ? d.data.length : 0))" "$RUNNER_TEMP/x-posts.json"
           # The Sunday week picture can be pinned or edited and then missing from the timeline above.
-          twitter search "スケジュール" --from ChonmageNiigata --type Latest --has images --max 5 --json > "$RUNNER_TEMP/x-week-posts.json" || rm -f "$RUNNER_TEMP/x-week-posts.json"
+          if twitter search "スケジュール" --from ChonmageNiigata --type Latest --max 10 --json > "$RUNNER_TEMP/x-week-posts.json" 2> "$RUNNER_TEMP/x-week-err.txt"; then
+            node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('week post search: ok=' + d.ok + ', posts=' + (Array.isArray(d.data) ? d.data.length : 0))" "$RUNNER_TEMP/x-week-posts.json"
+          else
+            echo "week post search failed: $(head -c 300 "$RUNNER_TEMP/x-week-posts.json") $(tail -c 300 "$RUNNER_TEMP/x-week-err.txt")"; rm -f "$RUNNER_TEMP/x-week-posts.json"
+          fi
 
       # The Sunday week picture is read once by GitHub Models (free with GITHUB_TOKEN).
       # A failure only warns: the old week.json and the daily OPEN posts still work.
