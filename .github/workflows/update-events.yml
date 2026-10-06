@@ -64,12 +64,9 @@ jobs:
             head -c 400 "$RUNNER_TEMP/x-posts.json" >&2; rm -f "$RUNNER_TEMP/x-posts.json"; exit 1
           fi
           node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('logged-in X read: ok=' + d.ok + ', posts=' + (Array.isArray(d.data) ? d.data.length : 0))" "$RUNNER_TEMP/x-posts.json"
-          # The Sunday week picture can be pinned or edited and then missing from the timeline above.
-          if twitter search "スケジュール" --from ChonmageNiigata --type Latest --max 10 --json > "$RUNNER_TEMP/x-week-posts.json" 2> "$RUNNER_TEMP/x-week-err.txt"; then
-            node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('week post search: ok=' + d.ok + ', posts=' + (Array.isArray(d.data) ? d.data.length : 0))" "$RUNNER_TEMP/x-week-posts.json"
-          else
-            echo "week post search failed: $(head -c 300 "$RUNNER_TEMP/x-week-posts.json") $(tail -c 300 "$RUNNER_TEMP/x-week-err.txt")"; rm -f "$RUNNER_TEMP/x-week-posts.json"
-          fi
+          # The Sunday week picture is pinned, and twitter-cli leaves the pinned post out of user-posts.
+          if ! python3 scripts/x-pinned-post.py ChonmageNiigata > "$RUNNER_TEMP/x-week-posts.json"; then rm -f "$RUNNER_TEMP/x-week-posts.json"; fi
+          [ -f "$RUNNER_TEMP/x-week-posts.json" ] && node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('pinned post: ' + (d.data||[]).map(t=>t.id+' '+String(t.text).slice(0,30)).join(' / '))" "$RUNNER_TEMP/x-week-posts.json" || true
 
       # The Sunday week picture is read once by GitHub Models (free with GITHUB_TOKEN).
       # A failure only warns: the old week.json and the daily OPEN posts still work.
