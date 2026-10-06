@@ -56,6 +56,7 @@ const fixture = (overrides = {}) => ({
 
 async function openPage({ width = 390, time, events, blockActivity = false, javaScriptEnabled = true, url = '/' } = {}) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, javaScriptEnabled, locale: 'ja-JP', timezoneId: 'Asia/Tokyo' });
+  await context.addInitScript(() => { try { localStorage.setItem('chonmage-admin-unlock', '9e06018654272ea14463bc3c1652fd88ac344865948d75336ccf7b8f21c04360'); } catch {} });
   const page = await context.newPage();
   const errors = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -338,6 +339,7 @@ for (const width of widths) {
 // --- images: modern format, loaded, and sharp (never shown larger than the chosen file) ----
 for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor });
+  await context.addInitScript(() => { try { localStorage.setItem('chonmage-admin-unlock', '9e06018654272ea14463bc3c1652fd88ac344865948d75336ccf7b8f21c04360'); } catch {} });
   const page = await context.newPage();
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (route) => route.fulfill({ status: 200, body: '' }));
   await page.goto(origin + '/', { waitUntil: 'load' });
