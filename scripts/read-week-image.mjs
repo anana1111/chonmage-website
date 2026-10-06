@@ -81,7 +81,7 @@ async function askModel(imageBytes, type, token, fetchImpl) {
   const response = await fetchImpl(ENDPOINT, {
     method: 'POST',
     signal: AbortSignal.timeout(60000),
-    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/json' },
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
     body: JSON.stringify({
       model: MODEL,
       temperature: 0,
@@ -94,7 +94,9 @@ async function askModel(imageBytes, type, token, fetchImpl) {
   });
   const body = await response.text();
   if (!response.ok) throw new Error('GitHub Models HTTP ' + response.status + ': ' + body.slice(0, 300));
-  return JSON.parse(JSON.parse(body).choices[0].message.content);
+  let content;
+  try { content = JSON.parse(body).choices[0].message.content; } catch { throw new Error('GitHub Models gave an unexpected answer (HTTP ' + response.status + ', ' + (response.headers.get('content-type') || '') + '): ' + body.slice(0, 200)); }
+  return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g, ''));
 }
 
 export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, weekPostsPath = process.env.X_WEEK_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, now = new Date() } = {}) {
