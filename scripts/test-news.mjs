@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import '../news-core.js';
 import { mergeNews, newsFromCandidate } from './sync-news.mjs';
-import { candidateFromObject, loadCandidates } from './fetch-events.mjs';
+import { candidateFromObject, candidatesFromCliJson, loadCandidates } from './fetch-events.mjs';
 import { rssCandidatesFromText } from './x-reader.mjs';
 import { mirrorNewsImages, xImageName } from './news-images.mjs';
 import fs from 'node:fs';
@@ -159,5 +159,14 @@ try {
   const late = await mirrorNewsImages({ items: [item({ image: x('A1'), images: [x('A1'), x('LATE')] })] }, { ...quiet, timeBudgetMs: -1, fetch: fakeX(() => new Response(webp(1))) });
   equal(late.data.items[0].images, ['images/news/x-A1.webp', x('LATE')]); equal(requests.length, 0); equal(late.stats.failed, 1);
   fs.rmSync(dir, { recursive: true, force: true });
+}
+
+// Posts read by twitter-cli with the logged-in account become the usual candidates.
+{
+  const tweet = (extra = {}) => ({ id: '2106584000185921553', text: '10月6日\n17:00 OPEN', author: { screenName: 'ChonmageNiigata' }, createdAtISO: '2026-10-06T08:00:00+00:00', media: [{ type: 'photo', url: 'https://pbs.twimg.com/media/A1.jpg' }, { type: 'video', url: 'https://video.twimg.com/v.mp4' }], isRetweet: false, ...extra });
+  const rows = candidatesFromCliJson({ ok: true, schema_version: '1', data: [tweet(), tweet({ id: '1', isRetweet: true }), tweet({ id: '2', author: { screenName: 'someone' } }), tweet({ id: 'bad' }), null] });
+  equal(rows, [{ text: '10月6日\n17:00 OPEN', newsText: '10月6日\n17:00 OPEN', url: 'https://x.com/ChonmageNiigata/status/2106584000185921553', publishedAt: '2026-10-06T08:00:00+00:00', images: ['https://pbs.twimg.com/media/A1.jpg'] }]);
+  equal(candidatesFromCliJson([tweet()]).length, 1);
+  equal(candidatesFromCliJson({ ok: false }), []);
 }
 console.log('NEWS tests passed (' + checks + ' checks)');
