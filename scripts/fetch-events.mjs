@@ -264,6 +264,8 @@ async function main() {
   const normalized = pickSchedule(candidates);
   if (!normalized) {
     warn('公式Xから当日のScheduleを十分な確度で識別できませんでした。既存のevents.auto.jsonを保持します。');
+    // The posts are public; a short list shows whether today's post is missing or in a new format.
+    for (const row of candidates.slice(0, 6)) console.log('  recent post ' + (row.publishedAt || '?') + ': ' + String(row.text || '').replace(/\s+/g, ' ').slice(0, 120));
     return;
   }
   writeSchedule(normalized);
