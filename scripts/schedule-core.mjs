@@ -187,10 +187,28 @@ function uniqueId(id, used) {
   return id + '-' + index;
 }
 
+// The shop's usual closing time (also in index.html openingHoursSpecification).
+export const DEFAULT_CLOSE = '23:30';
+
+// Without CLOSE an open day says 営業中 all night, and X posts often give only OPEN.
+// Such a day takes `close` (the week picture's) or the usual time, unless a game
+// starts at or after it; then CLOSE stays unknown.
+export function fillClose(schedule, close = DEFAULT_CLOSE) {
+  if (!schedule || schedule.status !== 'open' || !isTime(schedule.open) || isTime(schedule.close)) return schedule;
+  const value = isTime(close) ? close : DEFAULT_CLOSE;
+  const closeMinute = scheduleMinutes(value, schedule.open);
+  const starts = (Array.isArray(schedule.events) ? schedule.events : [])
+    .filter((event) => event && !event.hidden).map((event) => event.time);
+  if (schedule.ringGame?.enabled && schedule.ringGame.start) starts.push(schedule.ringGame.start);
+  if (scheduleMinutes(schedule.open, schedule.open) < closeMinute &&
+    starts.every((time) => scheduleMinutes(time, schedule.open) < closeMinute)) schedule.close = value;
+  return schedule;
+}
+
 export function mergeSchedule(autoData, manualData, options = {}) {
   const warn = options.warn || (() => {});
   validateSchedule(autoData);
-  if (!manualData || typeof manualData !== 'object') return clone(autoData);
+  if (!manualData || typeof manualData !== 'object') return fillClose(clone(autoData));
 
   validateHeroOverrides(manualData.heroOverrides);
   const withHero = (schedule) => {
@@ -198,7 +216,7 @@ export function mergeSchedule(autoData, manualData, options = {}) {
     // browser so an open page also changes correctly at Japan midnight.
     delete schedule.heroOverrides;
     if (Object.keys(manualData.heroOverrides || {}).length) schedule.heroOverrides = clone(manualData.heroOverrides);
-    return schedule;
+    return fillClose(schedule);
   };
 
   const manualDate = typeof manualData.date === 'string' ? manualData.date : autoData.date;

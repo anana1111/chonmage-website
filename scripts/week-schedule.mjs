@@ -3,6 +3,7 @@
 // events.auto.json so the cards are not empty. A daily post for the same day still wins.
 import fs from 'node:fs';
 import { validateSchedule } from './validate-events.mjs';
+import { fillClose, isTime } from './schedule-core.mjs';
 
 export const WEEK_FILE = 'data/week.json';
 const PROFILE_URL = 'https://x.com/ChonmageNiigata';
@@ -58,7 +59,13 @@ export function weekDaySchedule(week, date, now = new Date()) {
     delete schedule.open;
   }
   if (day.close && day.open) schedule.close = day.close;
-  return validateSchedule(schedule);
+  return validateSchedule(fillClose(schedule));
+}
+
+// Today's CLOSE from the week picture, when that row has a valid one.
+export function weekClose(week, date) {
+  const day = (Array.isArray(week?.days) ? week.days : []).find((row) => row && row.date === date && row.open);
+  return isTime(day?.close) ? day.close : '';
 }
 
 export function readWeek(file = WEEK_FILE) {

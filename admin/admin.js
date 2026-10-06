@@ -1139,7 +1139,7 @@
   async function load() {
     $('load-error').hidden = true; $('loading').hidden = false; $('editor-form').hidden = true;
     try {
-      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=20261006');
+      if (!state.core) state.core = await import('../scripts/schedule-core.mjs?v=20261006close');
       await prepareFrame(); const live = await fetchPublished(); const choice = await chooseDraft(live);
       state.data = clone(choice.data); state.data.news.items = state.data.news.items.map((item) => newsCore.normalizeItem(item) || item); state.local = choice.local; state.snapshot = JSON.stringify(state.data);
       state.heroDate = japanNow().date;

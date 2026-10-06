@@ -3,7 +3,8 @@ import { normalizeScheduleText } from './normalize-events.mjs';
 import { validateSchedule } from './validate-events.mjs';
 import { readerCandidatesFromText, rssCandidatesFromText } from './x-reader.mjs';
 import { syncNewsFile } from './sync-news.mjs';
-import { readWeek, weekDaySchedule } from './week-schedule.mjs';
+import { readWeek, weekClose, weekDaySchedule } from './week-schedule.mjs';
+import { fillClose } from './schedule-core.mjs';
 
 const HANDLE = 'ChonmageNiigata';
 const PROFILE_URL = 'https://x.com/' + HANDLE;
@@ -283,9 +284,16 @@ async function main() {
     warn('公式Xから当日のScheduleを十分な確度で識別できませんでした。既存のevents.auto.jsonを保持します。');
     // The posts are public; a short list shows whether today's post is missing or in a new format.
     for (const row of candidates.slice(0, 6)) console.log('  recent post ' + (row.publishedAt || '?') + ': ' + String(row.text || '').replace(/\s+/g, ' ').slice(0, 120));
+    // The kept day still needs a CLOSE so it does not stay 営業中 all night.
+    try {
+      const kept = JSON.parse(fs.readFileSync(OUTPUT, 'utf8'));
+      writeSchedule(validateSchedule(fillClose(kept, weekClose(readWeek(), kept.date))));
+    } catch (error) {
+      warn('could not add CLOSE to the kept events.auto.json: ' + (error?.message || String(error)));
+    }
     return;
   }
-  writeSchedule(normalized);
+  writeSchedule(validateSchedule(fillClose(normalized, weekClose(readWeek(), normalized.date))));
 }
 
 export { clean as cleanPostText, candidateFromObject, decodeJsonString, loadCandidates };
