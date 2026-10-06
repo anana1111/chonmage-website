@@ -329,4 +329,20 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
   assert.equal(calls.length, 2);
   fsm.rmSync(dir, { recursive: true });
 }
+// An early-bird line 「…までの着席でエントリー無料」 is not the entry price.
+{
+  const early = normalizeScheduleText('6日(火)17時OPEN\n🆕🏆 THE DAILY\n🕕18:00〜\n🐦 EARLY BIRD\nレベル2（18:45）までの着席でエントリー無料‼️\nSTACK 20,000pt', { now: new Date('2026-10-06T16:00:00+09:00') });
+  assert.equal(early.events[0].facts.find((row) => row.label === 'ENTRY'), undefined);
+  const free = normalizeScheduleText('6日(火)17時OPEN\n18:00 フリーロール\nENTRY 無料', { now: new Date('2026-10-06T16:00:00+09:00') });
+  assert.equal(free.events[0].facts.find((row) => row.label === 'ENTRY').value, '¥0');
+}
+
+// A manual edit made on the week-schedule event follows it when the daily post renames the id.
+{
+  const day = { ...base, date: '2026-10-06', events: [{ id: 'the-daily-1800', time: '18:00', type: 'event', title: 'THE DAILY', theme: 'orange', description: 'auto', facts: [] }] };
+  const edit = { version: 1, date: '2026-10-06', fields: {}, ringGame: {}, events: { 'event-1800': { description: 'manual' } }, extraEvents: [] };
+  assert.equal(mergeSchedule(day, edit).events[0].description, 'manual');
+  const two = { ...day, events: [...day.events, { ...day.events[0], id: 'other-1800', title: 'OTHER' }] };
+  assert.deepEqual(mergeSchedule(two, edit).events.map((event) => event.description), ['auto', 'auto']);
+}
 console.log('schedule data tests passed');
