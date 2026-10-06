@@ -33,7 +33,7 @@ Google Fonts、X、Google Maps 的链接需要联网。
 | `scripts/` | 抓取、合并、校验脚本和测试（Node 22，无依赖） |
 | `images/` | 网站使用的 WebP 图片（1448px / 800px 两种尺寸），以及分享预览图 `og-image.jpg`（1200×630） |
 | `robots.txt` / `sitemap.xml` | 给搜索引擎的抓取规则和页面清单（新增公开页面时一起更新 sitemap） |
-| `_originals/` | 不发布的原始素材：`images/*.png` 原图、`image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件），以及分享预览图 `images/og-image.jpg` 的源文件 `og-image.html`（用本地预览打开后截 1200×630 的图即可重新生成） |
+| `_originals/` | 不发布的原始素材：`images/*.png` 原图、`image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件），以及分享预览图 `images/og-image.jpg` 的源文件 `og-image.html`（用本地预览打开后截 1200×630 的图即可重新生成。LINE 只显示中间的正方形，文字要放在中间 630×630 以内；换图后把 `index.html` 和 `news/index.html` 里 og:image 的 `?v=` 加 1） |
 
 ## 营业信息数据流
 
