@@ -1,94 +1,27 @@
 {
   "version": 1,
-  "date": "2026-10-02",
-  "replacement": {
-    "date": "2026-10-02",
-    "open": "17:00",
-    "status": "open",
-    "latestXUrl": "https://x.com/ChonmageNiigata",
-    "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2098995956872278516",
-    "summary": [
-      "トーナメントもリングゲームも開催。",
-      "当日の変更は公式Xでお知らせします。"
-    ],
-    "ringGame": {
-      "enabled": true,
-      "title": "リングゲームも終日開催",
-      "description": "空席・進行状況はお気軽にお問い合わせください。",
-      "start": "17:00"
-    },
-    "events": [
-      {
-        "time": "18:00",
-        "title": "フリーロールトーナメント",
-        "heroTitle": "フリーロール",
-        "theme": "blue",
-        "tags": [
-          "BEGINNER OK",
-          "1 DRINK"
-        ],
-        "description": "まずは気軽に参加したい方へ。初めての方にはスタッフが遊び方をご案内します。",
-        "facts": [
-          {
-            "label": "ENTRY",
-            "value": "¥0"
-          },
-          {
-            "label": "施設利用料",
-            "value": "¥500"
-          },
-          {
-            "label": "最終受付",
-            "value": "公式Xで確認"
-          }
-        ],
-        "link": {
-          "label": "最新情報 ↗",
-          "url": "https://x.com/ChonmageNiigata/status/2098995956872278516"
+  "date": "2026-10-06",
+  "fields": {},
+  "ringGame": {},
+  "events": {
+    "event-1800": {
+      "description": "🚗 駐車券のご提示でEntryがさらにお得に！\n🐦 EARLY BIRD\nレベル2（18:45）までの着席でエントリー無料‼️\n早めの着席は、三文以上の得。",
+      "facts": [
+        {
+          "label": "ENTRY",
+          "value": "¥2,000 / 20,000pt"
         },
-        "id": "free-roll-1330",
-        "type": "free"
-      },
-      {
-        "time": "18:00",
-        "title": "2-7",
-        "heroTitle": "王者決定戦",
-        "theme": "orange",
-        "tags": [
-          "RANKING EVENT",
-          "TOURNAMENT"
-        ],
-        "description": "test",
-        "facts": [
-          {
-            "label": "参加料金",
-            "value": "2,500/2,500pt"
-          },
-          {
-            "label": "置きバケ連絡",
-            "value": "17:00まで"
-          },
-          {
-            "label": "最終受付",
-            "value": "店舗へ確認"
-          }
-        ],
-        "link": {
-          "label": "置きバケ連絡 ↗",
-          "url": "tel:08014700011"
+        {
+          "label": "RE-ENTRY",
+          "value": "¥2,000"
         },
-        "id": "ranking-champion-1800",
-        "type": "tournament",
-        "isMain": true
-      }
-    ],
-    "version": 2,
-    "updatedAt": null,
-    "source": {
-      "type": "x",
-      "url": "https://x.com/ChonmageNiigata/status/2098995956872278516",
-      "mode": "seed"
-    },
-    "close": "23:30"
-  }
+        {
+          "label": "最終受付",
+          "value": "20:10"
+        }
+      ]
+    }
+  },
+  "extraEvents": [],
+  "heroOverrides": {}
 }
