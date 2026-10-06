@@ -105,3 +105,7 @@ GitHub Pages の静的サイトなので、ブラウザには GitHub token を�
 ## 失敗時
 
 JSON 読み込み失敗時や JavaScript が無効なときは、日付のない「公式Xをご確認ください」の表示になります（古い日付の予定を今日の予定として見せません）。開催日が日本の今日と一致しない場合も同じ表示です。
+
+## week.json（周日程）
+
+店铺每周日发一张下一周的日程图。Actions 用 GitHub Models（免费，使用 workflow 自带的 `GITHUB_TOKEN`）读图，结果存到 `data/week.json`（每天：日期、营业时间、是否有终日リングゲーム、活动的时间/名称/ENTRY/RENTRY）。当天的营业推文还没读到时，用 week.json 里今天那一行生成 `events.auto.json`；读到当天推文后以推文为准。读图结果不合理（日期不在那一周、时间格式不对等）时保留旧文件。手动修改：直接编辑本文件并 commit；想让 AI 重新读，手动运行 workflow 并勾选 `reread_week`。
