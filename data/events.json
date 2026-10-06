@@ -1,100 +1,51 @@
 {
   "version": 2,
-  "date": "2026-10-04",
+  "date": "2026-10-06",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2106584000185921553",
-  "updatedAt": "2026-10-04T12:21:25+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2106713700346515720",
+  "updatedAt": "2026-10-06T14:05:10+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2106584000185921553",
+    "url": "https://x.com/ChonmageNiigata/status/2106713700346515720",
     "mode": "auto"
   },
-  "open": "13:00",
+  "open": "17:00",
   "status": "open",
   "summary": [
-    "本日の開催情報です。",
+    "今週のスケジュールより。",
     "当日の変更は公式Xでお知らせします。"
   ],
   "ringGame": {
     "enabled": true,
-    "start": "13:00",
-    "title": "RING GAME",
-    "description": "4日(日)OPEN✨ 本日のトーナメントはこちら👇 🕠フリーロール 13:30～ 参加費無料＆1ドリンク付き🥤 ※別途、施設利用料500円が必要です。 🕠 ふるまちトーナメントdeep 15:30〜 長く遊べるロングストラクチャートーナメント‼️ Entry ¥3,500/ 35,000pt 🕖ふるまちターボ 20:00 ～ Entry ¥1,500/ 15,000pt リングゲームもOPENから参加者募集中🔥 本日もご来店お待ちしております☺️"
+    "start": "17:00",
+    "title": "NLHリングゲーム",
+    "description": "終日開催。"
   },
   "events": [
     {
-      "id": "event-1330",
-      "time": "13:30",
-      "type": "free",
-      "title": "フリーロール",
-      "heroTitle": "FREE ROLL",
-      "theme": "blue",
-      "tags": [
-        "1 DRINK"
-      ],
-      "description": "詳細は公式Xで確認してください。",
-      "facts": [
-        {
-          "label": "ENTRY",
-          "value": "¥0"
-        },
-        {
-          "label": "施設利用料",
-          "value": "500円"
-        }
-      ],
-      "link": {
-        "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106584000185921553"
-      }
-    },
-    {
-      "id": "deep-1530",
-      "time": "15:30",
+      "id": "event-1800",
+      "time": "18:00",
       "type": "tournament",
-      "title": "ふるまちトーナメントdeep",
-      "heroTitle": "ふるまちトーナメントdeep",
+      "title": "THE DAILY",
+      "heroTitle": "THE DAILY",
       "theme": "orange",
       "tags": [],
-      "description": "詳細は公式Xで確認してください。",
+      "description": "週間スケジュールより。当日の変更は公式Xでお知らせします。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "¥3,500"
+          "value": "¥1,500〜"
         },
         {
-          "label": "STARTING STACK",
-          "value": "35,000pt"
+          "label": "RE-ENTRY",
+          "value": "¥2,000"
         }
       ],
       "link": {
-        "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106584000185921553"
-      }
-    },
-    {
-      "id": "event-2000",
-      "time": "20:00",
-      "type": "event",
-      "title": "ふるまちターボ",
-      "heroTitle": "ふるまちターボ",
-      "theme": "orange",
-      "tags": [],
-      "description": "詳細は公式Xで確認してください。",
-      "facts": [
-        {
-          "label": "ENTRY",
-          "value": "¥1,500"
-        },
-        {
-          "label": "STARTING STACK",
-          "value": "15,000pt"
-        }
-      ],
-      "link": {
-        "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106584000185921553"
+        "label": "週間スケジュール ↗",
+        "url": "https://x.com/ChonmageNiigata/status/2106713700346515720"
       }
     }
-  ]
+  ],
+  "close": "23:30"
 }
