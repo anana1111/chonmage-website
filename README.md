@@ -16,7 +16,7 @@ python3 -m http.server 8000
 # 打开 http://localhost:8000/ （管理画面：http://localhost:8000/admin/）
 ```
 
-Google Fonts、X、Google Maps 的链接需要联网。
+日文字体 Noto Sans JP（Google Fonts）、X、Google Maps 的链接需要联网。
 
 ## 文件结构
 
@@ -31,7 +31,8 @@ Google Fonts、X、Google Maps 的链接需要联网。
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
 | `scripts/` | 抓取、合并、校验脚本和测试（Node 22，无依赖） |
-| `images/` | 网站使用的 WebP 图片（1448px / 800px 两种尺寸），以及分享预览图 `og-image.jpg`（1200×630） |
+| `images/` | 网站使用的 AVIF / WebP 图片（1448px / 800px 两种尺寸；手机 Hero 另有 1086px / 800px，贴纸有 240 / 400 / 800px），以及分享预览图 `og-image.jpg`（1200×630） |
+| `fonts/` | 自托管的英文标题字体 Archivo Black（拉丁子集）和它的授权 `OFL.txt` |
 | `robots.txt` / `sitemap.xml` | 给搜索引擎的抓取规则和页面清单（新增公开页面时一起更新 sitemap） |
 | `_originals/` | 不发布的原始素材：`images/*.png` 原图、`image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件），以及分享预览图 `images/og-image.jpg` 的源文件 `og-image.html`（用本地预览打开后截 1200×630 的图即可重新生成。LINE 只显示中间的正方形，文字要放在中间 630×630 以内；换图后把 `index.html` 和 `news/index.html` 里 og:image 的 `?v=` 加 1） |
 
@@ -82,7 +83,9 @@ node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地�
 
 ## 图片
 
-`_originals/images/*.png` 是原图，网页只引用 `images/` 里的 WebP（`srcset`：800w / 1448w）。替换图片时请同时更新 WebP 和 `_originals/image-sources.json`。以 `_` 或 `.` 开头的目录不会被 GitHub Pages 发布（仓库里没有 `.nojekyll`，请不要添加）。
+`_originals/images/*.png` 是原图，网页引用 `images/` 里的 AVIF（浏览器支持时优先）和 WebP（`srcset`：800w / 1448w）。替换图片时请同时更新 AVIF、WebP 和 `_originals/image-sources.json`。
+
+加载速度：日文字体不阻塞首屏（先用手机自带字体显示，字体到了再替换），首页 Hero 的手机菜单在首屏前由内联脚本收起，手机上首屏以下的区块用 `content-visibility` 延后绘制。改动 `<head>` 里的字体或 CSS 链接时请保留这些写法。以 `_` 或 `.` 开头的目录不会被 GitHub Pages 发布（仓库里没有 `.nojekyll`，请不要添加）。
 
 ## TODAY 动态优先级
 

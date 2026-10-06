@@ -21,7 +21,7 @@ catch {
   catch { console.log('playwright is not installed; browser tests skipped'); process.exit(0); }
 }
 
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif', '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };
 const server = http.createServer((request, response) => {
   let file = path.join(root, decodeURIComponent(new URL(request.url, 'http://x').pathname));
   if (!file.startsWith(root)) { response.writeHead(403).end(); return; }
@@ -348,11 +348,11 @@ for (const [width, deviceScaleFactor] of [[390, 3], [768, 2], [1440, 1]]) {
     fit: getComputedStyle(img).objectFit, box: [img.getBoundingClientRect().width, img.getBoundingClientRect().height], ratio: img.naturalWidth / img.naturalHeight,
   })));
   images.forEach((img) => {
-    ok(/\.webp$/.test(img.src) && img.natural > 0, width + 'px: image not loaded as webp ' + img.src);
+    ok(/\.(webp|avif)$/.test(img.src) && img.natural > 0, width + 'px: image not loaded as webp/avif ' + img.src);
     // object-fit: cover scales by the larger axis ratio.
     const needed = img.fit === 'cover' ? Math.max(img.box[0], img.box[1] * img.ratio) : img.shown;
     // naturalWidth is density-corrected for srcset images, so use the file's real width.
-    const fileWidth = Number(img.src.match(/-(\d+)\.webp$/)?.[1] || (img.src.startsWith('chonmage-character') ? 1350 : 1448));
+    const fileWidth = Number(img.src.match(/-(\d+)\.(?:webp|avif)$/)?.[1] || (img.src.startsWith('chonmage-character') ? 1350 : 1448));
     const largest = fileWidth >= 1448 || img.src === 'chonmage-character-800.webp';
     ok(needed * deviceScaleFactor <= fileWidth * 1.05 || largest, width + 'px@' + deviceScaleFactor + 'x: ' + img.src + ' upscaled (' + Math.round(needed * deviceScaleFactor) + ' > ' + fileWidth + ')');
   });
