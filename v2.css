@@ -466,3 +466,6 @@
 @keyframes heroSealPop { from { opacity: 0; transform: rotate(-8deg) scale(.7); } to { opacity: 1; transform: none; } }
 @keyframes heroStickerPop { from { opacity: 0; transform: rotate(-14deg) scale(.6); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .hero-sticker { animation: none; } }
+
+/* Home first screen: the logo stays out so the hero carries only the essentials (it keeps its grid cell so the menu does not move). */
+.brand--home { visibility: hidden; }
