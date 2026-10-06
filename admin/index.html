@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
     <link rel="shortcut icon" href="/favicon.ico?v=20261006chip" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261006chip" />
-    <link rel="stylesheet" href="./admin.css?v=7" />
+    <link rel="stylesheet" href="./admin.css?v=8" />
     <script src="./gate.js?v=1"></script>
   </head>
   <body>
@@ -104,6 +104,7 @@
       <div id="publish-summary">
         <p class="callout"><strong>この時点ではまだ公開されていません。</strong>次の手順でサイトに反映されます。</p>
         <dl id="summary-list" class="summary-list"></dl>
+        <div class="callout upload-reminder"><strong>アップロード前の確認 / 上传前确认</strong><ul><li>保存する前に、ダウンロードフォルダの古い events.json・events.manual.json・news.json を削除する。<br />保存前先删掉下载文件夹里旧的这 3 个文件。</li><li>ファイル名に「(1)」が付いたものはアップロードしない。<br />文件名带「(1)」的不要上传。</li><li>今回保存した 3 ファイルを一緒にアップロードする（古いファイルを混ぜない）。<br />只上传这次保存的 3 个文件，不要混进旧文件。</li></ul></div>
         <ol class="steps">
           <li><strong>ファイルを保存</strong><span>3つのファイルをまとめてダウンロードします。</span><button id="download-publish-files" class="button primary" type="button">3ファイルを保存</button></li>
           <li><strong>GitHubを開く</strong><span>アップロード画面で data フォルダの同名ファイルを置き換えます。</span><a class="button secondary" href="https://github.com/anana1111/chonmage-website/upload/main/data" target="_blank" rel="noreferrer">アップロード画面 ↗</a></li>
