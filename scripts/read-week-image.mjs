@@ -100,7 +100,14 @@ async function askModel(imageBytes, type, token, fetchImpl) {
 export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, now = new Date() } = {}) {
   if (!postsPath || !fs.existsSync(postsPath)) { console.log('No logged-in X posts; week picture not checked.'); return false; }
   const post = findWeekPost(JSON.parse(fs.readFileSync(postsPath, 'utf8')), now);
-  if (!post) { console.log('No week schedule picture in the recent posts.'); return false; }
+  if (!post) {
+    const all = JSON.parse(fs.readFileSync(postsPath, 'utf8'));
+    const rows = Array.isArray(all?.data) ? all.data : [];
+    const oldest = rows.map((tweet) => tweet.createdAtISO || tweet.createdAt).filter(Boolean).sort()[0] || '?';
+    console.log('No week schedule picture in the recent ' + rows.length + ' posts (oldest ' + oldest + ').');
+    for (const tweet of rows.filter((row) => /スケジュール/.test(row.text || ''))) console.log('  schedule-like post ' + tweet.id + ' ' + (tweet.createdAtISO || '') + ' media=' + (tweet.media || []).map((item) => item.type).join(',') + ': ' + String(tweet.text).replace(/\s+/g, ' ').slice(0, 80));
+    return false;
+  }
   let current = null;
   try { current = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
   if (current?.sourceUrl === post.url && !force) { console.log('Week schedule already read from ' + post.url); return false; }
