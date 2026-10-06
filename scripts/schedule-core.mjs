@@ -226,7 +226,19 @@ export function mergeSchedule(autoData, manualData, options = {}) {
   });
   result.ringGame = mergeObject(result.ringGame, manualData.ringGame);
 
-  const overrides = manualData.events || {};
+  const overrides = { ...(manualData.events || {}) };
+  // The same event can get a different id once its source changes (week picture "event-1800",
+  // daily post "the-daily-1800"). An edit whose id is gone follows the one event at that time.
+  const autoIds = new Set(result.events.map((event) => event.id).filter(Boolean));
+  Object.keys(overrides).forEach((id) => {
+    const hhmm = !autoIds.has(id) && id.match(/-(\d{4})$/)?.[1];
+    if (!hhmm) return;
+    const matches = result.events.filter((event) => event.id && !overrides[event.id] &&
+      event.time?.replace(':', '') === hhmm);
+    if (matches.length !== 1) return;
+    overrides[matches[0].id] = overrides[id];
+    delete overrides[id];
+  });
   const outputEvents = [];
   const usedIds = new Set();
   result.events.forEach((event) => {

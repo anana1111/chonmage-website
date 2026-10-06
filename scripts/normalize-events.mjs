@@ -93,7 +93,9 @@ function eventType(title) {
 
 function parseFacts(block) {
   const rows = [];
-  const entry = block.match(/(?:ENTRY|エントリー|参加費|参加料金)\s*[:：]?\s*(¥?\s*[\d,]+(?:円)?|FREE|無料)/i)?.[1];
+  // Lines like 「レベル2（18:45）までの着席でエントリー無料」 are an early-bird condition, not the price.
+  const priceLines = block.split('\n').filter((line) => !/まで|着席|EARLY\s*BIRD|早割|限定|以内/i.test(line)).join('\n');
+  const entry = priceLines.match(/(?:ENTRY|エントリー|参加費|参加料金)\s*[:：]?\s*(¥?\s*[\d,]+(?:円)?|FREE|無料)/i)?.[1];
   const explicitStack = block.match(/(?:STARTING\s*STACK|STACK|持ち点)\s*[:：]?\s*([\d,]+\s*(?:pt|pts|点)?)/i)?.[1];
   const slashStack = block.match(/(?:ENTRY|エントリー|参加費|参加料金)[^/\n]{0,50}\/\s*([\d,]+\s*(?:pt|pts|点))/i)?.[1];
   const facility = block.match(/施設利用料\s*[:：]?\s*(¥?\s*[\d,]+(?:円)?)/i)?.[1];
