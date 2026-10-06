@@ -122,7 +122,7 @@ try {
   const first = await mirrorNewsImages(source, { ...quiet, fetch: fakeX((url) => new Response(url.searchParams.get('name') === 'small' ? webp(10) : webp(30))) });
   equal(first.data.items[0].image, 'images/news/x-A1.webp');
   equal(first.data.items[0].images, ['images/news/x-A1.webp', 'images/news/x-B-2.webp', 'https://example.com/c.jpg']);
-  equal(first.data.items[1].image, x('OLD')); // Expired archive keeps its original link.
+  equal(first.data.items[1].image, x('OLD')); // Nothing is downloaded for the expired archive.
   equal(first.data.items[2].image, 'images/interior-wide.webp');
   equal(source.items[0].image, x('A1')); // Input is not modified.
   equal(requests.sort(), ['https://pbs.twimg.com/media/A1?format=webp&name=medium', 'https://pbs.twimg.com/media/A1?format=webp&name=small', 'https://pbs.twimg.com/media/B-2?format=webp&name=medium', 'https://pbs.twimg.com/media/B-2?format=webp&name=small']);
@@ -135,6 +135,10 @@ try {
   const again = await mirrorNewsImages(source, { ...quiet, fetch: fakeX(() => { throw new Error('no network'); }) });
   equal(again.data, first.data); equal(requests.length, 0); equal(again.stats.reused, 2);
   equal((await mirrorNewsImages(first.data, { ...quiet, fetch: fakeX(() => new Response('')) })).data, first.data);
+  // Once a post expires, sync may put its X link back: an existing copy is still used, without a download.
+  requests.length = 0;
+  const archived = await mirrorNewsImages({ items: [item({ id: 'expired-copied', publishedAt: '2026-08-01T00:00:00+09:00', image: x('A1'), images: [x('A1'), x('NEVER')] })] }, { ...quiet, fetch: fakeX(() => new Response(webp(1))) });
+  equal(archived.data.items[0].images, ['images/news/x-A1.webp', x('NEVER')]); equal(requests.length, 0);
   // X answering with JPEG keeps both sizes as JPEG so the small file name still matches.
   requests.length = 0;
   const jpg = await mirrorNewsImages({ items: [item({ image: x('J1') })] }, { ...quiet, fetch: fakeX(() => new Response(jpeg(20))) });

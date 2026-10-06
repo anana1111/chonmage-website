@@ -60,16 +60,21 @@ async function copyImage(fetchImpl, dir, id, stats, deadline) {
   return name + '.' + large.type;
 }
 
-// Expired NEWS stays in the archive with its original links; nobody outside the admin sees it.
+// Nothing new is downloaded for expired NEWS (only the admin sees it), but copies it already has
+// keep being used, so a sync that puts the X links back never flips an archived post to X.
 export async function mirrorNewsImages(data, { fetch: fetchImpl = globalThis.fetch, dir = NEWS_IMAGE_DIR, now = Date.now(), warn = console.warn, timeBudgetMs = TIME_BUDGET_MS } = {}) {
   core.validateNews(data);
   const result = JSON.parse(JSON.stringify(data));
   const stats = { downloaded: 0, reused: 0, failed: 0, bytes: 0, smallBytes: 0, types: {} };
   const copies = new Map();
   const deadline = Date.now() + timeBudgetMs;
-  async function local(url) {
+  async function local(url, download) {
     const id = xImageName(url);
     if (!id) return url;
+    if (!download && !copies.has(id)) {
+      const stored = storedType(dir, 'x-' + id);
+      return stored ? NEWS_IMAGE_DIR + '/x-' + id + '.' + stored : url;
+    }
     if (!copies.has(id)) {
       copies.set(id, copyImage(fetchImpl, dir, id, stats, deadline).then((file) => NEWS_IMAGE_DIR + '/' + file, (error) => {
         stats.failed++; warn('NEWS photo not copied, keeping the X link: ' + url + ' (' + (error?.message || error) + ')'); return '';
@@ -79,11 +84,14 @@ export async function mirrorNewsImages(data, { fetch: fetchImpl = globalThis.fet
   }
   const rows = Array.isArray(result) ? result : result.items;
   for (const item of rows) {
-    if (!item || typeof item !== 'object' || ['Expired', 'Invalid'].includes(core.status(item, now))) continue;
-    if (typeof item.image === 'string' && item.image) item.image = await local(item.image);
+    if (!item || typeof item !== 'object') continue;
+    const status = core.status(item, now);
+    if (status === 'Invalid') continue;
+    const download = status !== 'Expired';
+    if (typeof item.image === 'string' && item.image) item.image = await local(item.image, download);
     if (Array.isArray(item.images)) {
       const images = [];
-      for (const url of item.images) images.push(typeof url === 'string' ? await local(url) : url);
+      for (const url of item.images) images.push(typeof url === 'string' ? await local(url, download) : url);
       item.images = images;
     }
   }

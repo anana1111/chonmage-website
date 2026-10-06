@@ -100,7 +100,7 @@ GitHub Pages の静的サイトなので、ブラウザには GitHub token を�
 
 同じ取得処理から保存した X snapshots は `scripts/sync-news.mjs` で最新の news.json に merge します。原投稿URLで重複を防ぎ、`autoUpdate: false` の手動編集は維持します。削除したX投稿のURLはトップレベルの `excludedSourceUrls` に残して再追加を防ぎます。失敗時・元投稿がなくなった時も既存の NEWS は保持します。画像はHTTPSのURLまたは `images/` / `assets/` の相対パスです。元の画像が消えた時は画像だけを隠し本文は保持します。
 
-表示中（期限切れ以外）の NEWS に付いた X の写真（`pbs.twimg.com/media/...`）は、Actions が `scripts/news-images.mjs` で一度だけ `images/news/` にコピーし、news.json のURLを `images/news/x-<ID>.webp` に書き換えて一緒に commit します。X から WebP の medium（最大1200px、詳細ページ用）と small（最大680px、`x-<ID>-680.webp`、カード用）を受け取るので画像ツールは不要です。コピー済みのファイルは再利用し、ダウンロードに失敗した写真は X のURLのまま残ります。掲載終了した NEWS は元のURLのままです。
+表示中（期限切れ以外）の NEWS に付いた X の写真（`pbs.twimg.com/media/...`）は、Actions が `scripts/news-images.mjs` で一度だけ `images/news/` にコピーし、news.json のURLを `images/news/x-<ID>.webp` に書き換えて一緒に commit します。X から WebP の medium（最大1200px、詳細ページ用）と small（最大680px、`x-<ID>-680.webp`、カード用）を受け取るので画像ツールは不要です。コピー済みのファイルは再利用し、ダウンロードに失敗した写真は X のURLのまま残ります。掲載終了した NEWS のためには新しくダウンロードしませんが、既にあるコピーはそのまま使います。
 
 ## 失敗時
 
