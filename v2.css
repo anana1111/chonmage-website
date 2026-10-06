@@ -466,3 +466,7 @@
 @keyframes heroSealPop { from { opacity: 0; transform: rotate(-8deg) scale(.7); } to { opacity: 1; transform: none; } }
 @keyframes heroStickerPop { from { opacity: 0; transform: rotate(-14deg) scale(.6); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
 @media (prefers-reduced-motion: reduce) { .hero-sticker { animation: none; } }
+
+/* Home header: the shop's character logo (white lines for the dark hero photo). */
+.brand--logo img { display: block; height: 68px; width: auto; filter: drop-shadow(0 1px 6px rgba(0, 0, 0, .35)); }
+@media (max-width: 900px) { .brand--logo img { height: 46px; } }
