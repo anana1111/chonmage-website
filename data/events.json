@@ -2,49 +2,54 @@
   "version": 2,
   "date": "2026-10-06",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2107365237317874165",
-  "updatedAt": "2026-10-06T16:05:50+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2106713700346515720",
+  "updatedAt": "2026-10-06T14:05:10+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2107365237317874165",
+    "url": "https://x.com/ChonmageNiigata/status/2106713700346515720",
     "mode": "merged"
   },
   "open": "17:00",
   "status": "open",
   "summary": [
-    "本日の開催情報です。",
+    "今週のスケジュールより。",
     "当日の変更は公式Xでお知らせします。"
   ],
   "ringGame": {
     "enabled": true,
     "start": "17:00",
-    "title": "RING GAME",
-    "description": "リングゲームもOPENから参加者募集中🔥"
+    "title": "NLHリングゲーム",
+    "description": "終日開催。"
   },
   "events": [
     {
-      "id": "the-daily-1800",
+      "id": "event-1800",
       "time": "18:00",
-      "type": "event",
-      "title": "THE DAILY 🕕",
-      "heroTitle": "THE DAILY 🕕",
+      "type": "tournament",
+      "title": "THE DAILY",
+      "heroTitle": "THE DAILY",
       "theme": "orange",
       "tags": [],
-      "description": "詳細は公式Xで確認してください。",
+      "description": "🚗 駐車券のご提示でEntryがさらにお得に！\n🐦 EARLY BIRD\nレベル2（18:45）までの着席でエントリー無料‼️\n早めの着席は、三文以上の得。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "¥0"
+          "value": "¥2,000 / 20,000pt"
         },
         {
-          "label": "STARTING STACK",
-          "value": "20,000pt"
+          "label": "RE-ENTRY",
+          "value": "¥2,000"
+        },
+        {
+          "label": "最終受付",
+          "value": "20:10"
         }
       ],
       "link": {
-        "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2107365237317874165"
+        "label": "週間スケジュール ↗",
+        "url": "https://x.com/ChonmageNiigata/status/2106713700346515720"
       }
     }
-  ]
+  ],
+  "close": "23:30"
 }
