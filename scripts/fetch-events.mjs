@@ -145,9 +145,40 @@ async function withRssNews(rows) {
   catch (error) { warn('NEWS RSS fallback could not be read; keeping captured schedule. ' + (error?.message || String(error))); return rows; }
 }
 
+// Posts read with a logged-in X account by twitter-cli in Actions (`twitter user-posts --json`).
+// Logged-out reading is often refused (403/429); this is the most reliable source when it is set up.
+export function candidatesFromCliJson(value) {
+  const tweets = Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : [];
+  return tweets.filter((tweet) => tweet && typeof tweet.text === 'string' && /^\d+$/.test(String(tweet.id || '')) && !tweet.isRetweet &&
+    String(tweet.author?.screenName || '').toLowerCase() === HANDLE.toLowerCase()).map((tweet) => ({
+    text: clean(tweet.text), newsText: clean(tweet.text),
+    url: 'https://x.com/' + HANDLE + '/status/' + tweet.id,
+    publishedAt: tweet.createdAtISO || tweet.createdAt || '',
+    images: (Array.isArray(tweet.media) ? tweet.media : []).filter((item) => item?.type === 'photo' && /^https:\/\//.test(item.url || '')).map((item) => item.url),
+  }));
+}
+
+function loggedInCandidates() {
+  const file = process.env.X_POSTS_PATH;
+  if (!file || !fs.existsSync(file) || !fs.statSync(file).size) return null;
+  const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (parsed && parsed.ok === false) throw new Error(parsed.error?.code + ': ' + parsed.error?.message);
+  return candidatesFromCliJson(parsed);
+}
+
 async function loadCandidates() {
   const collected = [];
   const keep = (rows) => { collected.push(...rows); return rows.some((row) => SCHEDULE_WORDS.test(row.text || '')); };
+  try {
+    const rows = loggedInCandidates();
+    if (rows?.length) {
+      console.log('read ' + rows.length + ' posts with the logged-in X account');
+      if (keep(rows)) return collected;
+    }
+    if (rows) warn('Logged-in X reading returned no schedule-like posts; trying logged-out sources.');
+  } catch (error) {
+    warn('Logged-in X reading failed; trying logged-out sources. ' + (error?.message || String(error)));
+  }
   try {
     const rows = await syndicationCandidates();
     if (rows.length) {
@@ -233,6 +264,8 @@ async function main() {
   const normalized = pickSchedule(candidates);
   if (!normalized) {
     warn('公式Xから当日のScheduleを十分な確度で識別できませんでした。既存のevents.auto.jsonを保持します。');
+    // The posts are public; a short list shows whether today's post is missing or in a new format.
+    for (const row of candidates.slice(0, 6)) console.log('  recent post ' + (row.publishedAt || '?') + ': ' + String(row.text || '').replace(/\s+/g, ' ').slice(0, 120));
     return;
   }
   writeSchedule(normalized);

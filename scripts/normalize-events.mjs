@@ -184,6 +184,9 @@ export function normalizeScheduleText(rawText, options = {}) {
     }
 
     let title = eventTitle(line, time);
+    // 「🆕🏆 THE DAILY」 then 「🕕18:00〜」: the name sits on the line above the time.
+    const above = lineIndex > 0 ? lines[lineIndex - 1] : '';
+    if ((!title || title.length < 2) && above && !firstTime(above) && !OPEN_WORD.test(above) && !detectDate(above, now) && !/こちら|本日|今日/.test(above)) title = eventTitle(above, '');
     if (!title || title.length < 2) title = 'EVENT';
     const type = eventType(title);
     const id = uniqueId(slug(title) + '-' + time.replace(':', ''), usedIds);

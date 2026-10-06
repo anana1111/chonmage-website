@@ -253,4 +253,10 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
   assert.equal(merged.events.find((event) => event.id === 'free').publishAt, '2026-10-10T17:00:00+09:00');
   assert.equal(merged.events.find((event) => event.id === 'night').publishAt, scheduled.publishAt);
 }
+// Weekday format (2026-10-05): the event name is on the line above its time.
+{
+  const daily = normalizeScheduleText('5日(月)17時OPEN✨\n本日のトーナメントはこちら👇\n🆕🏆 THE DAILY\n🕕18:00〜\nお手頃価格でも、30,000点スタートでしっかり遊べる。', { now: new Date('2026-10-05T08:00:00Z') });
+  assert.equal(daily.open, '17:00');
+  assert.deepEqual(daily.events.map((event) => event.time + ' ' + event.title), ['18:00 THE DAILY']);
+}
 console.log('schedule data tests passed');
