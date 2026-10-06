@@ -7,7 +7,8 @@ import { WEEK_FILE, weekDaySchedule } from './week-schedule.mjs';
 
 const HANDLE = 'ChonmageNiigata';
 const MODEL = 'openai/gpt-4.1';
-const ENDPOINT = 'https://models.github.ai/inference/chat/completions';
+// The second address is GitHub Models' older one; it is tried when the first answers oddly.
+const ENDPOINTS = ['https://models.github.ai/inference/chat/completions', 'https://models.inference.ai.azure.com/chat/completions'];
 const WEEK_POST = /からのスケジュール|OPENスケジュール|週間スケジュール|今週のスケジュール/;
 const TIME = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -78,25 +79,33 @@ reentry from the RENTRY column exactly as printed (無料 stays 無料; empty st
 If a date says closed (休業/定休日), give it "open":"" and no events. Do not guess unreadable text.`;
 
 async function askModel(imageBytes, type, token, fetchImpl) {
-  const response = await fetchImpl(ENDPOINT, {
-    method: 'POST',
-    signal: AbortSignal.timeout(60000),
-    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
-    body: JSON.stringify({
-      model: MODEL,
-      temperature: 0,
-      response_format: { type: 'json_object' },
-      messages: [{ role: 'user', content: [
-        { type: 'text', text: PROMPT },
-        { type: 'image_url', image_url: { url: 'data:' + type + ';base64,' + imageBytes.toString('base64'), detail: 'high' } },
-      ] }],
-    }),
-  });
-  const body = await response.text();
-  if (!response.ok) throw new Error('GitHub Models HTTP ' + response.status + ': ' + body.slice(0, 300));
-  let content;
-  try { content = JSON.parse(body).choices[0].message.content; } catch { throw new Error('GitHub Models gave an unexpected answer (HTTP ' + response.status + ', ' + (response.headers.get('content-type') || '') + '): ' + body.slice(0, 200)); }
-  return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g, ''));
+  const problems = [];
+  for (const endpoint of ENDPOINTS) {
+    const legacy = !endpoint.includes('models.github.ai');
+    const response = await fetchImpl(endpoint, {
+      method: 'POST',
+      redirect: 'error',
+      signal: AbortSignal.timeout(60000),
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', Accept: 'application/json', 'X-GitHub-Api-Version': '2022-11-28' },
+      body: JSON.stringify({
+        model: legacy ? MODEL.replace(/^openai\//, '') : MODEL,
+        temperature: 0,
+        response_format: { type: 'json_object' },
+        messages: [{ role: 'user', content: [
+          { type: 'text', text: PROMPT },
+          { type: 'image_url', image_url: { url: 'data:' + type + ';base64,' + imageBytes.toString('base64'), detail: 'high' } },
+        ] }],
+      }),
+    }).catch((error) => ({ ok: false, status: 0, headers: new Headers(), text: async () => String(error?.message || error) }));
+    const body = await response.text();
+    let content;
+    try { content = JSON.parse(body).choices[0].message.content; } catch {
+      problems.push(endpoint + ' HTTP ' + response.status + ' ' + (response.headers.get('content-type') || '') + ': ' + body.slice(0, 200));
+      continue;
+    }
+    return JSON.parse(String(content).replace(/^```(?:json)?\s*|\s*```$/g, ''));
+  }
+  throw new Error('GitHub Models did not answer: ' + problems.join(' | '));
 }
 
 export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, weekPostsPath = process.env.X_WEEK_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, now = new Date() } = {}) {
