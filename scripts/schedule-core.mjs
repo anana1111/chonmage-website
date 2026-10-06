@@ -1,5 +1,6 @@
 import '../news-core.js';
 import '../publish-core.js';
+import '../week-core.js';
 
 // Pure schedule rules shared by the Node scripts and the admin page.
 // This file must not import Node-only modules: /admin/ loads it in the browser
@@ -187,23 +188,9 @@ function uniqueId(id, used) {
   return id + '-' + index;
 }
 
-// The shop's usual closing time (also in index.html openingHoursSpecification).
-export const DEFAULT_CLOSE = '23:30';
-
-// Without CLOSE an open day says 営業中 all night, and X posts often give only OPEN.
-// Such a day takes `close` (the week picture's) or the usual time, unless a game
-// starts at or after it; then CLOSE stays unknown.
-export function fillClose(schedule, close = DEFAULT_CLOSE) {
-  if (!schedule || schedule.status !== 'open' || !isTime(schedule.open) || isTime(schedule.close)) return schedule;
-  const value = isTime(close) ? close : DEFAULT_CLOSE;
-  const closeMinute = scheduleMinutes(value, schedule.open);
-  const starts = (Array.isArray(schedule.events) ? schedule.events : [])
-    .filter((event) => event && !event.hidden).map((event) => event.time);
-  if (schedule.ringGame?.enabled && schedule.ringGame.start) starts.push(schedule.ringGame.start);
-  if (scheduleMinutes(schedule.open, schedule.open) < closeMinute &&
-    starts.every((time) => scheduleMinutes(time, schedule.open) < closeMinute)) schedule.close = value;
-  return schedule;
-}
+// Shared with the public page (week-core.js); see fillClose there.
+export const DEFAULT_CLOSE = globalThis.ChonmageWeek.DEFAULT_CLOSE;
+export const fillClose = globalThis.ChonmageWeek.fillClose;
 
 export function mergeSchedule(autoData, manualData, options = {}) {
   const warn = options.warn || (() => {});

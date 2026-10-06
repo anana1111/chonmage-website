@@ -47,7 +47,8 @@
     }).sort((a, b) => a.start - b.start);
     const ringStart = businessMinute(data.ringGame?.start, open) ?? open;
     const ring = data.ringGame?.enabled && ringStart !== null ? { id: 'ring', start: ringStart, title: text(data.ringGame.title) || 'RING GAME', description: text(data.ringGame.description) } : null;
-    return { date: text(data.date), closed: data.status === 'closed', open, close, openTime: text(data.open), closeTime: text(data.close), ring, events,
+    const nextOpen = data.nextOpen && typeof data.nextOpen.label === 'string' ? `${data.nextOpen.label} OPEN` : '';
+    return { date: text(data.date), closed: data.status === 'closed', open, close, openTime: text(data.open), closeTime: text(data.close), ring, events, nextOpen,
       latestUrl: safeLink(data.schedulePostUrl) || safeLink(data.latestXUrl) || OFFICIAL_X };
   }
   function getEventStatus(event, now) {
@@ -133,8 +134,8 @@
       case 'last-call': return { status: 'LAST CALL', kicker: '受付まもなく終了', value: `あと${remaining}`, title: `${state.event.title} 受付終了`, description: 'まだ間に合います' };
       case 'open-ring': return { status: 'NOW', kicker: '今から遊べる', value: schedule.ring.title, title: '今すぐ参加できます', description: '途中参加OK · 好きなタイミングで参加できます' };
       case 'next-event': return { status: 'NEXT', kicker: '次のゲーム', value: state.event.startTime, title: state.event.title, description: `開始まであと${remaining}` };
-      case 'after-close': return { status: 'CLOSED', kicker: '本日の営業は終了しました', value: 'またのご来店を', title: '', description: '次回の営業情報は公式Xでお知らせします' };
-      case 'closed-day': return { status: 'CLOSED', kicker: '本日の営業', value: '本日は休業です', title: '', description: '次回の営業情報は公式Xをご確認ください' };
+      case 'after-close': return { status: 'CLOSED', kicker: '本日の営業は終了しました', value: 'またのご来店を', title: schedule.nextOpen ? `次の営業 · ${schedule.nextOpen}` : '', description: '次回の営業情報は公式Xでお知らせします' };
+      case 'closed-day': return { status: 'CLOSED', kicker: '本日の営業', value: '本日は休業です', title: schedule.nextOpen ? `次の営業 · ${schedule.nextOpen}` : '', description: '次回の営業情報は公式Xをご確認ください' };
       default: return { status: 'INFORMATION', kicker: '当日のご案内', value: '最新情報はXで', title: '', description: '開催状況・参加受付は公式Xまたは店舗へご確認ください' };
     }
   }
@@ -195,7 +196,8 @@
       summary.replaceChildren(node('span', 'activity-later-time', event.startTime), node('span', 'activity-later-name', event.title), node('span', 'activity-later-remaining', selected ? '開催予定' : `あと${formatRemaining(event.remaining)}`));
       row.append(details); list.append(row);
     });
-    if (!later.length) list.append(node('li', 'activity-empty', ['after-close', 'closed-day'].includes(state.type) ? '次回の開催情報は公式Xをご確認ください。' : 'このあと予定されているゲームはありません。'));
+    const closedText = schedule.nextOpen ? `次の営業は${schedule.nextOpen}です。` : '次回の開催情報は公式Xをご確認ください。';
+    if (!later.length) list.append(node('li', 'activity-empty', ['after-close', 'closed-day'].includes(state.type) ? closedText : 'このあと予定されているゲームはありません。'));
     laterSection.append(laterTitle, list); fragment.append(laterSection); container.replaceChildren(fragment);
     let announce = document.getElementById('activity-announce');
     if (!announce) { announce = node('p', 'activity-sr-only'); announce.id = 'activity-announce'; announce.setAttribute('aria-live', 'polite'); announce.setAttribute('aria-atomic', 'true'); container.after(announce); }

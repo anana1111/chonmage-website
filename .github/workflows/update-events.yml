@@ -20,6 +20,9 @@ on:
     - cron: '17,47 7-10 * * 1-5'
     # Weekends: 13:00 OPEN -> JST 11:17 – 13:47 every 30 min
     - cron: '17,47 2-4 * * 0,6'
+    # Just after midnight JST (00:05): today's row of the week picture becomes the new day.
+    # The page already switches by itself at midnight; this keeps events.json in step.
+    - cron: '5 15 * * *'
   workflow_dispatch:
     inputs:
       reread_week:
