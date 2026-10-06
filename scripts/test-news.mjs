@@ -4,6 +4,10 @@ import '../news-core.js';
 import { mergeNews, newsFromCandidate } from './sync-news.mjs';
 import { candidateFromObject, loadCandidates } from './fetch-events.mjs';
 import { rssCandidatesFromText } from './x-reader.mjs';
+import { mirrorNewsImages, xImageName } from './news-images.mjs';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 const n = globalThis.ChonmageNews;
 const now = Date.parse('2026-10-03T13:00:00+09:00');
 const item = (overrides = {}) => ({ id: 'manual-1', publishedAt: '2026-10-03T12:00:00+09:00', title: 'お知らせ', content: '日本語\n中文\nEnglish', source: 'manual', published: true, ...overrides });
@@ -97,4 +101,63 @@ try {
   equal((await loadCandidates()).length, 1);
   const malformed = []; candidateFromObject({ id_str: '123', text: 'OPEN', mediaDetails: {} }, malformed, new Set(), true); equal(malformed.length, 1);
 } finally { globalThis.fetch = originalFetch; console.warn = originalWarn; console.log = originalLog; }
+
+// Copying X photos into images/news/: fake X responses, a temporary folder, no network.
+{
+  const webp = (size) => Buffer.concat([Buffer.from('RIFF\0\0\0\0WEBPVP8 '), Buffer.alloc(size)]);
+  const jpeg = (size) => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(size)]);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'news-images-'));
+  const x = (id) => 'https://pbs.twimg.com/media/' + id + '.jpg';
+  const requests = [];
+  const fakeX = (reply) => async (url) => { requests.push(url); return reply(new URL(url)); };
+  const quiet = { dir, now, warn: () => {} };
+  equal(xImageName(x('HT4ADk3bAAAmXtR')), 'HT4ADk3bAAAmXtR');
+  equal(xImageName('https://pbs.twimg.com/media/HToEf3Ra0AE-q20?format=jpg&name=orig'), 'HToEf3Ra0AE-q20');
+  for (const bad of ['http://pbs.twimg.com/media/A.jpg', 'https://pbs.twimg.com/profile_images/1/a.jpg', 'https://pbs.twimg.com/media/../a.jpg', 'https://example.com/media/A.jpg', 'images/a.webp', 'nonsense']) equal(xImageName(bad), '');
+  const source = { items: [
+    item({ id: 'photos', image: x('A1'), images: [x('A1'), x('B-2'), 'https://example.com/c.jpg'] }),
+    item({ id: 'expired', publishedAt: '2026-08-01T00:00:00+09:00', image: x('OLD') }),
+    item({ id: 'local', image: 'images/interior-wide.webp' }),
+  ] };
+  const first = await mirrorNewsImages(source, { ...quiet, fetch: fakeX((url) => new Response(url.searchParams.get('name') === 'small' ? webp(10) : webp(30))) });
+  equal(first.data.items[0].image, 'images/news/x-A1.webp');
+  equal(first.data.items[0].images, ['images/news/x-A1.webp', 'images/news/x-B-2.webp', 'https://example.com/c.jpg']);
+  equal(first.data.items[1].image, x('OLD')); // Nothing is downloaded for the expired archive.
+  equal(first.data.items[2].image, 'images/interior-wide.webp');
+  equal(source.items[0].image, x('A1')); // Input is not modified.
+  equal(requests.sort(), ['https://pbs.twimg.com/media/A1?format=webp&name=medium', 'https://pbs.twimg.com/media/A1?format=webp&name=small', 'https://pbs.twimg.com/media/B-2?format=webp&name=medium', 'https://pbs.twimg.com/media/B-2?format=webp&name=small']);
+  equal(fs.readFileSync(path.join(dir, 'x-A1.webp')).length, 46);
+  equal(fs.readFileSync(path.join(dir, 'x-A1-680.webp')).length, 26);
+  equal(first.stats, { downloaded: 2, reused: 0, failed: 0, bytes: 92, smallBytes: 52, types: { webp: 2 } });
+  n.validateNews(first.data); checks++;
+  // A second run (and the X links sync puts back on auto-updated posts) reuses the files.
+  requests.length = 0;
+  const again = await mirrorNewsImages(source, { ...quiet, fetch: fakeX(() => { throw new Error('no network'); }) });
+  equal(again.data, first.data); equal(requests.length, 0); equal(again.stats.reused, 2);
+  equal((await mirrorNewsImages(first.data, { ...quiet, fetch: fakeX(() => new Response('')) })).data, first.data);
+  // Once a post expires, sync may put its X link back: an existing copy is still used, without a download.
+  requests.length = 0;
+  const archived = await mirrorNewsImages({ items: [item({ id: 'expired-copied', publishedAt: '2026-08-01T00:00:00+09:00', image: x('A1'), images: [x('A1'), x('NEVER')] })] }, { ...quiet, fetch: fakeX(() => new Response(webp(1))) });
+  equal(archived.data.items[0].images, ['images/news/x-A1.webp', x('NEVER')]); equal(requests.length, 0);
+  // X answering with JPEG keeps both sizes as JPEG so the small file name still matches.
+  requests.length = 0;
+  const jpg = await mirrorNewsImages({ items: [item({ image: x('J1') })] }, { ...quiet, fetch: fakeX(() => new Response(jpeg(20))) });
+  equal(jpg.data.items[0].image, 'images/news/x-J1.jpg'); equal(requests[1], 'https://pbs.twimg.com/media/J1?format=jpg&name=small');
+  equal(fs.existsSync(path.join(dir, 'x-J1-680.jpg')), true);
+  // Failures keep the X link and write nothing: HTTP errors, HTML pages, a missing small size.
+  const warnings = [];
+  for (const [id, reply] of [['E404', () => new Response('', { status: 404 })], ['EHTML', () => new Response('<html>')], ['ESMALL', (url) => url.searchParams.get('name') === 'small' ? new Response('', { status: 500 }) : new Response(webp(5))], ['EMIX', (url) => new Response(url.searchParams.get('name') === 'small' ? jpeg(5) : webp(5))]]) {
+    const failed = await mirrorNewsImages({ items: [item({ image: x(id) })] }, { ...quiet, warn: (message) => warnings.push(message), fetch: fakeX(reply) });
+    equal(failed.data.items[0].image, x(id)); equal(failed.stats.failed, 1);
+    equal(fs.readdirSync(dir).filter((file) => file.startsWith('x-' + id)), []);
+  }
+  equal(warnings.length, 4);
+  // Ids starting with "_" are still published (Jekyll skips files starting with "_").
+  equal((await mirrorNewsImages({ items: [item({ image: x('_U1') })] }, { ...quiet, fetch: fakeX(() => new Response(webp(1))) })).data.items[0].image, 'images/news/x-_U1.webp');
+  // Out of time: nothing new is downloaded, copies already made are still used.
+  requests.length = 0;
+  const late = await mirrorNewsImages({ items: [item({ image: x('A1'), images: [x('A1'), x('LATE')] })] }, { ...quiet, timeBudgetMs: -1, fetch: fakeX(() => new Response(webp(1))) });
+  equal(late.data.items[0].images, ['images/news/x-A1.webp', x('LATE')]); equal(requests.length, 0); equal(late.stats.failed, 1);
+  fs.rmSync(dir, { recursive: true, force: true });
+}
 console.log('NEWS tests passed (' + checks + ' checks)');

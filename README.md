@@ -31,7 +31,7 @@ python3 -m http.server 8000
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
 | `scripts/` | 抓取、合并、校验脚本和测试（Node 22，无依赖） |
-| `images/` | 网站使用的 AVIF / WebP 图片（1448px / 800px 两种尺寸；手机 Hero 另有 1086px / 800px，贴纸有 240 / 400 / 800px），以及分享预览图 `og-image.jpg`（1200×630） |
+| `images/` | 网站使用的 AVIF / WebP 图片（1448px / 800px 两种尺寸；手机 Hero 另有 1086px / 800px，贴纸有 240 / 400 / 800px）、分享预览图 `og-image.jpg`（1200×630），以及 `images/news/`：自动更新从 X 复制来的 NEWS 照片（`x-<ID>.webp` 最大 1200px，`x-<ID>-680.webp` 给卡片用） |
 | `fonts/` | 自托管的英文标题字体 Archivo Black（拉丁子集）和它的授权 `OFL.txt` |
 | `robots.txt` / `sitemap.xml` | 给搜索引擎的抓取规则和页面清单（新增公开页面时一起更新 sitemap） |
 | `_originals/` | 不发布的原始素材：`images/*.png` 原图、`image-sources.json` 图片清单（PNG 原图与对应的 WebP 发布文件），以及分享预览图 `images/og-image.jpg` 的源文件 `og-image.html`（用本地预览打开后截 1200×630 的图即可重新生成。LINE 只显示中间的正方形，文字要放在中间 630×630 以内；换图后把 `index.html` 和 `news/index.html` 里 og:image 的 `?v=` 加 1） |
@@ -72,7 +72,7 @@ python3 -m http.server 8000
 ```sh
 node scripts/test-activity.mjs          # TODAY 优先级、截止边界、跨零点和数据适配
 node scripts/test-activity-browser.mjs [截图目录] # 七个时刻、九个宽度、时钟和后台预览
-node scripts/test-news.mjs              # NEWS 日期边界、兼容、抓取及去重
+node scripts/test-news.mjs              # NEWS 日期边界、兼容、抓取、去重及 X 照片复制
 node scripts/test-news-browser.mjs [截图目录] # NEWS 页面和后台的浏览器验收
 node scripts/test-schedule.mjs          # 数据校验、合并、抓取模拟（Actions 也会运行）
 node scripts/validate-events.mjs data/events.json data/events.auto.json data/news.json
@@ -106,6 +106,6 @@ node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地�
 - 首页最多 3 条；列表按置顶优先、发布时间倒序。置顶同样过期。后台保留所有历史。前台在发布时间和过期边界更新，也在返回标签页时复核。
 - 管理画面 News 可手动创建、编辑正文/图片/摘要/JST 时间、发布或下架、预览、复制、重新发布、删除。公开仍需导出并上传 JSON；本地保存不会直接修改 GitHub。
 - 同一次免费 X 抓取可从有明确投稿边界的 syndication/RSS 保存全文、图片 URL、原始链接与发布时间。松散 profile HTML/Jina Reader 仍用于原有活动解析，不把可能混入相邻帖子的窗口当成 NEWS 正文；尝试原有 RSS fallback 补充 NEWS。
-- `sync-news.mjs` 使用规范化 X URL 去重。编辑过的 NEWS 设 `autoUpdate: false`，避免自动覆盖；删除来源进入 `excludedSourceUrls`，避免重新抓取后恢复。失败、源帖子删除、30 天到期都不会清空历史。图片为来源 URL；源图片失效时隐藏该图片，正文仍保留。
+- `sync-news.mjs` 使用规范化 X URL 去重。编辑过的 NEWS 设 `autoUpdate: false`，避免自动覆盖；删除来源进入 `excludedSourceUrls`，避免重新抓取后恢复。失败、源帖子删除、30 天到期都不会清空历史。图片先用来源 URL，Actions 会用 `scripts/news-images.mjs` 把当前 NEWS 的照片复制到 `images/news/` 并换成站内地址（下载失败时保留来源 URL）；图片失效时隐藏该图片，正文仍保留。
 - 旧 NEWS 保留已有描述作为正文；未抓到的原帖全文不做补写。站内正文只使用 `textContent`，不解析外部 HTML。无图片、坏图、坏数据或不存在/过期 ID 都有可读状态。
 - NEWS 的期限不参与 `events.*`、Hero、Tournament、Ring 或营业时间判断。新功能没有 npm 生产依赖、服务器或数据库。

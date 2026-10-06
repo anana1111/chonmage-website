@@ -15,11 +15,24 @@
     const result = node('time', '', item.date.replaceAll('-', '.'));
     result.dateTime = item.publishedAt; return result;
   }
-  function photo(url, alt, siteRoot, eager = false) {
+  // Card tiles are 104px on phones and a third of the page on desktops.
+  const CARD_SIZES = '(max-width: 620px) 104px, (max-width: 1000px) 50vw, 33vw';
+  // Photos copied from X into images/news/ have a 680px NAME-680 file next to them.
+  const COPIED_PHOTO = /^(?:\.\/)?(images\/news\/[A-Za-z0-9_-]+)\.(webp|jpg|png)$/;
+  function photo(url, alt, siteRoot, eager = false, sizes = '') {
     const figure = node('figure', 'news-photo');
     const image = node('img');
     image.alt = alt; image.decoding = 'async'; image.loading = eager ? 'eager' : 'lazy';
-    image.addEventListener('error', () => { figure.hidden = true; }, { once: true });
+    const copied = sizes && url.match(COPIED_PHOTO);
+    if (copied) {
+      image.sizes = sizes;
+      image.srcset = new URL(copied[1] + '-680.' + copied[2], siteRoot).href + ' 680w, ' + new URL(url, siteRoot).href + ' 1200w';
+    }
+    image.addEventListener('error', () => {
+      // A missing small file falls back to the full photo before the photo is hidden.
+      if (image.hasAttribute('srcset')) { image.removeAttribute('srcset'); image.removeAttribute('sizes'); return; }
+      figure.hidden = true;
+    });
     image.src = new URL(url, siteRoot).href;
     figure.append(image); return figure;
   }
@@ -30,7 +43,7 @@
     visual.setAttribute('aria-label', item.title + 'を読む');
     if (item.image) {
       visual.classList.add('news-image--photo');
-      visual.append(photo(item.image, item.title, siteRoot));
+      visual.append(photo(item.image, item.title, siteRoot, false, CARD_SIZES));
       const fallback = node('span', 'news-image-fallback', item.visualLabel);
       fallback.setAttribute('aria-hidden', 'true'); visual.append(fallback);
     } else {
