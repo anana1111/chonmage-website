@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CHONMAGE Preloader Demo</title>
+<style>
+  :root {
+    --ink: #151515;
+    --paper: #fbfaf7;
+    --red: #ef233c;
+    --line: rgba(21, 21, 21, .14);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; margin: 0; }
+  body {
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .demo-stage {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 50% 46%, rgba(239,35,60,.045), transparent 33%),
+      var(--paper);
+  }
+
+  .preloader {
+    width: min(82vw, 430px);
+    display: grid;
+    justify-items: center;
+    gap: 18px;
+    animation: leave 650ms cubic-bezier(.7,0,.2,1) 2.75s forwards;
+  }
+
+  .logo-wrap {
+    position: relative;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transform: translateY(10px) scale(.97);
+    animation: logoIn 720ms cubic-bezier(.16,1,.3,1) 120ms forwards;
+  }
+
+  .logo {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    filter: drop-shadow(0 12px 22px rgba(0,0,0,.06));
+  }
+
+  .spark {
+    position: absolute;
+    left: 23.2%;
+    top: 7.5%;
+    width: 12px;
+    aspect-ratio: 1;
+    background: var(--red);
+    transform: rotate(45deg) scale(.15);
+    border-radius: 1px;
+    opacity: 0;
+    box-shadow: 0 0 0 0 rgba(239,35,60,.28);
+    animation:
+      sparkIn 420ms cubic-bezier(.34,1.56,.64,1) 720ms forwards,
+      sparkPulse 1.05s ease-in-out 1.15s infinite;
+  }
+
+  .spark::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border: 1px solid rgba(239,35,60,.28);
+    border-radius: 50%;
+    transform: rotate(-45deg) scale(.55);
+    opacity: 0;
+    animation: ring 1.05s ease-out 1.15s infinite;
+  }
+
+  .progress-shell {
+    width: min(64%, 250px);
+    height: 2px;
+    overflow: hidden;
+    background: var(--line);
+    border-radius: 999px;
+    opacity: 0;
+    animation: fadeIn 350ms ease 650ms forwards;
+  }
+
+  .progress {
+    width: 100%;
+    height: 100%;
+    background: var(--red);
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation: load 2s cubic-bezier(.45,0,.2,1) 720ms forwards;
+  }
+
+  .wordmark {
+    margin-top: -7px;
+    font-size: 10px;
+    letter-spacing: .34em;
+    text-indent: .34em;
+    font-weight: 700;
+    opacity: 0;
+    animation: fadeIn 400ms ease 780ms forwards;
+  }
+
+  .replay {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    border: 1px solid rgba(21,21,21,.16);
+    background: rgba(255,255,255,.7);
+    backdrop-filter: blur(8px);
+    border-radius: 999px;
+    padding: 9px 13px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0;
+    animation: replayIn 300ms ease 3.3s forwards;
+  }
+
+  @keyframes logoIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes fadeIn { to { opacity: 1; } }
+  @keyframes load { to { transform: scaleX(1); } }
+  @keyframes sparkIn {
+    0% { opacity: 0; transform: rotate(45deg) scale(.15); }
+    70% { opacity: 1; transform: rotate(45deg) scale(1.15); }
+    100% { opacity: 1; transform: rotate(45deg) scale(1); }
+  }
+  @keyframes sparkPulse {
+    0%, 100% { transform: rotate(45deg) scale(1); box-shadow: 0 0 0 0 rgba(239,35,60,.25); }
+    50% { transform: rotate(45deg) scale(.86); box-shadow: 0 0 0 9px rgba(239,35,60,0); }
+  }
+  @keyframes ring {
+    0% { opacity: .75; transform: rotate(-45deg) scale(.35); }
+    80%,100% { opacity: 0; transform: rotate(-45deg) scale(1.15); }
+  }
+  @keyframes leave {
+    to { opacity: 0; transform: translateY(-8px) scale(.985); filter: blur(2px); }
+  }
+  @keyframes replayIn { to { opacity: .58; } }
+
+  @media (max-width: 520px) {
+    .preloader { width: min(88vw, 360px); gap: 14px; }
+    .spark { width: 10px; }
+    .wordmark { font-size: 9px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .preloader, .logo-wrap, .spark, .spark::after, .progress-shell, .progress, .wordmark, .replay {
+      animation-duration: 1ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="demo-stage" aria-label="CHONMAGE preload animation demo">
+    <section class="preloader" id="preloader">
+      <div class="logo-wrap">
+        <img class="logo" src="https://raw.githubusercontent.com/anana1111/chonmage-website/main/_originals/images/chonmage-character.png" alt="CHONMAGE logo" />
+        <span class="spark" aria-hidden="true"></span>
+      </div>
+      <div class="progress-shell" aria-hidden="true"><div class="progress"></div></div>
+      <div class="wordmark">CHONMAGE</div>
+    </section>
+  </main>
+  <button class="replay" type="button" onclick="location.reload()">REPLAY</button>
+</body>
+</html>
