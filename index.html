@@ -169,7 +169,7 @@
         var VISIT_KEY = 'chonmage:visited';
         var firstVisit = true;
         try { firstVisit = localStorage.getItem(VISIT_KEY) !== '1'; } catch (e) {}
-        var MIN_SHOW_FIRST = 2200, MIN_SHOW_RETURN = 800, MAX_WAIT = 8000;
+        var MIN_SHOW_FIRST = 1500, MIN_SHOW_RETURN = 500, MAX_WAIT = 8000;
         // Release the overlay once the hero image is in, not on window.load (which waits for every image on the page).
         var pageLoaded = false;
         function heroReady() { var h = document.querySelector('.hero-slide img'); return h ? h.complete : document.readyState !== 'loading'; }
@@ -210,7 +210,7 @@
             num.textContent = v; pre.setAttribute('aria-valuenow', v);
             fill.style.transform = 'scaleX(' + v / 100 + ')'; head.style.transform = 'translateX(' + (v - 100) + '%)';
             var q = Math.floor(v / 25); if (q !== lastQ && q < 4) { lastQ = q; setSuit(q, true); }
-            if (v < 100) setTimeout(step, 16); else setTimeout(finish, firstVisit ? 300 : 60);
+            if (v < 100) setTimeout(step, 16); else setTimeout(finish, firstVisit ? 150 : 60);
           })();
         }
         function finish() {
@@ -225,34 +225,34 @@
           var spin;
           if (firstVisit) {
             // Fold the text away, slide the figure to the centre, then spin the chair once.
-            A(t2, [{ clipPath: 'inset(0 0% 0 0)' }, { clipPath: 'inset(0 0 0 100%)' }], { duration: 380, easing: INOUT });
+            A(t2, [{ clipPath: 'inset(0 0% 0 0)' }, { clipPath: 'inset(0 0 0 100%)' }], { duration: 300, easing: INOUT });
             bar.style.transformOrigin = 'right';
-            A(bar, [{ transform: 'scaleX(1)', opacity: 1 }, { transform: 'scaleX(0)', opacity: 1 }], { duration: 380, delay: 40, easing: INOUT });
-            A(t1, [{ clipPath: 'inset(0 0 0 0)', transform: 'translateY(0)' }, { clipPath: 'inset(0 0 100% 0)', transform: 'translateY(-18%)' }], { duration: 380, delay: 80, easing: INOUT });
+            A(bar, [{ transform: 'scaleX(1)', opacity: 1 }, { transform: 'scaleX(0)', opacity: 1 }], { duration: 300, delay: 30, easing: INOUT });
+            A(t1, [{ clipPath: 'inset(0 0 0 0)', transform: 'translateY(0)' }, { clipPath: 'inset(0 0 100% 0)', transform: 'translateY(-18%)' }], { duration: 300, delay: 60, easing: INOUT });
             var P = 'perspective(900px) ', X = 'translateX(58.3%) ', SX = 'translateX(184%) ';
-            var move = A(fig, [{ transform: P + 'translateX(0) rotateY(0) rotate(0)' }, { transform: P + X + 'rotateY(0) rotate(0)' }], { duration: 520, delay: 300, easing: INOUT });
-            A(shadow, [{ transform: 'translateX(0) scaleX(1)' }, { transform: SX + 'scaleX(1)' }], { duration: 520, delay: 300, easing: INOUT });
+            var move = A(fig, [{ transform: P + 'translateX(0) rotateY(0) rotate(0)' }, { transform: P + X + 'rotateY(0) rotate(0)' }], { duration: 400, delay: 150, easing: INOUT });
+            A(shadow, [{ transform: 'translateX(0) scaleX(1)' }, { transform: SX + 'scaleX(1)' }], { duration: 400, delay: 150, easing: INOUT });
             spin = move.finished.then(function () {
-              A(shadow, [{ transform: SX + 'scaleX(1)' }, { transform: SX + 'scaleX(1.06)', offset: .18 }, { transform: SX + 'scaleX(.72)', offset: .5 }, { transform: SX + 'scaleX(1)', offset: .86 }, { transform: SX + 'scaleX(1)' }], { duration: 1000, easing: 'ease-in-out' });
+              A(shadow, [{ transform: SX + 'scaleX(1)' }, { transform: SX + 'scaleX(1.06)', offset: .18 }, { transform: SX + 'scaleX(.72)', offset: .5 }, { transform: SX + 'scaleX(1)', offset: .86 }, { transform: SX + 'scaleX(1)' }], { duration: 700, easing: 'ease-in-out' });
               return A(fig, [
                 { transform: P + X + 'rotateY(0) rotate(0)', easing: OUT },
                 { transform: P + X + 'rotateY(-28deg) rotate(-3deg)', offset: .18, easing: INOUT },
                 { transform: P + X + 'rotateY(372deg) rotate(1deg)', offset: .86, easing: OUT },
-                { transform: P + X + 'rotateY(360deg) rotate(0)' }], { duration: 1000, easing: 'linear' }).finished;
+                { transform: P + X + 'rotateY(360deg) rotate(0)' }], { duration: 700, easing: 'linear' }).finished;
             });
           } else {
-            spin = new Promise(function (r) { setTimeout(r, 240); });
+            spin = new Promise(function (r) { setTimeout(r, 160); });
           }
           spin.then(function () {
             A(stage, [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-8%)' }], { duration: 520, easing: INOUT });
             A(meta, [{ opacity: 1 }, { opacity: 0 }], { duration: 250 });
             return Promise.all(cards.map(function (c, i) {
-              return A(c, [{ transform: 'translateY(101%)' }, { transform: 'translateY(0)' }], { duration: 450, delay: i * 50, easing: INOUT }).finished;
+              return A(c, [{ transform: 'translateY(101%)' }, { transform: 'translateY(0)' }], { duration: 350, delay: i * 40, easing: INOUT }).finished;
             }));
           }).then(function () {
             clearTimeout(failsafe); done();
             return Promise.all(cards.map(function (c, i) {
-              return A(c, [{ transform: 'translateY(0)' }, { transform: 'translateY(-101%)' }], { duration: 550, delay: 80 + i * 50, easing: DRAWER }).finished;
+              return A(c, [{ transform: 'translateY(0)' }, { transform: 'translateY(-101%)' }], { duration: 400, delay: 60 + i * 40, easing: DRAWER }).finished;
             }));
           }).then(function () { cardsWrap.style.display = 'none'; });
         }
