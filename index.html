@@ -127,20 +127,15 @@
     </style>
     <noscript><style>#preloader,.preloader-cards{display:none!important}html.is-loading{overflow:auto!important}</style></noscript>
     <script>
-      // Return visitors, admin preview (?preview=1), time checks (?now=) and automated test browsers skip the preloader.
-      (function () {
-        if (/[?&](preview|now)=/.test(location.search) || navigator.webdriver) return;
-        var seen = false;
-        try { seen = localStorage.getItem('chonmage:visited') === '1'; } catch (e) {}
-        if (!seen) document.documentElement.classList.add('is-loading');
-      })();
+      // Admin preview (?preview=1), time checks (?now=) and automated test browsers skip the preloader.
+      (function () { if (!/[?&](preview|now)=/.test(location.search) && !navigator.webdriver) document.documentElement.classList.add('is-loading'); })();
     </script>
   </head>
   <body>
     <div id="preloader" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
       <div class="pl-stage">
         <div class="pl-shadow"></div>
-        <div class="pl-fig"><img class="pl-fig-inner" src="./images/preloader-figure.webp" width="695" height="742" alt="" decoding="async" /></div>
+        <div class="pl-fig"><img class="pl-fig-inner" src="./images/preloader-figure.webp" width="695" height="742" alt="" fetchpriority="high" decoding="async" /></div>
         <svg class="pl-t1" viewBox="0 0 3240.000000 591.000000" style="aspect-ratio:3240/591" role="img" aria-label="POKER ROOM"><g transform="translate(0.000000,591.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M25905 5880 c-532 -5 -549 -7 -660 -47 -269 -99 -463 -316 -537 -599 l-23 -89 0 -2165 c0 -2386 -5 -2171 57 -2382 76 -257 346 -484 648 -543 108 -21 1126 -21 1245 0 370 66 606 276 707 630 l23 80 0 2195 c0 2447 6 2226 -67 2400 -140 329 -464 539 -813 528 -33 -2 -294 -5 -580 -8z m470 -2915 l0 -1960 -342 -3 c-326 -2 -343 -1 -352 17 -13 23 -10 3880 2 3899 7 9 83 12 350 10 l342 -3 0 -1960z M4130 5860 c-168 -31 -281 -86 -404 -194 -153 -135 -229 -274 -283 -516 -25 -112 -32 -4151 -7 -4330 59 -430 303 -697 711 -780 112 -22 1073 -30 1230 -10 396 51 688 354 744 770 6 48 9 833 7 2220 l-3 2145 -38 110 c-109 318 -353 529 -686 590 -131 24 -1137 20 -1271 -5z m993 -941 c25 -14 22 -3913 -3 -3930 -20 -14 -670 -1 -687 13 -19 16 -19 3891 0 3906 23 19 656 29 690 11z M6743 5873 c-25 -9 -18 -5840 6 -5852 25 -14 921 -4 938 10 9 8 13 212 15 847 4 833 4 837 25 877 26 48 103 214 103 222 0 5 8 23 62 143 19 41 43 97 53 123 33 88 46 70 167 -233 39 -96 84 -204 100 -240 17 -36 50 -117 73 -180 24 -63 71 -180 105 -260 34 -80 86 -209 116 -288 30 -78 77 -193 105 -254 28 -61 64 -146 79 -189 16 -43 56 -141 89 -218 33 -77 79 -187 101 -244 29 -74 47 -107 63 -114 54 -24 984 -11 994 13 6 15 -48 158 -125 334 -27 63 -85 198 -127 300 -132 317 -163 389 -204 478 -21 48 -76 177 -121 287 -46 110 -109 256 -140 325 -65 139 -180 412 -290 685 -39 99 -98 234 -131 300 -32 66 -83 181 -113 255 -29 74 -82 202 -115 284 l-62 148 19 32 c10 17 26 54 36 81 11 28 36 82 56 120 66 124 87 167 149 305 33 74 93 200 134 280 40 80 87 177 104 215 18 39 74 158 126 265 52 107 114 240 137 295 23 55 46 105 50 110 10 13 130 251 130 258 0 3 23 54 51 114 131 281 160 347 155 360 -6 14 -1020 20 -1042 5 -10 -6 -68 -121 -134 -266 -12 -26 -64 -137 -117 -245 -52 -108 -113 -234 -135 -281 -22 -47 -55 -116 -73 -155 -77 -162 -138 -293 -155 -335 -10 -25 -53 -117 -97 -205 -43 -88 -100 -207 -126 -263 -29 -65 -52 -102 -59 -100 -10 4 -14 197 -16 923 -2 720 -5 921 -15 927 -13 8 -924 10 -944 1z M11004 5865 c-372 -68 -605 -286 -707 -660 l-22 -80 -1 -2538 c-2 -2120 0 -2540 12 -2551 35 -36 2212 -40 2238 -4 8 11 10 144 6 474 l-5 459 -622 5 c-530 5 -625 8 -637 20 -14 14 -22 649 -17 1267 l1 83 98 50 c53 27 140 73 192 101 52 28 156 83 230 122 74 38 142 74 150 78 8 5 38 19 65 32 28 13 111 55 185 94 74 39 182 96 240 125 l105 54 3 517 c2 435 0 518 -12 523 -15 6 -190 -79 -471 -229 -287 -152 -313 -166 -543 -284 -123 -62 -227 -111 -232 -108 -15 9 -13 1492 1 1501 6 3 290 8 631 10 342 2 625 7 630 12 9 9 12 917 3 932 -10 16 -1434 11 -1521 -5z M13145 5870 c-15 -24 -17 -5826 -1 -5839 28 -23 937 -29 956 -6 13 15 15 79 15 429 0 1124 5 1545 18 1556 17 15 128 80 137 80 3 0 11 -10 17 -23 56 -117 146 -318 218 -487 48 -113 109 -248 135 -300 26 -52 57 -117 68 -145 81 -200 116 -282 155 -365 24 -52 60 -133 80 -180 19 -47 73 -164 119 -260 46 -96 95 -203 107 -238 19 -49 29 -64 49 -69 14 -3 248 -7 519 -7 548 -1 527 -4 493 63 -10 20 -31 65 -45 101 -15 36 -50 115 -77 175 -28 61 -61 135 -75 165 -14 30 -65 136 -113 235 -93 190 -140 292 -140 306 0 8 -51 120 -121 265 -21 44 -60 132 -88 195 -27 63 -96 211 -154 329 -58 118 -124 260 -147 315 -23 55 -66 151 -96 213 -30 62 -54 121 -54 131 0 22 98 80 340 201 224 112 328 170 335 189 3 8 6 499 6 1091 0 1095 -4 1201 -39 1290 -6 14 -20 50 -32 80 -105 261 -359 450 -675 505 -106 18 -1899 23 -1910 5z m1663 -952 c9 -9 12 -188 12 -745 l0 -733 -37 -23 c-21 -13 -150 -79 -288 -146 -137 -68 -272 -134 -298 -147 -79 -39 -77 -43 -78 124 0 81 -2 428 -3 772 -2 344 0 686 3 760 l6 135 90 6 c187 11 580 10 593 -3z M18073 5874 c-18 -8 -19 -5824 -1 -5842 14 -14 924 -17 947 -3 11 7 14 178 16 987 2 539 3 982 4 986 1 4 25 20 54 34 28 14 60 33 69 41 29 26 43 10 93 -109 26 -62 66 -148 87 -191 22 -43 59 -128 84 -188 24 -60 69 -162 98 -226 30 -65 88 -198 130 -295 41 -98 98 -221 125 -275 27 -54 61 -127 76 -163 15 -35 61 -139 103 -230 41 -91 95 -208 118 -260 67 -146 8 -133 569 -127 264 2 488 8 498 12 23 10 22 19 -16 110 -19 44 -58 136 -86 204 -29 69 -77 176 -107 239 -30 63 -54 116 -54 118 0 2 -32 70 -71 151 -39 82 -80 171 -90 198 -11 28 -44 102 -74 165 -29 63 -76 163 -103 222 -28 59 -53 117 -57 130 -4 13 -42 91 -84 173 -43 83 -111 222 -151 310 -40 88 -85 180 -98 204 -41 75 -122 263 -117 271 3 5 36 24 73 42 297 149 521 270 580 315 l33 24 -3 1112 -3 1112 -27 97 c-75 271 -207 441 -432 553 -213 106 -130 99 -1221 102 -522 1 -956 -1 -962 -3z m1642 -958 c21 -15 37 -1102 20 -1373 l-7 -112 -56 -30 c-95 -51 -559 -281 -568 -281 -4 0 -15 -7 -25 -16 -49 -44 -48 -70 -46 901 2 793 4 907 17 915 26 17 642 13 665 -4z M22160 5875 c-8 -2 -49 -9 -90 -15 -336 -55 -578 -307 -667 -695 -28 -123 -28 -4317 0 -4435 100 -419 396 -668 817 -689 302 -15 1129 -8 1190 11 232 69 374 157 491 304 87 111 107 154 170 374 16 57 26 4303 10 4379 -25 119 -31 143 -47 192 -84 255 -275 443 -548 538 l-101 36 -605 1 c-333 1 -612 1 -620 -1z m922 -963 c19 -19 21 -3873 2 -3900 -13 -18 -644 -27 -686 -10 -17 7 -18 110 -18 1957 0 1847 1 1951 18 1960 27 16 667 10 684 -7z M28690 5874 c-385 -57 -672 -364 -715 -764 -8 -77 -10 -5058 -2 -5066 10 -10 929 -12 950 -2 16 8 17 134 17 2429 0 1649 3 2426 10 2440 13 23 645 30 668 7 9 -9 12 -565 12 -2439 0 -1916 3 -2429 12 -2435 20 -13 950 -17 968 -5 13 9 15 292 16 2442 1 2069 3 2432 15 2441 16 10 624 5 650 -6 27 -12 30 -233 28 -2608 -1 -1235 2 -2251 6 -2257 10 -16 937 -15 953 1 20 20 17 4969 -3 5100 -54 363 -315 639 -673 713 -107 22 -863 22 -972 0 -191 -39 -403 -191 -467 -337 -22 -50 -43 -48 -73 9 -73 139 -268 281 -441 323 -78 18 -850 30 -959 14z M226 5855 c-13 -35 -7 -5812 7 -5822 19 -16 167 -27 352 -28 277 0 569 8 588 17 16 8 17 64 17 966 0 752 3 962 13 974 6 8 48 35 92 58 44 24 103 55 130 70 28 15 82 44 120 65 39 21 97 52 130 70 33 18 150 79 260 135 110 56 223 115 251 131 81 44 197 106 362 190 85 43 192 102 238 130 l84 50 0 1119 c0 1077 -1 1122 -20 1203 -80 344 -263 542 -605 655 l-80 27 -966 3 c-882 2 -967 1 -973 -13z m1657 -944 c16 -16 25 -1441 8 -1484 -6 -15 -19 -31 -28 -34 -10 -4 -36 -19 -58 -34 -22 -15 -150 -83 -285 -151 -135 -69 -258 -133 -273 -142 -60 -40 -57 -94 -57 911 0 505 4 923 8 930 12 18 67 21 380 19 218 -2 295 -5 305 -15z"/> </g> </svg>
         <div class="pl-bar"><i></i><b></b></div>
         <svg class="pl-t2" viewBox="0 0 3258.000000 381.000000" style="aspect-ratio:3258/381" role="img" aria-label="CHONMAGE"><g transform="translate(0.000000,381.000000) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"> <path d="M9210 3761 c-448 -100 -715 -361 -784 -766 -24 -136 -24 -2066 0 -2200 87 -504 524 -804 1138 -782 633 23 999 285 1081 777 18 106 22 2009 5 2150 -53 433 -317 704 -794 817 -105 25 -540 27 -646 4z m476 -767 c57 -27 94 -67 113 -123 20 -60 16 -1900 -4 -1949 -72 -171 -381 -198 -490 -43 l-30 43 -3 951 c-3 1026 -4 1001 51 1064 74 84 247 112 363 57z M27345 3755 c-148 -20 -234 -42 -330 -85 -317 -140 -423 -237 -532 -490 -80 -183 -76 -127 -80 -1263 -4 -993 -4 -1009 17 -1118 63 -330 219 -528 512 -653 191 -81 346 -106 651 -106 412 1 702 72 927 228 l55 38 0 865 0 864 -401 0 c-325 0 -404 -3 -417 -14 -16 -12 -17 -67 -17 -606 0 -539 -1 -594 -17 -606 -12 -10 -49 -14 -137 -14 -141 0 -214 26 -270 98 l-31 38 -8 212 c-16 431 -4 1627 16 1672 89 197 461 242 962 116 141 -36 152 -37 160 -13 11 36 0 741 -12 753 -7 7 -33 16 -60 20 -26 5 -97 18 -158 29 -254 49 -619 64 -830 35z M1170 3744 c-14 -3 -68 -12 -120 -20 -266 -43 -451 -117 -583 -232 -167 -147 -280 -341 -307 -530 -14 -95 -13 -2077 1 -2162 79 -489 471 -760 1124 -777 196 -5 456 7 572 28 104 18 193 42 200 52 17 27 15 727 -1 733 -15 6 -130 -11 -285 -43 -135 -27 -501 -23 -581 7 -78 29 -144 90 -159 147 -7 25 -9 351 -8 943 l2 906 25 48 c80 155 402 192 840 96 52 -12 112 -24 133 -27 l37 -6 2 189 c3 346 -1 577 -9 584 -4 4 -62 15 -128 24 -66 10 -138 22 -160 28 -41 10 -551 20 -595 12z M5745 3731 l-130 -6 -7 -110 c-3 -60 -7 -388 -7 -728 0 -340 -3 -622 -6 -627 -4 -6 -134 -10 -324 -10 l-319 0 -6 23 c-3 12 -6 339 -6 728 0 535 -3 708 -12 717 -19 19 -821 17 -837 -2 -8 -10 -10 -497 -9 -1837 l3 -1824 428 -3 c338 -2 427 0 427 10 1 7 0 327 0 712 0 514 2 702 11 712 19 23 621 20 645 -3 16 -16 17 -63 10 -709 -6 -501 -4 -698 4 -713 11 -21 16 -21 420 -21 303 0 411 3 416 12 10 17 8 3658 -3 3669 -11 11 -527 18 -698 10z M17285 3731 l-60 -6 -5 -1820 c-3 -1001 -1 -1828 3 -1838 7 -16 33 -17 395 -15 l387 3 -1 900 c-1 720 -4 922 -15 1012 -24 188 14 177 57 -16 9 -40 34 -124 56 -185 45 -125 91 -263 137 -411 17 -55 47 -149 66 -209 19 -60 35 -117 35 -126 0 -38 16 -40 300 -40 151 0 281 4 287 8 7 4 26 53 42 107 17 55 80 251 141 435 61 184 120 372 130 418 26 108 45 152 66 152 14 0 15 -6 9 -42 -35 -205 -44 -465 -42 -1256 2 -639 4 -734 17 -743 21 -13 777 -8 796 6 20 14 24 3626 4 3650 -14 16 -782 23 -807 7 -18 -11 -61 -114 -147 -347 -85 -232 -123 -332 -166 -445 -16 -41 -59 -158 -95 -260 -59 -164 -191 -525 -216 -589 -17 -42 -14 -47 -150 329 -116 319 -159 440 -188 530 -16 47 -57 159 -91 250 -52 141 -107 292 -139 390 -22 66 -61 139 -79 149 -22 12 -612 13 -727 2z M22796 3721 c-11 -12 -23 -43 -26 -69 -4 -26 -19 -101 -34 -167 -45 -204 -84 -387 -96 -450 -7 -33 -16 -76 -20 -95 -5 -19 -15 -69 -24 -110 -9 -41 -27 -120 -40 -175 -13 -55 -27 -120 -31 -145 -4 -25 -11 -61 -15 -80 -5 -19 -19 -84 -30 -145 -12 -60 -25 -123 -30 -140 -9 -32 -25 -106 -65 -300 -14 -66 -32 -149 -40 -185 -8 -36 -22 -96 -30 -135 -8 -38 -28 -133 -45 -210 -17 -77 -37 -178 -46 -225 -8 -47 -24 -125 -35 -175 -10 -49 -26 -121 -34 -160 -33 -158 -47 -224 -66 -305 -53 -227 -80 -386 -66 -391 18 -7 742 -7 761 0 19 8 26 20 31 48 3 21 19 106 35 188 16 83 38 204 50 270 12 66 28 152 36 192 8 40 14 81 14 93 0 12 9 24 23 29 33 13 674 14 682 2 3 -6 10 -34 15 -63 5 -29 25 -127 44 -218 19 -91 51 -246 71 -345 21 -99 42 -186 48 -192 15 -20 770 -19 786 1 9 11 8 28 -3 72 -13 50 -49 223 -76 369 -8 40 -35 168 -65 300 -9 39 -29 135 -45 215 -15 80 -36 177 -45 215 -21 90 -31 136 -55 265 -10 58 -26 137 -35 175 -17 72 -30 131 -60 270 -9 44 -23 109 -31 145 -8 36 -18 88 -23 115 -19 99 -156 744 -184 870 -8 33 -31 134 -51 225 -20 91 -49 218 -64 283 -14 66 -31 125 -37 133 -8 12 -95 15 -520 21 l-510 6 -19 -22z m528 -993 c3 -13 14 -66 25 -118 11 -52 25 -129 32 -170 6 -41 38 -209 70 -372 73 -369 83 -436 68 -454 -17 -20 -414 -20 -422 -1 -3 8 1 45 9 83 8 38 19 98 24 134 17 118 52 320 85 485 8 44 22 116 30 160 13 72 37 194 50 253 3 12 10 22 15 22 5 0 12 -10 14 -22z M31170 3730 c-283 -3 -521 -9 -527 -13 -22 -14 -19 -3663 3 -3671 23 -9 1807 -7 1821 2 14 9 25 682 11 706 -8 14 -65 16 -503 16 -334 0 -496 3 -500 10 -14 22 -9 708 5 724 11 14 64 16 417 16 263 0 411 4 424 11 28 14 29 678 1 705 -14 15 -55 16 -428 9 -287 -5 -413 -4 -418 3 -10 17 -9 703 1 713 5 5 222 10 493 11 l485 3 3 373 c2 293 0 373 -10 377 -23 7 -746 10 -1278 5z M12762 3718 c-15 -15 -17 -3634 -2 -3658 9 -15 779 -24 794 -9 12 11 7 1779 -4 1894 -6 61 -12 119 -13 130 -1 11 3 21 8 22 11 2 25 -33 85 -222 23 -71 53 -157 67 -190 14 -33 52 -139 84 -236 32 -97 68 -198 80 -225 12 -27 25 -60 29 -74 5 -14 18 -50 30 -80 12 -30 32 -86 45 -125 31 -89 71 -198 131 -350 25 -66 52 -138 60 -160 7 -22 21 -62 32 -90 11 -27 40 -104 65 -169 26 -66 52 -123 59 -128 18 -11 750 -10 768 2 19 12 26 3645 8 3668 -15 18 -791 18 -806 -1 -30 -36 -13 -1772 19 -1915 17 -78 -9 -113 -30 -39 -30 103 -83 275 -95 307 -8 19 -31 80 -51 135 -21 55 -46 123 -57 150 -10 28 -30 82 -43 120 -79 229 -165 462 -240 645 -24 58 -57 146 -75 195 -18 50 -45 124 -60 165 -16 41 -40 108 -55 148 -15 40 -34 79 -42 87 -19 20 -771 23 -791 3z"/> </g> </svg>
@@ -162,7 +157,7 @@
         }
         if (!pre || !root.classList.contains('is-loading') || !pre.animate) { done(); if (cardsWrap) cardsWrap.style.display = 'none'; return; }
         // Failsafe: never leave the overlay stuck on the page.
-        var failsafe = setTimeout(function () { done(); cardsWrap.style.display = 'none'; }, 4000);
+        var failsafe = setTimeout(function () { done(); cardsWrap.style.display = 'none'; }, 12000);
         var $ = function (s) { return pre.querySelector(s); };
         var stage = $('.pl-stage'), fig = $('.pl-fig'), t1 = $('.pl-t1'), t2 = $('.pl-t2'), bar = $('.pl-bar'),
             fill = $('.pl-bar i'), head = $('.pl-bar b'), shadow = $('.pl-shadow'), meta = $('.pl-meta'),
@@ -174,10 +169,10 @@
         var VISIT_KEY = 'chonmage:visited';
         var firstVisit = true;
         try { firstVisit = localStorage.getItem(VISIT_KEY) !== '1'; } catch (e) {}
-        var MIN_SHOW_FIRST = 600, MIN_SHOW_RETURN = 800, MAX_WAIT = 2500;
+        var MIN_SHOW_FIRST = 2200, MIN_SHOW_RETURN = 800, MAX_WAIT = 8000;
         // Release the overlay once the hero image is in, not on window.load (which waits for every image on the page).
         var pageLoaded = false;
-        function heroReady() { var h = document.querySelector('.hero-slide img'); return !h || h.complete; }
+        function heroReady() { var h = document.querySelector('.hero-slide img'); return h ? h.complete : document.readyState !== 'loading'; }
         setTimeout(function () { pageLoaded = true; }, MAX_WAIT);
         function A(el, kf, opt) { return el.animate(kf, Object.assign({ fill: 'both', easing: OUT }, opt)); }
         function setSuit(i, animate) {
@@ -215,7 +210,7 @@
             num.textContent = v; pre.setAttribute('aria-valuenow', v);
             fill.style.transform = 'scaleX(' + v / 100 + ')'; head.style.transform = 'translateX(' + (v - 100) + '%)';
             var q = Math.floor(v / 25); if (q !== lastQ && q < 4) { lastQ = q; setSuit(q, true); }
-            if (v < 100) setTimeout(step, 16); else setTimeout(finish, firstVisit ? 120 : 60);
+            if (v < 100) setTimeout(step, 16); else setTimeout(finish, firstVisit ? 300 : 60);
           })();
         }
         function finish() {
@@ -223,10 +218,43 @@
           fig.classList.remove('rocking'); shadow.classList.remove('rocking');
           swapLabel('ALL IN.');
           try { localStorage.setItem(VISIT_KEY, '1'); } catch (e) {}
-          // Short fade straight to the hero (no card wipe), so the overlay only covers first paint.
-          A(pre, [{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 300 : 260, delay: reduce ? 0 : 120 }).finished.then(function () {
-            clearTimeout(failsafe); done(); cardsWrap.style.display = 'none';
-          });
+          if (reduce) {
+            A(pre, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 }).finished.then(function () { clearTimeout(failsafe); done(); cardsWrap.style.display = 'none'; });
+            return;
+          }
+          var spin;
+          if (firstVisit) {
+            // Fold the text away, slide the figure to the centre, then spin the chair once.
+            A(t2, [{ clipPath: 'inset(0 0% 0 0)' }, { clipPath: 'inset(0 0 0 100%)' }], { duration: 380, easing: INOUT });
+            bar.style.transformOrigin = 'right';
+            A(bar, [{ transform: 'scaleX(1)', opacity: 1 }, { transform: 'scaleX(0)', opacity: 1 }], { duration: 380, delay: 40, easing: INOUT });
+            A(t1, [{ clipPath: 'inset(0 0 0 0)', transform: 'translateY(0)' }, { clipPath: 'inset(0 0 100% 0)', transform: 'translateY(-18%)' }], { duration: 380, delay: 80, easing: INOUT });
+            var P = 'perspective(900px) ', X = 'translateX(58.3%) ', SX = 'translateX(184%) ';
+            var move = A(fig, [{ transform: P + 'translateX(0) rotateY(0) rotate(0)' }, { transform: P + X + 'rotateY(0) rotate(0)' }], { duration: 520, delay: 300, easing: INOUT });
+            A(shadow, [{ transform: 'translateX(0) scaleX(1)' }, { transform: SX + 'scaleX(1)' }], { duration: 520, delay: 300, easing: INOUT });
+            spin = move.finished.then(function () {
+              A(shadow, [{ transform: SX + 'scaleX(1)' }, { transform: SX + 'scaleX(1.06)', offset: .18 }, { transform: SX + 'scaleX(.72)', offset: .5 }, { transform: SX + 'scaleX(1)', offset: .86 }, { transform: SX + 'scaleX(1)' }], { duration: 1000, easing: 'ease-in-out' });
+              return A(fig, [
+                { transform: P + X + 'rotateY(0) rotate(0)', easing: OUT },
+                { transform: P + X + 'rotateY(-28deg) rotate(-3deg)', offset: .18, easing: INOUT },
+                { transform: P + X + 'rotateY(372deg) rotate(1deg)', offset: .86, easing: OUT },
+                { transform: P + X + 'rotateY(360deg) rotate(0)' }], { duration: 1000, easing: 'linear' }).finished;
+            });
+          } else {
+            spin = new Promise(function (r) { setTimeout(r, 240); });
+          }
+          spin.then(function () {
+            A(stage, [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-8%)' }], { duration: 520, easing: INOUT });
+            A(meta, [{ opacity: 1 }, { opacity: 0 }], { duration: 250 });
+            return Promise.all(cards.map(function (c, i) {
+              return A(c, [{ transform: 'translateY(101%)' }, { transform: 'translateY(0)' }], { duration: 450, delay: i * 50, easing: INOUT }).finished;
+            }));
+          }).then(function () {
+            clearTimeout(failsafe); done();
+            return Promise.all(cards.map(function (c, i) {
+              return A(c, [{ transform: 'translateY(0)' }, { transform: 'translateY(-101%)' }], { duration: 550, delay: 80 + i * 50, easing: DRAWER }).finished;
+            }));
+          }).then(function () { cardsWrap.style.display = 'none'; });
         }
         // Wait for the figure to decode (at most 1 s) so it never slides in as an empty box.
         var img = fig.querySelector('img');
@@ -271,7 +299,7 @@
     <main id="top">
       <section class="hero hero-v2" aria-labelledby="hero-title">
         <div class="hero-slides" aria-hidden="true">
-          <figure class="hero-slide hero-slide--one"><picture><source media="(max-width: 480px)" type="image/avif" srcset="./images/interior-mobile-800.avif 800w, ./images/interior-mobile.avif 1086w" sizes="100vw" /><source media="(max-width: 480px)" srcset="./images/interior-mobile-800.webp 800w, ./images/interior-mobile.webp 1086w" sizes="100vw" /><source type="image/avif" srcset="./images/interior-wide-800.avif 800w, ./images/interior-wide.avif 1448w" sizes="100vw" /><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="" width="1448" height="1086" fetchpriority="high" /></picture></figure>
+          <figure class="hero-slide hero-slide--one"><picture><source media="(max-width: 480px)" type="image/avif" srcset="./images/interior-mobile-800.avif 800w, ./images/interior-mobile.avif 1086w" sizes="100vw" /><source media="(max-width: 480px)" srcset="./images/interior-mobile-800.webp 800w, ./images/interior-mobile.webp 1086w" sizes="100vw" /><source type="image/avif" srcset="./images/interior-wide-800.avif 800w, ./images/interior-wide.avif 1448w" sizes="100vw" /><img src="./images/interior-wide.webp" srcset="./images/interior-wide-800.webp 800w, ./images/interior-wide.webp 1448w" sizes="100vw" alt="" width="1448" height="1086" fetchpriority="high" decoding="async" /></picture></figure>
         </div>
         <div class="hero-wash" aria-hidden="true"></div>
         <div class="hero-copy">
