@@ -174,7 +174,7 @@
         var VISIT_KEY = 'chonmage:visited';
         var firstVisit = true;
         try { firstVisit = localStorage.getItem(VISIT_KEY) !== '1'; } catch (e) {}
-        var MIN_SHOW_FIRST = 900, MIN_SHOW_RETURN = 800, MAX_WAIT = 2500;
+        var MIN_SHOW_FIRST = 600, MIN_SHOW_RETURN = 800, MAX_WAIT = 2500;
         // Release the overlay once the hero image is in, not on window.load (which waits for every image on the page).
         var pageLoaded = false;
         function heroReady() { var h = document.querySelector('.hero-slide img'); return !h || h.complete; }
@@ -223,24 +223,10 @@
           fig.classList.remove('rocking'); shadow.classList.remove('rocking');
           swapLabel('ALL IN.');
           try { localStorage.setItem(VISIT_KEY, '1'); } catch (e) {}
-          if (reduce) {
-            A(pre, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 }).finished.then(function () { clearTimeout(failsafe); done(); cardsWrap.style.display = 'none'; });
-            return;
-          }
-          // Keep the exit short: the overlay is only there to cover first paint.
-          var spin = new Promise(function (r) { setTimeout(r, 240); });
-          spin.then(function () {
-            A(stage, [{ opacity: 1, transform: 'translateY(0)' }, { opacity: 0, transform: 'translateY(-8%)' }], { duration: 520, easing: INOUT });
-            A(meta, [{ opacity: 1 }, { opacity: 0 }], { duration: 250 });
-            return Promise.all(cards.map(function (c, i) {
-              return A(c, [{ transform: 'translateY(101%)' }, { transform: 'translateY(0)' }], { duration: 300, delay: i * 30, easing: INOUT }).finished;
-            }));
-          }).then(function () {
-            clearTimeout(failsafe); done();
-            return Promise.all(cards.map(function (c, i) {
-              return A(c, [{ transform: 'translateY(0)' }, { transform: 'translateY(-101%)' }], { duration: 350, delay: 40 + i * 30, easing: DRAWER }).finished;
-            }));
-          }).then(function () { cardsWrap.style.display = 'none'; });
+          // Short fade straight to the hero (no card wipe), so the overlay only covers first paint.
+          A(pre, [{ opacity: 1 }, { opacity: 0 }], { duration: reduce ? 300 : 260, delay: reduce ? 0 : 120 }).finished.then(function () {
+            clearTimeout(failsafe); done(); cardsWrap.style.display = 'none';
+          });
         }
         // Wait for the figure to decode (at most 1 s) so it never slides in as an empty box.
         var img = fig.querySelector('img');
