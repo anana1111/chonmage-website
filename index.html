@@ -86,7 +86,7 @@
     <link rel="stylesheet" href="./activity.css?v=20261004" />
     <link rel="stylesheet" href="./news.css?v=20261003news" />
     <link rel="stylesheet" href="./story.css?v=20261006story3" />
-    <link rel="stylesheet" href="./king.css?v=20261008home" />
+    <link rel="stylesheet" href="./king.css?v=20261008v3" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
@@ -355,13 +355,14 @@
         <div class="news-grid" aria-live="polite"><p class="news-empty">最近のニュースは NEWS一覧でご確認ください。</p></div>
       </section>
 
-      <section class="home-king section-pad" id="king" aria-labelledby="home-king-title">
-        <div class="section-kicker reveal"><span>KING OF THE MONTH</span><span>今月のチャンピオン</span></div>
-        <div class="news-heading">
-          <h2 id="home-king-title" class="reveal">今月の<br /><span class="home-king-accent">KING.</span></h2>
-          <a class="all-news-link reveal" href="./king/">歴代のKINGを見る <span aria-hidden="true">→</span></a>
+      <section class="home-king section-pad" id="king" aria-labelledby="home-king-heading">
+        <div class="section-kicker reveal"><span>LATEST KING</span><span>最新のKING</span></div>
+        <div class="home-king-layout">
+          <div class="home-king-intro">
+            <h2 id="home-king-heading" class="reveal">ちょんまげに、<br />その名を刻む。</h2>
+          </div>
+          <div id="home-king" aria-live="polite"><p class="home-king-empty">月ごとのランキング王者決定戦を制したプレイヤーを、<a href="./king/">歴代KING</a>として記録しています。</p></div>
         </div>
-        <div id="home-king" aria-live="polite"><p class="home-king-empty">毎月のランキング王者決定戦を制したプレイヤーを紹介しています。<a href="./king/">歴代のKINGを見る</a></p></div>
       </section>
 
       <section class="ticker" aria-label="店舗の特徴">
@@ -485,6 +486,6 @@
     <script src="./news-view.js?v=20261006seo"></script>
     <script src="./week-core.js?v=20261007"></script>
     <script src="./script.js?v=20261007"></script>
-    <script defer src="./king.js?v=20261008home"></script>
+    <script defer src="./king.js?v=20261008v3"></script>
   </body>
 </html>
