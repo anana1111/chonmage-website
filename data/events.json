@@ -2,75 +2,76 @@
   "version": 2,
   "date": "2026-10-08",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2106713700346515720",
-  "updatedAt": "2026-10-08T05:34:47+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2108090018505924767",
+  "updatedAt": "2026-10-08T22:19:37+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2106713700346515720",
+    "url": "https://x.com/ChonmageNiigata/status/2108090018505924767",
     "mode": "auto"
   },
   "open": "17:00",
   "status": "open",
   "summary": [
-    "今週のスケジュールより。",
+    "本日の開催情報です。",
     "当日の変更は公式Xでお知らせします。"
   ],
   "ringGame": {
     "enabled": true,
     "start": "17:00",
-    "title": "NLHリングゲーム",
-    "description": "終日開催。"
+    "title": "RING GAME",
+    "description": "リングゲームもOPENから参加者募集中🔥"
   },
   "events": [
     {
-      "id": "freeroll-1800",
+      "id": "event-1800",
       "time": "18:00",
       "type": "free",
-      "title": "フリーロール",
+      "title": "フリーロール 🕑",
       "heroTitle": "FREE ROLL",
       "theme": "blue",
       "tags": [
         "1 DRINK"
       ],
-      "description": "週間スケジュールより。当日の変更は公式Xでお知らせします。",
+      "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "無料"
+          "value": "¥0"
         },
         {
-          "label": "RE-ENTRY",
-          "value": "¥500"
+          "label": "施設利用料",
+          "value": "500円"
         }
       ],
       "link": {
-        "label": "週間スケジュール ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106713700346515720"
+        "label": "最新情報 ↗",
+        "url": "https://x.com/ChonmageNiigata/status/2108090018505924767"
       }
     },
     {
       "id": "event-1910",
       "time": "19:10",
       "type": "tournament",
-      "title": "ふるまちdeトナメ",
-      "heroTitle": "ふるまちdeトナメ",
+      "title": "ふるまちトーナメント 🕠",
+      "heroTitle": "ふるまちトーナメント 🕠",
       "theme": "orange",
       "tags": [],
-      "description": "週間スケジュールより。当日の変更は公式Xでお知らせします。",
+      "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
           "label": "ENTRY",
           "value": "¥2,500"
         },
         {
-          "label": "RE-ENTRY",
-          "value": "¥2,500"
+          "label": "STARTING STACK",
+          "value": "25,000pt"
         }
       ],
       "link": {
-        "label": "週間スケジュール ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2106713700346515720"
-      }
+        "label": "最新情報 ↗",
+        "url": "https://x.com/ChonmageNiigata/status/2108090018505924767"
+      },
+      "isMain": true
     }
   ],
   "close": "23:30"
