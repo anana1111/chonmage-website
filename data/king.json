@@ -1,15 +1,5 @@
 {
   "updatedAt": "2026-10-08",
-  "final": {
-    "title": "KING OF KINGS",
-    "status": "upcoming",
-    "date": "",
-    "lead": "12人のKINGが集結する、年に一度の頂上決戦。",
-    "seats": 12,
-    "winner": "",
-    "prize": "",
-    "placeholder": true
-  },
   "items": [
     {
       "month": "2026-09",
@@ -17,7 +7,7 @@
       "prize": "（賞品名）",
       "entries": 38,
       "photo": "",
-      "comment": "いつか KING OF KINGS も。",
+      "comment": "来月も防衛します！",
       "post": "https://x.com/ChonmageNiigata",
       "placeholder": true
     },

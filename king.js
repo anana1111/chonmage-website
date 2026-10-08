@@ -1,5 +1,4 @@
-// KING page: renders data/king.json — the yearly KING OF KINGS final on top, then every
-// monthly champion as a poster on a timeline, newest month first.
+// KING page: renders data/king.json — every monthly champion as a poster on a timeline, newest month first.
 (function () {
   'use strict';
   const view = document.getElementById('king-view');
@@ -40,12 +39,13 @@
       }))
       .sort((a, b) => a.month.localeCompare(b.month));
     items.forEach((item, index) => { item.round = index + 1; });
-    const raw = (data && data.final) || {};
-    const final = {
+    // The yearly final appears only once data/king.json has a "final" entry.
+    const raw = data && data.final;
+    const final = raw && {
       title: text(raw.title) || 'KING OF KINGS', lead: text(raw.lead), date: DAY.test(text(raw.date)) ? text(raw.date) : '',
       seats: count(raw.seats) || 12, winner: text(raw.winner), prize: text(raw.prize)
     };
-    return { items: items.reverse(), final, placeholder: items.some((item) => item.placeholder) || raw.placeholder === true };
+    return { items: items.reverse(), final, placeholder: items.some((item) => item.placeholder) || Boolean(raw && raw.placeholder === true) };
   }
 
   const parts = (month) => { const [, year, mm] = month.match(MONTH); return { year, number: Number(mm), en: MONTH_EN[Number(mm) - 1] }; };
@@ -143,13 +143,13 @@
     const { items, final, placeholder } = data;
     const fragment = document.createDocumentFragment();
     if (placeholder) fragment.append(node('p', 'king-preview-note', 'プレビュー：名前・賞品・人数・コメントは仮の内容です。'));
-    fragment.append(finalBanner(final, items));
+    if (final) fragment.append(finalBanner(final, items));
     if (!items.length) {
       fragment.append(node('p', 'king-state', 'チャンピオンの記録を準備中です。'));
     } else {
       const counts = new Map();
       items.forEach((item) => counts.set(item.name, (counts.get(item.name) || 0) + 1));
-      const heading = node('div', 'king-timeline-head');
+      const heading = node('div', 'king-timeline-head' + (final ? '' : ' is-first'));
       heading.append(node('h2', 'king-timeline-title', 'MONTHLY KINGS'), node('p', '', items.length + '回の開催 · ' + counts.size + '人のKING'));
       const list = node('ol', 'king-timeline'); list.setAttribute('aria-label', '歴代のKING（新しい順）');
       items.forEach((item, index) => list.append(entry(item, counts, index === 0)));

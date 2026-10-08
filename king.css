@@ -36,6 +36,7 @@
 /* Monthly timeline */
 .king-timeline-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem 1rem; margin: clamp(3rem, 7vw, 5rem) 0 clamp(1.5rem, 4vw, 2.5rem); padding-top: .8rem; border-top: 1px solid var(--ink); }
 .king-timeline-title { margin: 0; font: 700 .72rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; }
+.king-timeline-head.is-first { margin-top: 1.25rem; }
 .king-timeline-head p { margin: 0; font-size: .8rem; font-weight: 700; color: var(--blue); }
 .king-timeline { list-style: none; margin: 0; padding: 0; position: relative; }
 .king-timeline::before { content: ''; position: absolute; top: .5rem; bottom: 0; left: 1.6rem; width: 2px; background: linear-gradient(var(--orange), var(--blue) 30%, var(--line)); }
