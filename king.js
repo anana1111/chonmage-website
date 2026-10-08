@@ -42,7 +42,7 @@
     const items = rows
       .filter((row) => row && (demo || row.placeholder !== true) && MONTH.test(text(row.month)) && text(row.name))
       .map((row) => ({
-        month: text(row.month), name: text(row.name), prize: text(row.prize), entries: count(row.entries),
+        month: text(row.month), period: text(row.period), name: text(row.name), prize: text(row.prize), entries: count(row.entries),
         photo: PHOTO.test(text(row.photo)) ? text(row.photo) : '', comment: text(row.comment),
         post: POST.test(text(row.post)) ? text(row.post) : '', won: DAY.test(text(row.won)) ? text(row.won) : ''
       }))
@@ -56,13 +56,15 @@
   }
 
   const monthTitle = (month) => { const [, y, m] = month.match(MONTH); return y + '年' + Number(m) + '月度'; };
+  // A KING that covered more than one ranking month carries its own label, e.g. "2025年9・10月度".
+  const label = (item) => item.period || monthTitle(item.month);
   const dotted = (day) => day.replaceAll('-', '.');
   function time(value, className, label) { const result = node('time', className, label); result.dateTime = value; return result; }
 
   // "2026年8月度 KING"
   function title(item, className) {
     const result = node('p', className);
-    result.append(time(item.month, '', monthTitle(item.month)), node('span', '', ' KING'));
+    result.append(time(item.month, '', label(item)), node('span', '', ' KING'));
     return result;
   }
   function name(item, tag, className) {
@@ -84,7 +86,7 @@
     if (item.photo) {
       const image = node('img');
       image.src = new URL(item.photo, siteRoot).href;
-      image.alt = monthTitle(item.month) + ' KING ' + item.name + '様';
+      image.alt = label(item) + ' KING ' + item.name + '様';
       image.decoding = 'async'; image.loading = eager ? 'eager' : 'lazy';
       figure.append(image);
     } else {

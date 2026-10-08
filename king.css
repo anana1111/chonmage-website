@@ -6,8 +6,8 @@
 .is-blank { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4rem;
   background: radial-gradient(120% 90% at 50% 0%, #34489a 0%, var(--blue) 55%, #1b2652 100%); color: #fff; }
 .king-photo-initial { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(3.5rem, 12vw, 6rem); line-height: 1; color: rgba(255, 255, 255, .9); }
-.king-latest-photo, .king-card-photo, .home-king-photo { margin: 0; aspect-ratio: 4 / 5; overflow: hidden; }
-.king-latest-photo img, .king-card-photo img, .home-king-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.king-latest-photo, .king-card-photo, .home-king-photo { margin: 0; aspect-ratio: 4 / 3; overflow: hidden; }
+.king-latest-photo img, .king-card-photo img, .home-king-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
 .king-badge { align-self: flex-start; margin: 0; padding: .3rem .7rem; border-radius: 99px; background: var(--orange); color: #111; font-size: .72rem; font-weight: 800; }
 .king-facts { display: grid; gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 .king-facts div { display: flex; gap: 1rem; align-items: baseline; padding: .6rem .8rem; background: var(--paper); }
@@ -54,9 +54,8 @@
 .king-year { margin: 1.6rem 0 .9rem; font-family: 'Archivo Black', sans-serif; font-size: 1.4rem; letter-spacing: -.01em; color: var(--blue); }
 .king-section-title + .king-year { margin-top: .4rem; }
 .king-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
-.king-card { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; scroll-margin-top: 1rem; }
+.king-card { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; scroll-margin-top: 1rem; }
 .king-card.is-target, .king-latest.is-target { box-shadow: 0 0 0 3px var(--orange); }
-.king-card-photo { align-self: start; }
 .king-card-body { display: flex; flex-direction: column; align-items: flex-start; gap: .55rem; padding: 1rem; min-width: 0; }
 .king-card-title { margin: 0; font-size: .8rem; font-weight: 800; color: var(--blue); }
 .king-card-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .3rem; margin: 0; font-size: clamp(1.35rem, 4.5vw, 1.9rem); font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
@@ -94,7 +93,7 @@
 .king-next-button:hover { background: #fff; border-color: #fff; color: var(--ink); }
 
 @media (min-width: 720px) {
-  .king-latest { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); }
+  .king-latest { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
   .king-latest-photo { aspect-ratio: auto; min-height: 100%; }
   .king-latest-body { justify-content: center; }
   .king-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -102,7 +101,7 @@
   .king-steps li { position: relative; }
   .king-steps li + li::before { content: '→'; position: absolute; left: -.45rem; transform: translateX(-50%); font-weight: 900; }
 }
-@media (min-width: 1000px) { .king-latest { grid-template-columns: minmax(0, 28rem) minmax(0, 1fr); } }
+@media (min-width: 1000px) { .king-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 /* Homepage block (#king): an award for one person, linking to the whole history */
 .home-king { background: var(--paper); }
@@ -120,14 +119,10 @@
 .home-king-more { display: inline-flex; align-items: center; min-height: 48px; margin-top: .4rem; padding: .75rem 1.3rem; border-radius: 99px; background: var(--orange); color: var(--ink); font-size: .88rem; font-weight: 800; text-decoration: none; }
 .home-king-more:hover { background: #fff; }
 @media (min-width: 640px) {
-  .home-king-card { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); }
+  .home-king-card { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
   .home-king-photo { aspect-ratio: auto; min-height: 100%; }
   .home-king-body { justify-content: center; }
 }
 @media (min-width: 1000px) {
-  .home-king-layout { grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); }
-  .home-king-card { grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); }
+  .home-king-layout { grid-template-columns: minmax(0, .7fr) minmax(0, 1.5fr); }
 }
-/* Phones: a wider photo so the name of the latest KING is on the first screen. */
-@media (max-width: 719px) { .king-latest-photo { aspect-ratio: 4 / 3; } .king-latest-photo img { object-position: center 30%; } }
-@media (max-width: 639px) { .home-king-photo { aspect-ratio: 4 / 3; } .home-king-photo img { object-position: center 30%; } }

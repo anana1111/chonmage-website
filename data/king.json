@@ -2,112 +2,109 @@
   "updatedAt": "2026-10-08",
   "next": {
     "date": "2026-10-25",
-    "time": "18:00",
-    "entry": "9月ランキング上位8名（トーナメント部門・リングゲーム部門）",
-    "note": "毎月のランキングで上位8名に入ると、その月のKINGを決める「ランキング王者決定戦」に出場できます。"
+    "time": "18:00"
   },
   "items": [
     {
       "month": "2026-08",
       "name": "いたみ",
+      "won": "2026-09-13",
+      "photo": "images/king/2026-08.webp",
+      "post": "https://x.com/Old_Chonmage/status/2099121808758956055",
       "prize": "",
       "entries": 0,
-      "photo": "",
-      "comment": "",
-      "post": "https://x.com/Old_Chonmage/status/2099121808758956055",
-      "placeholder": false,
-      "won": "2026-09-13"
+      "comment": ""
     },
     {
       "month": "2026-07",
       "name": "Hiiragi",
+      "won": "2026-08-23",
+      "photo": "images/king/2026-07.webp",
+      "post": "https://x.com/Old_Chonmage/status/2091525465085505844",
       "prize": "",
       "entries": 0,
-      "photo": "",
-      "comment": "",
-      "post": "https://x.com/Old_Chonmage/status/2091525465085505844",
-      "placeholder": false,
-      "won": "2026-08-23"
+      "comment": ""
     },
     {
       "month": "2026-06",
-      "name": "PLAYER C",
-      "prize": "（賞品名）",
-      "entries": 32,
-      "photo": "",
-      "comment": "2回目のKING、うれしいです！",
-      "post": "",
-      "placeholder": true
+      "name": "ちゃちゃ丸",
+      "won": "2026-07-11",
+      "photo": "images/king/2026-06.webp",
+      "post": "https://x.com/Old_Chonmage/status/2075930590160073038",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
     },
     {
       "month": "2026-05",
-      "name": "PLAYER H",
-      "prize": "（賞品名）",
-      "entries": 30,
-      "photo": "",
-      "comment": "",
-      "post": "",
-      "placeholder": true
+      "name": "taka",
+      "won": "2026-06-28",
+      "photo": "images/king/2026-05.webp",
+      "post": "https://x.com/Old_Chonmage/status/2071234288612442249",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
     },
     {
       "month": "2026-04",
-      "name": "PLAYER G",
-      "prize": "（賞品名）",
-      "entries": 28,
-      "photo": "",
-      "comment": "最後のオールイン、震えました。",
-      "post": "",
-      "placeholder": true
+      "name": "さかい",
+      "won": "2026-05-20",
+      "photo": "images/king/2026-04.webp",
+      "post": "https://x.com/Old_Chonmage/status/2057077865443991823",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
     },
     {
       "month": "2026-03",
-      "name": "PLAYER F",
-      "prize": "（賞品名）",
-      "entries": 26,
-      "photo": "",
-      "comment": "",
-      "post": "",
-      "placeholder": true
-    },
-    {
-      "month": "2026-02",
-      "name": "PLAYER E",
-      "prize": "（賞品名）",
-      "entries": 24,
-      "photo": "",
-      "comment": "運が良かっただけです笑",
-      "post": "",
-      "placeholder": true
+      "name": "DaiSan",
+      "won": "2026-04-07",
+      "photo": "images/king/2026-03.webp",
+      "post": "https://x.com/Old_Chonmage/status/2041507153987641368",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
     },
     {
       "month": "2026-01",
-      "name": "PLAYER D",
-      "prize": "（賞品名）",
-      "entries": 22,
-      "photo": "",
-      "comment": "",
-      "post": "",
-      "placeholder": true
+      "name": "ラ",
+      "won": "2026-02-09",
+      "photo": "images/king/2026-01.webp",
+      "post": "https://x.com/Old_Chonmage/status/2020831944284762201",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
     },
     {
       "month": "2025-12",
-      "name": "PLAYER C",
-      "prize": "（賞品名）",
-      "entries": 20,
-      "photo": "",
-      "comment": "次もまた獲りに来ます！",
-      "post": "",
-      "placeholder": true
+      "name": "Wasshi",
+      "won": "2026-01-26",
+      "photo": "images/king/2025-12.webp",
+      "post": "https://x.com/Old_Chonmage/status/2015784192404275551",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
     },
     {
       "month": "2025-11",
-      "name": "PLAYER B",
-      "prize": "（賞品名）",
-      "entries": 18,
-      "photo": "",
-      "comment": "",
-      "post": "",
-      "placeholder": true
+      "name": "アス",
+      "won": "2025-12-09",
+      "photo": "images/king/2025-11.webp",
+      "post": "https://x.com/Old_Chonmage/status/1998389669487431926",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
+    },
+    {
+      "month": "2025-10",
+      "period": "2025年9・10月度",
+      "name": "いとう",
+      "won": "2025-11-12",
+      "photo": "images/king/2025-10.webp",
+      "post": "https://x.com/Old_Chonmage/status/1988601356865995055",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
     }
   ]
 }
