@@ -1,0 +1,16 @@
+{
+  "updatedAt": "2026-10-08",
+  "items": [
+    { "month": "2026-09", "name": "PLAYER K", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-08", "name": "PLAYER J", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-07", "name": "PLAYER I", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-06", "name": "PLAYER C", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-05", "name": "PLAYER H", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-04", "name": "PLAYER G", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-03", "name": "PLAYER F", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-02", "name": "PLAYER E", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2026-01", "name": "PLAYER D", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2025-12", "name": "PLAYER C", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
+    { "month": "2025-11", "name": "PLAYER B", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true }
+  ]
+}

@@ -1,0 +1,76 @@
+/* KING page (/king/): monthly tournament champions. Reuses the NEWS page shell and site tokens. */
+.king-page main { max-width: 1120px; }
+.king-intro .section-kicker { color: var(--blue); margin-bottom: clamp(1.5rem, 4vw, 3rem); }
+.king-title { display: flex; align-items: flex-end; gap: clamp(.6rem, 2vw, 1.2rem); margin: 0; font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(4.2rem, 15vw, 10rem); line-height: .82; letter-spacing: -.055em; color: var(--ink); }
+.king-crown { display: inline-flex; color: var(--orange); width: clamp(2.6rem, 8vw, 5.4rem); margin-bottom: .1em; }
+.king-crown svg { width: 100%; height: auto; }
+.king-lead { margin: clamp(1.4rem, 3vw, 2rem) 0 0; max-width: 34em; font-size: clamp(.95rem, 2.2vw, 1.1rem); font-weight: 700; line-height: 1.9; color: var(--blue); text-wrap: pretty; }
+.king-state { padding: 2rem 0; line-height: 1.8; color: var(--blue); }
+.king-preview-note { display: inline-block; margin: clamp(2rem, 5vw, 3.5rem) 0 0; padding: .45rem .8rem; border: 1px dashed var(--orange); border-radius: 4px; font-size: .75rem; font-weight: 700; color: var(--orange); }
+
+/* Keep the header button on one line on narrow phones. */
+.king-page .news-page-header .news-button { flex: none; white-space: nowrap; }
+.king-page .news-page-header .brand--logo { min-width: 0; }
+.king-page .news-page-header .brand--logo img { max-width: 100%; width: auto; }
+
+/* Latest champion */
+.king-latest { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 1.25rem; background: var(--blue); color: #fff; border-radius: 6px; overflow: hidden; }
+.king-latest-photo { margin: 0; aspect-ratio: 4 / 3; background: #1d2a57; position: relative; }
+.king-latest-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.king-latest-body { padding: clamp(1.5rem, 4vw, 3rem); display: flex; flex-direction: column; gap: .9rem; min-width: 0; }
+.king-latest-label { display: flex; justify-content: space-between; gap: 1rem; margin: 0; padding-bottom: .8rem; border-bottom: 1px solid rgba(255, 255, 255, .3); font: 800 .7rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; }
+.king-latest-label span { color: var(--orange); }
+.king-latest-month { display: flex; align-items: baseline; gap: .4rem; margin: .4rem 0 0; }
+.king-latest-num { font-family: 'Archivo Black', sans-serif; font-size: clamp(4.5rem, 12vw, 7.5rem); line-height: .85; letter-spacing: -.05em; color: var(--orange); }
+.king-latest-unit { font-size: clamp(1rem, 2.6vw, 1.35rem); font-weight: 900; }
+.king-latest-name { display: flex; align-items: baseline; gap: .35rem; margin: 0; font-size: clamp(2rem, 6vw, 3.4rem); font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
+.king-latest-name small { font-size: .45em; font-weight: 700; opacity: .8; }
+.king-prize { margin: .4rem 0 0; }
+.king-prize div { display: flex; gap: 1rem; align-items: baseline; padding: .8rem 1rem; background: rgba(255, 255, 255, .1); border-radius: 4px; }
+.king-prize dt { font: 800 .65rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; color: var(--orange); flex: none; }
+.king-prize dd { margin: 0; font-weight: 700; line-height: 1.6; overflow-wrap: anywhere; }
+.king-comment { margin: 0; line-height: 1.9; font-size: .9rem; opacity: .9; }
+.king-badge { align-self: flex-start; margin: 0; padding: .35rem .7rem; border-radius: 99px; background: var(--orange); color: #111; font-size: .72rem; font-weight: 800; }
+
+/* Portrait placeholder when a month has no photo */
+.is-empty { display: flex; align-items: center; justify-content: center; }
+.king-initial { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; line-height: 1; color: rgba(255, 255, 255, .16); }
+.king-latest-photo .king-initial { font-size: clamp(8rem, 26vw, 14rem); }
+
+.king-stats { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1rem; margin: clamp(2rem, 5vw, 3rem) 0 0; color: var(--blue); font-weight: 700; }
+.king-stats strong { font-family: 'Archivo Black', sans-serif; font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1; color: var(--ink); }
+.king-stats span + strong { margin-left: .6rem; }
+
+/* Hall of kings */
+.king-list-title { margin: clamp(3rem, 7vw, 5rem) 0 1.25rem; padding-top: .8rem; border-top: 1px solid var(--ink); font: 700 .72rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; }
+.king-list { list-style: none; margin: 0; padding: 0 1px 1px 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.king-card { display: grid; grid-template-columns: 4.2rem 4.4rem minmax(0, 1fr); align-items: center; gap: .9rem; padding: .9rem 1rem; background: var(--paper); min-width: 0; border: 1px solid var(--line); margin: 0 -1px -1px 0; }
+.king-card-month { display: flex; flex-direction: column; gap: .3rem; }
+.king-card-num { font-family: 'Archivo Black', sans-serif; font-size: 2rem; line-height: .9; letter-spacing: -.04em; color: var(--blue); }
+.king-card-date { font-size: .6rem; font-weight: 800; letter-spacing: .12em; color: var(--blue); opacity: .7; }
+.king-card-photo { margin: 0; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--blue); }
+.king-card-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.king-card-photo .king-initial { font-size: 1.7rem; color: rgba(255, 255, 255, .55); }
+.king-card-body { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; min-width: 0; }
+.king-card-name { display: flex; align-items: baseline; gap: .25rem; margin: 0; font-size: 1.15rem; font-weight: 900; line-height: 1.35; overflow-wrap: anywhere; min-width: 0; }
+.king-card-name small { font-size: .7em; font-weight: 700; opacity: .7; }
+.king-badge--small { padding: .2rem .5rem; font-size: .65rem; }
+.king-card-prize { flex-basis: 100%; margin: 0; font-size: .78rem; line-height: 1.6; color: var(--blue); overflow-wrap: anywhere; }
+
+@media (min-width: 720px) {
+  .king-latest { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+  .king-latest-photo { aspect-ratio: auto; min-height: 100%; }
+  .king-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1000px) {
+  .king-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .king-card { grid-template-columns: 1fr; align-items: start; gap: 1rem; padding: 1.4rem; }
+  .king-card-month { flex-direction: row; align-items: baseline; justify-content: space-between; }
+  .king-card-num { font-size: 2.6rem; }
+  .king-card-photo { width: 100%; aspect-ratio: 4 / 3; border-radius: 4px; }
+  .king-card-photo .king-initial { font-size: 5rem; color: rgba(255, 255, 255, .18); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .king-card { transition: background .25s; }
+  .king-card:hover { background: #fffdf6; }
+}
