@@ -2,8 +2,10 @@
 // champion as a poster on a timeline split by year (newest first), and the next KING tournament.
 (function () {
   'use strict';
+  // /king/ fills #king-view; the homepage fills #home-king with this month's KING only.
   const view = document.getElementById('king-view');
-  const siteRoot = new URL('../', location.href);
+  const home = document.getElementById('home-king');
+  const siteRoot = new URL(home ? './' : '../', location.href);
   const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
   const DAY = /^\d{4}-\d{2}-\d{2}$/;
   const PHOTO = /^(?:\.\/)?images\/[A-Za-z0-9_\/-]+\.(?:webp|avif|jpg|png)$/;
@@ -35,7 +37,7 @@
       .filter((row) => row && MONTH.test(text(row.month)) && text(row.name))
       .map((row) => ({
         month: text(row.month), name: text(row.name), prize: text(row.prize), entries: count(row.entries),
-        photo: PHOTO.test(text(row.photo)) ? text(row.photo) : '', comment: text(row.comment),
+        photo: PHOTO.test(text(row.photo)) ? text(row.photo) : '', comment: text(row.comment), won: DAY.test(text(row.won)) ? text(row.won) : '',
         post: POST.test(text(row.post)) ? text(row.post) : '', placeholder: row.placeholder === true
       }))
       .sort((a, b) => a.month.localeCompare(b.month));
@@ -116,10 +118,40 @@
     return figure;
   }
 
+  function wonLabel(day) {
+    const [y, m, d] = day.split('-').map(Number);
+    return y + '.' + String(m).padStart(2, '0') + '.' + String(d).padStart(2, '0') + ' 戴冠';
+  }
+
+  // Homepage: the latest KING as one card, with links to the whole history on /king/.
+  function homeCard(item) {
+    const p = parts(item.month);
+    const card = node('article', 'home-king-card');
+    card.setAttribute('aria-labelledby', 'home-king-name');
+    const body = node('div', 'home-king-body');
+    const label = node('p', 'home-king-label');
+    label.append(crown('home-king-crown'), node('span', '', p.number + '月のKING'));
+    const name = node('h3', 'home-king-name'); name.id = 'home-king-name';
+    name.append(node('span', '', item.name), node('small', '', '様'));
+    body.append(label, name);
+    if (item.won) {
+      const won = node('p', 'home-king-won');
+      won.append(node('span', '', 'WON'), time(item.won, '', wonLabel(item.won).replace(' 戴冠', '')));
+      body.append(won);
+    }
+    if (item.prize) { const prize = node('p', 'home-king-prize'); prize.append(node('span', '', 'PRIZE'), node('strong', '', item.prize)); body.append(prize); }
+    const link = node('a', 'home-king-more', '歴代のKINGを見る'); link.href = new URL('king/', siteRoot).href;
+    link.append(node('span', '', ' →'));
+    body.append(link);
+    card.append(poster(item, false), body);
+    return card;
+  }
+
   // Name, round, prize, entries, comment and X link: shared by the reigning KING and the timeline cards.
   function details(item, counts, body, headingTag) {
     const meta = node('p', 'king-entry-meta');
     meta.append(node('span', '', '第' + item.round + '回'));
+    if (item.won) meta.append(time(item.won, 'king-won', wonLabel(item.won)));
     const name = node(headingTag, 'king-entry-name'); name.append(node('span', '', item.name), node('small', '', '様'));
     body.append(meta, name);
     const total = counts.get(item.name);
@@ -253,10 +285,17 @@
     view.setAttribute('aria-busy', 'false');
   }
 
+  if (!view && !home) return;
   fetch(new URL('data/king.json', siteRoot).href, { cache: 'no-cache' })
     .then((response) => { if (!response.ok) throw new Error(response.status); return response.json(); })
-    .then((data) => render(clean(data)))
+    .then((data) => {
+      const cleaned = clean(data);
+      if (view) render(cleaned);
+      else if (cleaned.items.length) home.replaceChildren(homeCard(cleaned.items[0]));
+    })
     .catch(() => {
+      // The homepage keeps its static link to /king/.
+      if (!view) return;
       view.replaceChildren(node('p', 'king-state', '記録を読み込めませんでした。時間をおいて再度お試しください。'));
       view.setAttribute('aria-busy', 'false');
     });
