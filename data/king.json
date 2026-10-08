@@ -1,16 +1,125 @@
 {
   "updatedAt": "2026-10-08",
+  "final": {
+    "title": "KING OF KINGS",
+    "status": "upcoming",
+    "date": "",
+    "lead": "12人のKINGが集結する、年に一度の頂上決戦。",
+    "seats": 12,
+    "winner": "",
+    "prize": "",
+    "placeholder": true
+  },
   "items": [
-    { "month": "2026-09", "name": "PLAYER K", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-08", "name": "PLAYER J", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-07", "name": "PLAYER I", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-06", "name": "PLAYER C", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-05", "name": "PLAYER H", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-04", "name": "PLAYER G", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-03", "name": "PLAYER F", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-02", "name": "PLAYER E", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2026-01", "name": "PLAYER D", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2025-12", "name": "PLAYER C", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true },
-    { "month": "2025-11", "name": "PLAYER B", "prize": "（賞品名）", "photo": "", "comment": "", "placeholder": true }
+    {
+      "month": "2026-09",
+      "name": "PLAYER K",
+      "prize": "（賞品名）",
+      "entries": 38,
+      "photo": "",
+      "comment": "いつか KING OF KINGS も。",
+      "post": "https://x.com/ChonmageNiigata",
+      "placeholder": true
+    },
+    {
+      "month": "2026-08",
+      "name": "PLAYER J",
+      "prize": "（賞品名）",
+      "entries": 36,
+      "photo": "",
+      "comment": "",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2026-07",
+      "name": "PLAYER I",
+      "prize": "（賞品名）",
+      "entries": 34,
+      "photo": "",
+      "comment": "",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2026-06",
+      "name": "PLAYER C",
+      "prize": "（賞品名）",
+      "entries": 32,
+      "photo": "",
+      "comment": "2回目のKING、うれしいです！",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2026-05",
+      "name": "PLAYER H",
+      "prize": "（賞品名）",
+      "entries": 30,
+      "photo": "",
+      "comment": "",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2026-04",
+      "name": "PLAYER G",
+      "prize": "（賞品名）",
+      "entries": 28,
+      "photo": "",
+      "comment": "最後のオールイン、震えました。",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2026-03",
+      "name": "PLAYER F",
+      "prize": "（賞品名）",
+      "entries": 26,
+      "photo": "",
+      "comment": "",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2026-02",
+      "name": "PLAYER E",
+      "prize": "（賞品名）",
+      "entries": 24,
+      "photo": "",
+      "comment": "運が良かっただけです笑",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2026-01",
+      "name": "PLAYER D",
+      "prize": "（賞品名）",
+      "entries": 22,
+      "photo": "",
+      "comment": "",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2025-12",
+      "name": "PLAYER C",
+      "prize": "（賞品名）",
+      "entries": 20,
+      "photo": "",
+      "comment": "次もまた獲りに来ます！",
+      "post": "",
+      "placeholder": true
+    },
+    {
+      "month": "2025-11",
+      "name": "PLAYER B",
+      "prize": "（賞品名）",
+      "entries": 18,
+      "photo": "",
+      "comment": "",
+      "post": "",
+      "placeholder": true
+    }
   ]
 }

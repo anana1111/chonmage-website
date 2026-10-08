@@ -13,64 +13,103 @@
 .king-page .news-page-header .brand--logo { min-width: 0; }
 .king-page .news-page-header .brand--logo img { max-width: 100%; width: auto; }
 
-/* Latest champion */
-.king-latest { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 1.25rem; background: var(--blue); color: #fff; border-radius: 6px; overflow: hidden; }
-.king-latest-photo { margin: 0; aspect-ratio: 4 / 3; background: #1d2a57; position: relative; }
-.king-latest-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.king-latest-body { padding: clamp(1.5rem, 4vw, 3rem); display: flex; flex-direction: column; gap: .9rem; min-width: 0; }
-.king-latest-label { display: flex; justify-content: space-between; gap: 1rem; margin: 0; padding-bottom: .8rem; border-bottom: 1px solid rgba(255, 255, 255, .3); font: 800 .7rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; }
-.king-latest-label span { color: var(--orange); }
-.king-latest-month { display: flex; align-items: baseline; gap: .4rem; margin: .4rem 0 0; }
-.king-latest-num { font-family: 'Archivo Black', sans-serif; font-size: clamp(4.5rem, 12vw, 7.5rem); line-height: .85; letter-spacing: -.05em; color: var(--orange); }
-.king-latest-unit { font-size: clamp(1rem, 2.6vw, 1.35rem); font-weight: 900; }
-.king-latest-name { display: flex; align-items: baseline; gap: .35rem; margin: 0; font-size: clamp(2rem, 6vw, 3.4rem); font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
-.king-latest-name small { font-size: .45em; font-weight: 700; opacity: .8; }
-.king-prize { margin: .4rem 0 0; }
-.king-prize div { display: flex; gap: 1rem; align-items: baseline; padding: .8rem 1rem; background: rgba(255, 255, 255, .1); border-radius: 4px; }
-.king-prize dt { font: 800 .65rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; color: var(--orange); flex: none; }
-.king-prize dd { margin: 0; font-weight: 700; line-height: 1.6; overflow-wrap: anywhere; }
-.king-comment { margin: 0; line-height: 1.9; font-size: .9rem; opacity: .9; }
+/* KING OF KINGS: the yearly final */
+.kok-final { margin-top: 1.25rem; padding: clamp(1.5rem, 4.5vw, 3.2rem); background: var(--ink); color: #fff; border-radius: 6px; position: relative; overflow: hidden; isolation: isolate; }
+.kok-final::before { content: ''; position: absolute; inset: auto -10% -60% auto; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(242, 107, 56, .35), transparent 65%); z-index: -1; }
+.kok-label { margin: 0; font: 800 .7rem/1 'Noto Sans JP', sans-serif; letter-spacing: .18em; color: var(--orange); }
+.kok-title { display: flex; align-items: flex-end; flex-wrap: wrap; gap: .2em .35em; margin: .8rem 0 0; font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(2.4rem, 8vw, 5.4rem); line-height: .9; letter-spacing: -.045em; }
+.kok-crown { width: .9em; height: auto; color: var(--orange); }
+.kok-lead { margin: 1rem 0 0; font-weight: 700; line-height: 1.8; }
+.kok-date { margin: .3rem 0 0; font-size: .85rem; line-height: 1.8; color: rgba(255, 255, 255, .7); }
+.kok-winner { display: flex; align-items: baseline; gap: .3rem; margin: 1rem 0 0; font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 900; }
+.kok-winner small { font-size: .45em; opacity: .8; }
+.kok-progress { margin: clamp(1.5rem, 4vw, 2.5rem) 0 .8rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, .2); font-size: .85rem; font-weight: 700; }
+.kok-progress strong { font-family: 'Archivo Black', sans-serif; font-size: 1.6rem; color: var(--orange); }
+.kok-seats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .9rem .5rem; }
+.kok-seat { display: flex; flex-direction: column; align-items: center; gap: .35rem; min-width: 0; text-align: center; }
+.kok-seat-month { font-size: .62rem; font-weight: 800; letter-spacing: .06em; color: rgba(255, 255, 255, .6); }
+.kok-seat-mark { display: grid; place-items: center; width: 100%; max-width: 3.4rem; aspect-ratio: 1; border-radius: 50%; background: var(--orange); color: var(--ink); font-family: 'Archivo Black', sans-serif; font-size: clamp(1rem, 3vw, 1.4rem); }
+.kok-seat-name { width: 100%; font-size: .6rem; font-weight: 700; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kok-seat.is-open .kok-seat-mark { background: transparent; border: 1.5px dashed rgba(255, 255, 255, .45); color: rgba(255, 255, 255, .6); }
+.kok-seat.is-open .kok-seat-name { color: rgba(255, 255, 255, .5); }
+
+/* Monthly timeline */
+.king-timeline-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem 1rem; margin: clamp(3rem, 7vw, 5rem) 0 clamp(1.5rem, 4vw, 2.5rem); padding-top: .8rem; border-top: 1px solid var(--ink); }
+.king-timeline-title { margin: 0; font: 700 .72rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; }
+.king-timeline-head p { margin: 0; font-size: .8rem; font-weight: 700; color: var(--blue); }
+.king-timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+.king-timeline::before { content: ''; position: absolute; top: .5rem; bottom: 0; left: 1.6rem; width: 2px; background: linear-gradient(var(--orange), var(--blue) 30%, var(--line)); }
+.king-entry { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr); gap: .9rem; padding-bottom: clamp(2rem, 5vw, 3.5rem); }
+.king-entry-marker { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .4rem 0; background: var(--paper); align-self: start; }
+.king-entry-num { font-family: 'Archivo Black', sans-serif; font-size: 2rem; line-height: .9; letter-spacing: -.04em; color: var(--blue); }
+.king-entry.is-latest .king-entry-num { color: var(--orange); }
+.king-entry-date { font-size: .55rem; font-weight: 800; letter-spacing: .04em; color: var(--blue); opacity: .75; }
+.king-entry-card { display: grid; grid-template-columns: minmax(0, 1fr); background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
+.king-entry.is-latest .king-entry-card { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(242, 107, 56, .18); }
+
+.king-poster { margin: 0; aspect-ratio: 4 / 5; background: var(--blue); position: relative; overflow: hidden; }
+.king-poster img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.king-poster.is-typeset { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4rem; padding: 1.5rem; color: #fff; text-align: center;
+  background: radial-gradient(120% 80% at 50% 0%, #34489a 0%, var(--blue) 55%, #1b2652 100%); }
+.king-poster.is-typeset::after { content: ''; position: absolute; inset: .8rem; border: 1px solid rgba(255, 255, 255, .25); border-radius: 3px; pointer-events: none; }
+.king-poster-round { font: 800 .7rem/1 'Noto Sans JP', sans-serif; letter-spacing: .2em; color: var(--orange); }
+.king-poster-crown { width: 34%; max-width: 6rem; height: auto; color: var(--orange); margin-top: .6rem; }
+.king-poster-word { font-family: 'Archivo Black', sans-serif; font-size: clamp(3rem, 14vw, 4.4rem); line-height: .9; letter-spacing: -.05em; }
+.king-poster-month { font: 800 .75rem/1 'Noto Sans JP', sans-serif; letter-spacing: .24em; }
+.king-poster-name { margin-top: 1rem; padding: .45rem .9rem; background: var(--orange); color: var(--ink); font-weight: 900; font-size: clamp(.95rem, 3.6vw, 1.2rem); border-radius: 2px; max-width: 100%; overflow-wrap: anywhere; }
+
+.king-entry-body { display: flex; flex-direction: column; gap: .9rem; padding: clamp(1.2rem, 3.5vw, 2.2rem); min-width: 0; }
+.king-entry-meta { display: flex; align-items: center; gap: .6rem; margin: 0; font-size: .72rem; font-weight: 800; letter-spacing: .12em; color: var(--blue); }
+.king-entry-new { padding: .25rem .5rem; background: var(--orange); color: #111; border-radius: 99px; font-size: .6rem; }
+.king-entry-name { display: flex; align-items: baseline; gap: .3rem; margin: 0; font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
+.king-entry-name small { font-size: .5em; font-weight: 700; opacity: .7; }
 .king-badge { align-self: flex-start; margin: 0; padding: .35rem .7rem; border-radius: 99px; background: var(--orange); color: #111; font-size: .72rem; font-weight: 800; }
+.king-facts { display: grid; gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.king-facts div { display: flex; gap: 1rem; align-items: baseline; padding: .7rem .9rem; background: var(--paper); }
+.king-facts dt { flex: none; width: 4.6rem; font: 800 .62rem/1 'Noto Sans JP', sans-serif; letter-spacing: .14em; color: var(--blue); }
+.king-facts dd { margin: 0; font-weight: 700; line-height: 1.6; overflow-wrap: anywhere; }
+.king-comment { margin: 0; padding: .2rem 0 .2rem 1rem; border-left: 3px solid var(--orange); }
+.king-comment p { margin: 0; font-size: 1rem; font-weight: 700; line-height: 1.8; }
+.king-comment p::before { content: '“'; } .king-comment p::after { content: '”'; }
+.king-post { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: .6rem 1rem; border: 1px solid var(--ink); border-radius: 99px; color: var(--ink); font-size: .8rem; font-weight: 700; text-decoration: none; }
+.king-post:hover { background: var(--ink); color: #fff; }
 
-/* Portrait placeholder when a month has no photo */
-.is-empty { display: flex; align-items: center; justify-content: center; }
-.king-initial { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; line-height: 1; color: rgba(255, 255, 255, .16); }
-.king-latest-photo .king-initial { font-size: clamp(8rem, 26vw, 14rem); }
-
-.king-stats { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1rem; margin: clamp(2rem, 5vw, 3rem) 0 0; color: var(--blue); font-weight: 700; }
-.king-stats strong { font-family: 'Archivo Black', sans-serif; font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1; color: var(--ink); }
-.king-stats span + strong { margin-left: .6rem; }
-
-/* Hall of kings */
-.king-list-title { margin: clamp(3rem, 7vw, 5rem) 0 1.25rem; padding-top: .8rem; border-top: 1px solid var(--ink); font: 700 .72rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; }
-.king-list { list-style: none; margin: 0; padding: 0 1px 1px 0; display: grid; grid-template-columns: minmax(0, 1fr); }
-.king-card { display: grid; grid-template-columns: 4.2rem 4.4rem minmax(0, 1fr); align-items: center; gap: .9rem; padding: .9rem 1rem; background: var(--paper); min-width: 0; border: 1px solid var(--line); margin: 0 -1px -1px 0; }
-.king-card-month { display: flex; flex-direction: column; gap: .3rem; }
-.king-card-num { font-family: 'Archivo Black', sans-serif; font-size: 2rem; line-height: .9; letter-spacing: -.04em; color: var(--blue); }
-.king-card-date { font-size: .6rem; font-weight: 800; letter-spacing: .12em; color: var(--blue); opacity: .7; }
-.king-card-photo { margin: 0; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--blue); }
-.king-card-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.king-card-photo .king-initial { font-size: 1.7rem; color: rgba(255, 255, 255, .55); }
-.king-card-body { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; min-width: 0; }
-.king-card-name { display: flex; align-items: baseline; gap: .25rem; margin: 0; font-size: 1.15rem; font-weight: 900; line-height: 1.35; overflow-wrap: anywhere; min-width: 0; }
-.king-card-name small { font-size: .7em; font-weight: 700; opacity: .7; }
-.king-badge--small { padding: .2rem .5rem; font-size: .65rem; }
-.king-card-prize { flex-basis: 100%; margin: 0; font-size: .78rem; line-height: 1.6; color: var(--blue); overflow-wrap: anywhere; }
-
-@media (min-width: 720px) {
-  .king-latest { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
-  .king-latest-photo { aspect-ratio: auto; min-height: 100%; }
-  .king-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 640px) {
+  .kok-seats { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .king-timeline::before { left: 2.6rem; }
+  .king-entry { grid-template-columns: 5.2rem minmax(0, 1fr); gap: 1.5rem; }
+  .king-entry-num { font-size: 3rem; }
+  .king-entry-date { font-size: .62rem; }
+  .king-entry-card { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); }
+  .king-poster { aspect-ratio: 4 / 5; align-self: start; }
+  .king-entry-body { justify-content: center; }
 }
 @media (min-width: 1000px) {
-  .king-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .king-card { grid-template-columns: 1fr; align-items: start; gap: 1rem; padding: 1.4rem; }
-  .king-card-month { flex-direction: row; align-items: baseline; justify-content: space-between; }
-  .king-card-num { font-size: 2.6rem; }
-  .king-card-photo { width: 100%; aspect-ratio: 4 / 3; border-radius: 4px; }
-  .king-card-photo .king-initial { font-size: 5rem; color: rgba(255, 255, 255, .18); }
+  .king-entry:nth-child(even) .king-poster { order: 2; }
+  .king-entry-card { grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); }
+  .king-entry:nth-child(even) .king-entry-card { grid-template-columns: minmax(0, 1fr) minmax(0, 17rem); }
+  .king-entry.is-latest .king-entry-card { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .king-card { transition: background .25s; }
-  .king-card:hover { background: #fffdf6; }
+  .king-entry-card { transition: transform .35s var(--ease-out), box-shadow .35s; }
+  .king-entry-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -18px rgba(23, 24, 22, .45); }
+}
+.king-entry.is-latest .king-poster-word { font-size: clamp(3rem, 14vw, 5.6rem); }
+/* Phones: older months use a small poster beside the text so the timeline stays scannable. */
+@media (max-width: 639px) {
+  .king-entry:not(.is-latest) .king-entry-card { grid-template-columns: 6.8rem minmax(0, 1fr); }
+  .king-entry:not(.is-latest) .king-poster { align-self: stretch; aspect-ratio: auto; min-height: 9rem; }
+  .king-entry:not(.is-latest) .king-poster.is-typeset { padding: .6rem; gap: .2rem; }
+  .king-entry:not(.is-latest) .king-poster.is-typeset::after { inset: .35rem; }
+  .king-entry:not(.is-latest) .king-poster-round, .king-entry:not(.is-latest) .king-poster-name { display: none; }
+  .king-entry:not(.is-latest) .king-poster-word { font-size: 1.6rem; }
+  .king-entry:not(.is-latest) .king-poster-month { font-size: .5rem; letter-spacing: .12em; }
+  .king-entry:not(.is-latest) .king-entry-body { padding: 1rem; gap: .6rem; }
+  .king-entry:not(.is-latest) .king-entry-name { font-size: 1.35rem; }
+  .king-entry:not(.is-latest) .king-facts div { padding: .5rem .7rem; }
+  .king-entry:not(.is-latest) .king-facts div { flex-direction: column; gap: .25rem; }
+  .king-entry:not(.is-latest) .king-facts dt { width: auto; font-size: .55rem; }
+  .king-entry:not(.is-latest) .king-facts dd { font-size: .88rem; }
+  .king-entry:not(.is-latest) .king-comment p { font-size: .88rem; }
+  .king-entry { padding-bottom: 1.5rem; }
 }

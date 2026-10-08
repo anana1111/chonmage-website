@@ -1,11 +1,15 @@
-// KING page: renders data/king.json (monthly tournament winners), newest month first.
+// KING page: renders data/king.json — the yearly KING OF KINGS final on top, then every
+// monthly champion as a poster on a timeline, newest month first.
 (function () {
   'use strict';
   const view = document.getElementById('king-view');
   const siteRoot = new URL('../', location.href);
   const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
+  const DAY = /^\d{4}-\d{2}-\d{2}$/;
   const PHOTO = /^(?:\.\/)?images\/[A-Za-z0-9_\/-]+\.(?:webp|avif|jpg|png)$/;
+  const POST = /^https:\/\/(?:x|twitter)\.com\/ChonmageNiigata(?:\/status\/\d+)?\/?$/;
   const MONTH_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const CROWN = 'M4 38 0 8l17 13L32 0l15 21L64 8l-4 30z';
 
   const node = (tag, className, text) => {
     const result = document.createElement(tag);
@@ -14,115 +18,142 @@
     return result;
   };
   const text = (value) => (typeof value === 'string' ? value.trim() : '');
+  const count = (value) => (Number.isInteger(value) && value > 0 ? value : 0);
+
+  function crown(className) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 64 44'); svg.setAttribute('aria-hidden', 'true');
+    if (className) svg.setAttribute('class', className);
+    const path = document.createElementNS(svg.namespaceURI, 'path');
+    path.setAttribute('d', CROWN + 'M4 40h56v4H4z'); path.setAttribute('fill', 'currentColor');
+    svg.append(path); return svg;
+  }
 
   function clean(data) {
     const rows = Array.isArray(data && data.items) ? data.items : [];
-    return rows
+    const items = rows
       .filter((row) => row && MONTH.test(text(row.month)) && text(row.name))
       .map((row) => ({
-        month: text(row.month), name: text(row.name), prize: text(row.prize),
+        month: text(row.month), name: text(row.name), prize: text(row.prize), entries: count(row.entries),
         photo: PHOTO.test(text(row.photo)) ? text(row.photo) : '', comment: text(row.comment),
-        placeholder: row.placeholder === true
+        post: POST.test(text(row.post)) ? text(row.post) : '', placeholder: row.placeholder === true
       }))
-      .sort((a, b) => b.month.localeCompare(a.month));
+      .sort((a, b) => a.month.localeCompare(b.month));
+    items.forEach((item, index) => { item.round = index + 1; });
+    const raw = (data && data.final) || {};
+    const final = {
+      title: text(raw.title) || 'KING OF KINGS', lead: text(raw.lead), date: DAY.test(text(raw.date)) ? text(raw.date) : '',
+      seats: count(raw.seats) || 12, winner: text(raw.winner), prize: text(raw.prize)
+    };
+    return { items: items.reverse(), final, placeholder: items.some((item) => item.placeholder) || raw.placeholder === true };
   }
 
-  function monthParts(month) {
-    const [, year, mm] = month.match(MONTH);
-    return { year, number: Number(mm), en: MONTH_EN[Number(mm) - 1] };
+  const parts = (month) => { const [, year, mm] = month.match(MONTH); return { year, number: Number(mm), en: MONTH_EN[Number(mm) - 1] }; };
+  const nextMonth = (month) => { const p = parts(month); return p.number === 12 ? (Number(p.year) + 1) + '-01' : p.year + '-' + String(p.number + 1).padStart(2, '0'); };
+  function time(value, className, label) { const result = node('time', className, label); result.dateTime = value; return result; }
+
+  // Top banner: the yearly final, with one seat per monthly KING (empty seats for months still to come).
+  function finalBanner(final, items) {
+    const section = node('section', 'kok-final');
+    section.setAttribute('aria-labelledby', 'kok-title');
+    const head = node('div', 'kok-head');
+    const label = node('p', 'kok-label', final.winner ? 'ANNUAL CHAMPION' : 'COMING SOON');
+    const title = node('h2', 'kok-title'); title.id = 'kok-title';
+    title.append(crown('kok-crown'), node('span', '', final.title));
+    head.append(label, title);
+    if (final.winner) {
+      const winner = node('p', 'kok-winner'); winner.append(node('span', '', final.winner), node('small', '', '様')); head.append(winner);
+      if (final.prize) head.append(node('p', 'kok-lead', 'PRIZE　' + final.prize));
+    } else {
+      if (final.lead) head.append(node('p', 'kok-lead', final.lead));
+      const when = node('p', 'kok-date');
+      if (final.date) { const [y, m, d] = final.date.split('-'); when.append(time(final.date, '', y + '.' + m + '.' + d)); when.append(' 開催'); }
+      else when.textContent = '開催日は決まり次第お知らせします';
+      head.append(when);
+    }
+    const seats = node('ol', 'kok-seats'); seats.setAttribute('aria-label', 'KING OF KINGS の出場者');
+    const chronological = items.slice().reverse().slice(-final.seats);
+    let month = chronological.length ? chronological[0].month : '';
+    for (let i = 0; i < final.seats; i += 1) {
+      const item = chronological[i];
+      const seat = node('li', 'kok-seat' + (item ? '' : ' is-open'));
+      if (item) month = item.month;
+      else if (month) month = nextMonth(month);
+      const p = month ? parts(month) : null;
+      seat.append(node('span', 'kok-seat-month', p ? p.number + '月' : ''));
+      const mark = node('span', 'kok-seat-mark', item ? Array.from(item.name)[0].toUpperCase() : '?'); mark.setAttribute('aria-hidden', 'true');
+      seat.append(mark, node('span', 'kok-seat-name', item ? item.name : '挑戦者募集中'));
+      seats.append(seat);
+    }
+    const filled = Math.min(chronological.length, final.seats);
+    const progress = node('p', 'kok-progress');
+    progress.append(node('strong', '', String(filled)), node('span', '', ' / ' + final.seats + ' 人のKINGが決定'));
+    section.append(head, progress, seats);
+    return section;
   }
 
-  function time(month, className, label) {
-    const result = node('time', className, label); result.dateTime = month; return result;
-  }
-
-  function portrait(item, className, eager) {
-    const figure = node('figure', className);
+  // A poster: the X picture when there is one, otherwise a typeset poster in the shop colors.
+  function poster(item, eager) {
+    const p = parts(item.month);
+    const figure = node('figure', 'king-poster' + (item.photo ? '' : ' is-typeset'));
     if (item.photo) {
       const image = node('img');
       image.src = new URL(item.photo, siteRoot).href;
-      image.alt = item.name + '様（' + monthParts(item.month).number + '月のKING）';
+      image.alt = p.number + '月のKING、' + item.name + '様';
       image.decoding = 'async'; image.loading = eager ? 'eager' : 'lazy';
       figure.append(image);
     } else {
-      figure.classList.add('is-empty');
-      const initial = node('span', 'king-initial', Array.from(item.name)[0].toUpperCase());
-      initial.setAttribute('aria-hidden', 'true');
-      figure.append(initial);
+      figure.setAttribute('aria-hidden', 'true');
+      figure.append(node('span', 'king-poster-round', 'No.' + String(item.round).padStart(2, '0')), crown('king-poster-crown'),
+        node('span', 'king-poster-word', 'KING'), node('span', 'king-poster-month', p.en + ' ' + p.year), node('span', 'king-poster-name', item.name));
     }
     return figure;
   }
 
-  // How many times each player has won, so repeat champions get a ×N badge.
-  function crownCounts(items) {
-    const counts = new Map();
-    items.forEach((item) => counts.set(item.name, (counts.get(item.name) || 0) + 1));
-    return counts;
-  }
-
-  function featured(item, counts) {
-    const part = monthParts(item.month);
-    const card = node('article', 'king-latest');
-    card.setAttribute('aria-labelledby', 'king-latest-name');
-    const body = node('div', 'king-latest-body');
-    const label = node('p', 'king-latest-label');
-    label.append(node('span', '', 'LATEST KING'), time(item.month, '', part.year + '.' + String(part.number).padStart(2, '0')));
-    const big = node('p', 'king-latest-month');
-    big.append(node('span', 'king-latest-num', String(part.number)), node('span', 'king-latest-unit', '月のKING'));
-    const name = node('h2', 'king-latest-name');
-    name.id = 'king-latest-name';
-    name.append(node('span', '', item.name), node('small', '', '様'));
-    body.append(label, big, name);
+  function entry(item, counts, latest) {
+    const p = parts(item.month);
+    const li = node('li', 'king-entry' + (latest ? ' is-latest' : ''));
+    const marker = node('div', 'king-entry-marker');
+    marker.append(node('span', 'king-entry-num', String(p.number)), time(item.month, 'king-entry-date', p.year + '.' + String(p.number).padStart(2, '0')));
+    const card = node('article', 'king-entry-card');
+    const body = node('div', 'king-entry-body');
+    const meta = node('p', 'king-entry-meta');
+    meta.append(node('span', '', '第' + item.round + '回'));
+    if (latest) meta.append(node('span', 'king-entry-new', 'LATEST'));
+    const name = node('h3', 'king-entry-name'); name.append(node('span', '', item.name), node('small', '', '様'));
+    body.append(meta, name);
     const total = counts.get(item.name);
     if (total > 1) body.append(node('p', 'king-badge', '通算 ' + total + ' 回目のKING'));
-    if (item.prize) {
-      const prize = node('dl', 'king-prize');
-      const row = node('div');
-      row.append(node('dt', '', 'PRIZE'), node('dd', '', item.prize));
-      prize.append(row); body.append(prize);
+    const facts = node('dl', 'king-facts');
+    const fact = (label, value) => { const row = node('div'); row.append(node('dt', '', label), node('dd', '', value)); facts.append(row); };
+    if (item.prize) fact('PRIZE', item.prize);
+    if (item.entries) fact('ENTRIES', item.entries + '名');
+    if (facts.childElementCount) body.append(facts);
+    if (item.comment) { const quote = node('blockquote', 'king-comment'); quote.append(node('p', '', item.comment)); body.append(quote); }
+    if (item.post) {
+      const link = node('a', 'king-post', 'Xの投稿を見る ↗'); link.href = item.post; link.target = '_blank'; link.rel = 'noopener';
+      body.append(link);
     }
-    if (item.comment) body.append(node('p', 'king-comment', item.comment));
-    card.append(portrait(item, 'king-latest-photo', true), body);
-    return card;
-  }
-
-  function card(item, counts) {
-    const part = monthParts(item.month);
-    const li = node('li', 'king-card');
-    const head = node('div', 'king-card-month');
-    head.append(node('span', 'king-card-num', String(part.number).padStart(2, '0')), time(item.month, 'king-card-date', part.en + ' ' + part.year));
-    const body = node('div', 'king-card-body');
-    const name = node('h3', 'king-card-name');
-    name.append(node('span', '', item.name), node('small', '', '様'));
-    body.append(name);
-    const total = counts.get(item.name);
-    if (total > 1) body.append(node('span', 'king-badge king-badge--small', '×' + total));
-    if (item.prize) body.append(node('p', 'king-card-prize', item.prize));
-    li.append(head, portrait(item, 'king-card-photo', false), body);
+    card.append(poster(item, latest), body);
+    li.append(marker, card);
     return li;
   }
 
-  function render(items) {
+  function render(data) {
+    const { items, final, placeholder } = data;
     const fragment = document.createDocumentFragment();
+    if (placeholder) fragment.append(node('p', 'king-preview-note', 'プレビュー：名前・賞品・人数・コメントは仮の内容です。'));
+    fragment.append(finalBanner(final, items));
     if (!items.length) {
       fragment.append(node('p', 'king-state', 'チャンピオンの記録を準備中です。'));
     } else {
-      const counts = crownCounts(items);
-      if (items.some((item) => item.placeholder)) {
-        fragment.append(node('p', 'king-preview-note', 'プレビュー：名前と賞品は仮の内容です。'));
-      }
-      fragment.append(featured(items[0], counts));
-      const players = counts.size;
-      const stats = node('p', 'king-stats');
-      stats.append(node('strong', '', String(items.length)), node('span', '', '回の開催'), node('strong', '', String(players)), node('span', '', '人のKING'));
-      fragment.append(stats);
-      if (items.length > 1) {
-        const heading = node('h2', 'king-list-title', 'HALL OF KINGS');
-        const list = node('ol', 'king-list');
-        list.setAttribute('aria-label', '歴代のKING（新しい順）');
-        items.slice(1).forEach((item) => list.append(card(item, counts)));
-        fragment.append(heading, list);
-      }
+      const counts = new Map();
+      items.forEach((item) => counts.set(item.name, (counts.get(item.name) || 0) + 1));
+      const heading = node('div', 'king-timeline-head');
+      heading.append(node('h2', 'king-timeline-title', 'MONTHLY KINGS'), node('p', '', items.length + '回の開催 · ' + counts.size + '人のKING'));
+      const list = node('ol', 'king-timeline'); list.setAttribute('aria-label', '歴代のKING（新しい順）');
+      items.forEach((item, index) => list.append(entry(item, counts, index === 0)));
+      fragment.append(heading, list);
     }
     view.replaceChildren(fragment);
     view.setAttribute('aria-busy', 'false');
