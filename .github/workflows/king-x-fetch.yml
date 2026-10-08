@@ -15,45 +15,45 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Read the old account's posts with twitter-cli
+      - name: Read the old account's whole timeline and the KING result pictures
         env:
           TWITTER_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
           TWITTER_CT0: ${{ secrets.X_CT0 }}
         run: |
           python3 -m pip install --quiet --disable-pip-version-check twitter-cli==0.8.5
-          out=_originals/king-x; mkdir -p "$out"
-          # The shop moved to @ChonmageNiigata in September 2026; earlier posts are on @Old_Chonmage.
-          twitter user-posts Old_Chonmage --max 1500 --json > "$out/old-user-posts.json" || echo "::warning::old user-posts failed"
-          ls -la "$out"
-      - name: Download pictures of tournament-result posts
-        run: |
           python3 - <<'PY'
+          # The shop moved to @ChonmageNiigata in September 2026; earlier posts are on @Old_Chonmage.
+          # twitter-cli stops at 200 posts, so page the old timeline with its own client instead.
           import json, os, re, urllib.request
-          out = '_originals/king-x'
-          rows = []
-          for name in ('user-posts.json', 'old-user-posts.json'):
-              try:
-                  data = json.load(open(os.path.join(out, name)))
-              except Exception as error:
-                  print('skip', name, error); continue
-              rows += data.get('data') or []
-          hint = re.compile(r'(?<![A-Za-z])(KING|King|king)(?![A-Za-z])|王者|最強|決定戦|ランキング戦|優勝|チャンピオン')
+          from twitter_cli.cli import _get_client
+          from twitter_cli.serialization import tweets_to_data
+          out = '_originals/king-x'; os.makedirs(out + '/images', exist_ok=True)
+          client = _get_client(quiet=True)
+          client._max_count = 3000
+          user = client.fetch_user('Old_Chonmage')
+          tweets = client.fetch_user_tweets(user.id, 3000)
+          rows = tweets_to_data(tweets)
+          print(len(rows), 'old posts', rows and rows[-1]['createdAtISO'])
+          json.dump({'ok': True, 'data': rows}, open(out + '/old-user-posts.json', 'w'), ensure_ascii=False)
+          hint = re.compile(r'(?<![A-Za-z])(KING|King|king)(?![A-Za-z])|王者|最強')
           picked = [t for t in rows if hint.search(t.get('text') or '')]
-          os.makedirs(out + '/images', exist_ok=True)
           for t in picked:
               t['savedImages'] = []
               for i, m in enumerate(t.get('media') or []):
                   if m.get('type') != 'photo' or not m.get('url'): continue
+                  name = m['url'].rsplit('/', 1)[-1].split('.')[0]
                   path = '%s/images/%s-%d.jpg' % (out, t['id'], i + 1)
-                  if os.path.exists(path): t['savedImages'].append(path); continue
-                  url = m['url'] + ('&' if '?' in m['url'] else '?') + 'name=large'
+                  url = 'https://pbs.twimg.com/media/%s?format=jpg&name=large' % name
                   try:
-                      urllib.request.urlretrieve(url, path); t['savedImages'].append(path)
+                      request = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                      open(path, 'wb').write(urllib.request.urlopen(request, timeout=30).read())
+                      t['savedImages'].append(path)
                   except Exception as error:
                       print('image failed', url, error)
           picked.sort(key=lambda t: t.get('createdAtISO') or '')
-          json.dump(picked, open(out + '/result-posts.json', 'w'), ensure_ascii=False, indent=1)
-          print(len(rows), 'posts read,', len(picked), 'result posts')
+          json.dump(picked, open(out + '/king-result-posts.json', 'w'), ensure_ascii=False, indent=1)
+          print(len(picked), 'KING posts,', sum(len(t['savedImages']) for t in picked), 'pictures')
+          for t in picked: print(t['createdAtISO'], t['id'], (t.get('text') or '')[:60].replace('\n', ' '))
           PY
       - name: Commit results to the preview branch
         run: |
