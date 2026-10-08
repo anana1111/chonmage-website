@@ -1,0 +1,66 @@
+# One-off on the KING preview branch (F approved in the project thread): collect the shop's past
+# KING tournament posts and pictures from X so /king/ can show real winners.
+# Uses the same burner account as update-events.yml. Delete this file before merging.
+name: Fetch KING posts from X (one-off)
+on:
+  push:
+    branches: [claude/project-thread-qyxssn]
+    paths: [.github/workflows/king-x-fetch.yml]
+permissions:
+  contents: write
+concurrency: king-x-fetch
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read posts with twitter-cli
+        env:
+          TWITTER_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
+          TWITTER_CT0: ${{ secrets.X_CT0 }}
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check twitter-cli==0.8.5
+          out=_originals/king-x; mkdir -p "$out"
+          twitter search "KING" --from ChonmageNiigata -t latest --max 200 --json > "$out/search-king.json" || echo "::warning::search KING failed"
+          twitter search "キング" --from ChonmageNiigata -t latest --max 100 --json > "$out/search-kana.json" || echo "::warning::search キング failed"
+          twitter user-posts ChonmageNiigata --max 800 --json > "$out/user-posts.json" || echo "::warning::user-posts failed"
+          ls -la "$out"
+      - name: Keep KING posts and download their pictures
+        run: |
+          python3 - <<'PY'
+          import json, os, re, urllib.request
+          out = '_originals/king-x'
+          seen, rows = set(), []
+          for name in ('search-king.json', 'search-kana.json', 'user-posts.json'):
+              try:
+                  data = json.load(open(os.path.join(out, name)))
+              except Exception as error:
+                  print('skip', name, error); continue
+              for t in data.get('data') or []:
+                  text = t.get('text') or ''
+                  if t['id'] in seen or not re.search(r'(?<![A-Za-z])(KING|King)(?![A-Za-z])|キング', text): continue
+                  seen.add(t['id']); rows.append(t)
+          rows.sort(key=lambda t: t.get('createdAtISO') or '')
+          os.makedirs(out + '/images', exist_ok=True)
+          for t in rows:
+              t['savedImages'] = []
+              for i, m in enumerate(t.get('media') or []):
+                  if m.get('type') != 'photo' or not m.get('url'): continue
+                  url = m['url'] + ('&' if '?' in m['url'] else '?') + 'name=large'
+                  path = '%s/images/%s-%d.jpg' % (out, t['id'], i + 1)
+                  try:
+                      urllib.request.urlretrieve(url, path); t['savedImages'].append(path)
+                  except Exception as error:
+                      print('image failed', url, error)
+          json.dump(rows, open(out + '/king-posts.json', 'w'), ensure_ascii=False, indent=1)
+          print(len(rows), 'KING posts')
+          for t in rows: print(t.get('createdAtISO'), t['id'], (t.get('text') or '')[:80].replace('\n', ' '))
+          PY
+      - name: Commit results to the preview branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add _originals/king-x
+          git commit -m "Collect KING posts from X (one-off)" || exit 0
+          git push
