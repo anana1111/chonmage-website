@@ -7,7 +7,7 @@
   const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
   const DAY = /^\d{4}-\d{2}-\d{2}$/;
   const PHOTO = /^(?:\.\/)?images\/[A-Za-z0-9_\/-]+\.(?:webp|avif|jpg|png)$/;
-  const POST = /^https:\/\/(?:x|twitter)\.com\/ChonmageNiigata(?:\/status\/\d+)?\/?$/;
+  const POST = /^https:\/\/(?:x|twitter)\.com\/(?:ChonmageNiigata|Old_Chonmage)(?:\/status\/\d+)?\/?$/;
   const MONTH_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   const CROWN = 'M4 38 0 8l17 13L32 0l15 21L64 8l-4 30z';
 
@@ -220,7 +220,7 @@
   function render(data) {
     const { items, final, next, placeholder } = data;
     const fragment = document.createDocumentFragment();
-    if (placeholder) fragment.append(node('p', 'king-preview-note', 'プレビュー：名前・賞品・人数・コメント・日程は仮の内容です。'));
+    if (placeholder) fragment.append(node('p', 'king-preview-note', 'プレビュー：7月・8月以外の名前・賞品などは仮の内容です。'));
     if (final) fragment.append(finalBanner(final, items));
     if (!items.length) {
       fragment.append(node('p', 'king-state', 'チャンピオンの記録を準備中です。'));

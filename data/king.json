@@ -3,40 +3,29 @@
   "next": {
     "date": "2026-10-25",
     "time": "18:00",
-    "entry": "（参加費）",
-    "note": "",
-    "placeholder": true
+    "entry": "9月ランキング上位8名（トーナメント部門・リングゲーム部門）",
+    "note": "毎月のランキングで上位8名に入ると、その月のKINGを決める「ランキング王者決定戦」に出場できます。"
   },
   "items": [
     {
-      "month": "2026-09",
-      "name": "PLAYER K",
-      "prize": "（賞品名）",
-      "entries": 38,
-      "photo": "",
-      "comment": "来月も防衛します！",
-      "post": "https://x.com/ChonmageNiigata",
-      "placeholder": true
-    },
-    {
       "month": "2026-08",
-      "name": "PLAYER J",
-      "prize": "（賞品名）",
-      "entries": 36,
+      "name": "いたみ",
+      "prize": "",
+      "entries": 0,
       "photo": "",
       "comment": "",
-      "post": "",
-      "placeholder": true
+      "post": "https://x.com/Old_Chonmage/status/2099121808758956055",
+      "placeholder": false
     },
     {
       "month": "2026-07",
-      "name": "PLAYER I",
-      "prize": "（賞品名）",
-      "entries": 34,
+      "name": "Hiiragi",
+      "prize": "",
+      "entries": 0,
       "photo": "",
       "comment": "",
-      "post": "",
-      "placeholder": true
+      "post": "https://x.com/Old_Chonmage/status/2091525465085505844",
+      "placeholder": false
     },
     {
       "month": "2026-06",

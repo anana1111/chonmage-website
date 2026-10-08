@@ -161,3 +161,10 @@
   .king-reign-body { justify-content: center; }
 }
 @media (min-width: 1000px) { .king-reign { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); } }
+
+/* Section headings (MOST CROWNS, HALL OF KINGS) */
+.king-section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem 1rem; margin: clamp(3rem, 7vw, 5rem) 0 clamp(1.25rem, 3vw, 2rem); padding-top: .8rem; border-top: 1px solid var(--ink); }
+.king-section-title { margin: 0; font: 700 .72rem/1 'Noto Sans JP', sans-serif; letter-spacing: .16em; }
+.king-section-head p { margin: 0; font-size: .8rem; font-weight: 700; color: var(--blue); }
+.king-section-head + .king-ranking-list { border-top: 0; }
+@media (min-width: 720px) { .king-reign .king-poster { aspect-ratio: auto; min-height: 100%; } }
