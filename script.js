@@ -391,7 +391,7 @@ function renderWeek(week) {
   if (!section || !core) return;
   const today = getJapanDate();
   const days = week ? core.weekDays(week, today) : [];
-  const signature = today + JSON.stringify(days);
+  const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null);
   if (signature === weekSignature) return;
   weekSignature = signature;
   section.hidden = !days.length;
@@ -420,12 +420,24 @@ function renderWeek(week) {
     (open && Array.isArray(day.events) ? day.events : []).forEach((event) => {
       const item = element('li', 'week-game');
       item.append(element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || '')));
-      if (event.entry) item.append(element('span', 'week-game-entry', String(event.entry)));
+      const prices = [event.entry && 'ENTRY ' + event.entry, event.reentry && 'RENTRY ' + event.reentry].filter(Boolean);
+      if (prices.length) {
+        const line = element('span', 'week-game-entry');
+        line.append(...prices.map((price) => element('span', '', price)));
+        item.append(line);
+      }
       games.append(item);
     });
     if (games.children.length) row.append(games);
     return row;
   }));
+  // The ※ notes printed under the week picture (施設利用料 etc.).
+  const notes = section.querySelector('.week-notes');
+  if (notes) {
+    const rows = (Array.isArray(week.notes) ? week.notes : []).filter((note) => typeof note === 'string' && note.trim()).slice(0, 5);
+    notes.replaceChildren(...rows.map((note) => element('li', '', note.replace(/^※\s*/, ''))));
+    notes.hidden = !rows.length;
+  }
   const link = section.querySelector('.week-source');
   if (link && typeof week.sourceUrl === 'string' && /^https:\/\/x\.com\//.test(week.sourceUrl)) link.href = week.sourceUrl;
 }

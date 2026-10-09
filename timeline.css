@@ -270,8 +270,11 @@
 .week-game { display: grid; grid-template-columns: auto 1fr; gap: .1rem .5rem; font-size: .74rem; line-height: 1.45; }
 .week-game-time { font-weight: 800; font-variant-numeric: tabular-nums; }
 .week-game-title { min-width: 0; overflow-wrap: anywhere; }
-.week-game-entry { grid-column: 2; font-size: .68rem; opacity: .62; }
+.week-game-entry { grid-column: 2; display: flex; flex-wrap: wrap; gap: 0 .7em; font-size: .68rem; opacity: .62; }
+.week-game-entry span { white-space: nowrap; }
 .week-game.is-ring .week-game-title { opacity: .72; }
+.week-notes { list-style: none; margin: 1.1rem 0 0; padding: 0; display: grid; gap: .35rem; font-size: .8rem; line-height: 1.7; }
+.week-notes li::before { content: "※"; margin-right: .25em; }
 .week-note { margin: 1rem 0 0; font-size: .75rem; opacity: .62; }
 .week-note a { color: inherit; }
 @media (max-width: 1100px) {

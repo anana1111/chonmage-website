@@ -42,6 +42,12 @@ export function findWeekPost(value, now = new Date()) {
     .sort((a, b) => b.postedAt - a.postedAt)[0] || null;
 }
 
+// The ※ lines under the table (施設利用料, 変更の可能性…): short plain strings only.
+export function weekNotes(value) {
+  return (Array.isArray(value) ? value : []).map((note) => String(note ?? '').replace(/\s+/g, ' ').trim())
+    .filter((note) => note && note.length <= 120).slice(0, 5);
+}
+
 // Turns the model's {days:[{month, day, ...}]} into week.json, or throws on anything doubtful.
 // An X post comes a day before its week; an upload may come in the middle of the week (daysBefore 7).
 export function weekFromAnswer(answer, post, { daysBefore = 1 } = {}) {
@@ -75,6 +81,8 @@ export function weekFromAnswer(answer, post, { daysBefore = 1 } = {}) {
     return { date, open: row.open || '', close: row.close || '', ringGame: Boolean(row.ringGame), events };
   }).sort((a, b) => a.date.localeCompare(b.date));
   const week = { version: 1, sourceUrl: post.url, days };
+  const notes = weekNotes(answer?.notes);
+  if (notes.length) week.notes = notes;
   for (const row of days) weekDaySchedule(week, row.date);
   return week;
 }
@@ -86,7 +94,10 @@ Rules: one row per date shown, in order. open/close are the business hours (24h 
 ringGame is true when a ring game runs all day (終日 NLHリングゲーム); do not list it as an event.
 Each timed row is an event: copy the title exactly as printed, entry from the ENTRY column and
 reentry from the RENTRY column exactly as printed (無料 stays 無料; empty string if none).
-If a date says closed (休業/定休日), give it "open":"" and no events. Do not guess unreadable text.`;
+If a date says closed (休業/定休日), give it "open":"" and no events.
+"notes": every ※ note printed under the table, one string per note, joined into one line each
+(e.g. "施設利用料（500円）とワンドリンクオーダー制（フリーロールの参加者はファーストドリンクサービス）となっております。");
+[] if none. Do not guess unreadable text.`;
 
 async function askModel(imageBytes, type, token, fetchImpl) {
   const problems = [];
@@ -126,6 +137,8 @@ async function askModel(imageBytes, type, token, fetchImpl) {
 // 表示時間帯 (days[].cards) are set by staff, not read from the picture. A new week keeps the
 // cards of the same date, or else of the latest earlier day with the same weekday.
 export function withCards(next, old) {
+  // The ※ notes rarely change; a picture read without them keeps the previous week's.
+  if (!next.notes?.length && Array.isArray(old?.notes) && old.notes.length) next.notes = weekNotes(old.notes);
   const oldDays = (Array.isArray(old?.days) ? old.days : []).filter((day) => day && typeof day.date === 'string' && Array.isArray(day.cards) && day.cards.length)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
   const weekday = (date) => new Date(date + 'T12:00:00+09:00').getUTCDay();
@@ -162,7 +175,7 @@ async function readUpload({ upload, token, force, fetchImpl, file, current }) {
   if (!token) throw new Error('GITHUB_TOKEN is missing');
   const post = { url: PROFILE_URL, postedAt: upload.at };
   const read = weekFromAnswer(await askModel(bytes, upload.type, token, fetchImpl), post, { daysBefore: 7 });
-  const week = withCards({ version: 1, sourceUrl: PROFILE_URL, source: 'upload', image: upload.file, imageSha256: sha, uploadedAt: jstIso(upload.at), days: read.days }, current);
+  const week = withCards({ version: 1, sourceUrl: PROFILE_URL, source: 'upload', image: upload.file, imageSha256: sha, uploadedAt: jstIso(upload.at), ...(read.notes ? { notes: read.notes } : {}), days: read.days }, current);
   fs.writeFileSync(file, JSON.stringify(week, null, 2) + '\n');
   console.log('read the week schedule from the uploaded picture ' + upload.file + ':');
   for (const day of week.days) console.log('  ' + day.date + ' ' + (day.open || '休業') + (day.close ? '-' + day.close : '') + ' | ' + day.events.map((event) => event.time + ' ' + event.title).join(' | '));

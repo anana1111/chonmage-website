@@ -20,7 +20,7 @@ const weekday = [
 ];
 const event = (time, title, entry, reentry) => ({ time, title, entry, reentry });
 const day = (date, open, events, cards) => ({ date, open, close: open ? '23:30' : '', ringGame: Boolean(open), events, ...(cards ? { cards } : {}) });
-const week = { version: 1, sourceUrl: 'https://x.com/ChonmageNiigata/status/2106713700346515720', days: [
+const week = { version: 1, sourceUrl: 'https://x.com/ChonmageNiigata/status/2106713700346515720', notes: ['施設利用料（500円）とワンドリンクオーダー制となっております。', '※日程や内容については変更する場合があります。'], days: [
   day('2026-10-05', '17:00', [event('18:00', 'THE DAILY', '¥1,500〜', '¥2,000')], weekday),
   day('2026-10-06', '', []),
   day('2026-10-07', '17:00', [event('18:00', 'フリーロール', '無料', '¥500'), event('19:10', 'PLOトーナメント', '¥3,000', '¥3,000')], weekday),
@@ -74,6 +74,8 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   yes(await page.isVisible('#week'), `week card visible at ${width}px`);
   equal(await page.$$eval('.week-date strong', (rows) => rows.map((row) => row.textContent)), ['9', '10', '11'], 'past days are gone; today and later stay');
   equal(await page.textContent('.week-day.is-today .week-date strong'), '9', 'today marked');
+  equal(await page.$$eval('.week-day.is-today .week-game-entry', (rows) => rows.map((row) => [...row.children].map((item) => item.textContent))), [['ENTRY 無料', 'RENTRY ¥500'], ['ENTRY ¥2,500', 'RENTRY ¥2,500']], 'ENTRY and RENTRY both shown');
+  equal(await page.$$eval('.week-notes li', (rows) => rows.map((row) => row.textContent)), ['施設利用料（500円）とワンドリンクオーダー制となっております。', '日程や内容については変更する場合があります。'], 'notes under the table');
   equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `no horizontal overflow at ${width}px`);
   if (shots) { const el = await page.$('#week'); await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: path.join(shots, `week-public-${width}.png`) }); }
   equal(errors, [], 'no console errors');
@@ -161,11 +163,13 @@ for (const width of [390, 1440]) {
   if (shots && width === 1440) await page.screenshot({ path: path.join(shots, 'admin-week-dialog.png') });
   await page.click('#close-week-dialog');
   await page.clock.runFor(300);
+  await page.fill('#week-notes', '施設利用料（500円）とワンドリンクオーダー制となっております。\n\n※変更する場合があります。');
   const [download] = await Promise.all([page.waitForEvent('download'), page.click('#week-export')]);
   const exported = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
   equal(exported.days[4].cards[1], { start: '17:00', end: '19:30', status: 'ongoing', open: '17:00', mainTime: '19:10', mainTitle: 'ふるまちdeトナメ', latestText: 'ただいまフリーロール', latestUrl: 'https://x.com/ChonmageNiigata/status/1' }, 'exported window');
   equal(exported.days[1].cards, undefined, 'a day without windows has no cards key');
   equal(exported.days.length, 7, 'all days exported');
+  equal(exported.notes, ['施設利用料（500円）とワンドリンクオーダー制となっております。', '変更する場合があります。'], 'notes exported one per line');
   // The export is a week the public page and Actions accept.
   exported.days.forEach((row) => weekDaySchedule(exported, row.date));
   equal(errors, [], 'no admin console errors');

@@ -340,6 +340,8 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
     { month: 10, day: 6, open: '', close: '', ringGame: false, events: [] }] };
   const week = weekFromAnswer(answer, post);
   assert.deepEqual(week.days.map((day) => day.date), ['2026-10-05', '2026-10-06']);
+  assert.equal(week.notes, undefined);
+  assert.deepEqual(weekFromAnswer({ ...answer, notes: ['日程や内容については変更する場合があります。'] }, post).notes, ['日程や内容については変更する場合があります。']);
   assert.equal(weekDaySchedule(week, '2026-10-06').status, 'closed');
   assert.throws(() => weekFromAnswer({ days: [{ month: 11, day: 30, open: '17:00', events: [] }] }, post));
   assert.throws(() => weekFromAnswer({ days: [{ month: 10, day: 7, open: '7pm', events: [] }] }, post));
@@ -432,7 +434,10 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
 }
 // A newly read week keeps the 表示時間帯 of the same date, else the same weekday.
 {
-  const { withCards } = await import('./read-week-image.mjs');
+  const { withCards, weekNotes } = await import('./read-week-image.mjs');
+  assert.deepEqual(weekNotes(['※ 施設利用料（500円）\n とワンドリンク', '', 'x'.repeat(121), 3]), ['※ 施設利用料（500円） とワンドリンク', '3']);
+  assert.deepEqual(withCards({ days: [] }, { notes: ['old'] }).notes, ['old']);
+  assert.deepEqual(withCards({ days: [], notes: ['new'] }, { notes: ['old'] }).notes, ['new']);
   const cards = [{ start: '00:00', end: '17:00', status: 'open', open: '17:00', latestText: 'Xで確認' }];
   const old = { days: [{ date: '2026-10-05', cards }, { date: '2026-10-12', cards: [{ ...cards[0], latestText: 'same date' }] }] };
   const next = withCards({ days: [{ date: '2026-10-12' }, { date: '2026-10-19' }, { date: '2026-10-13' }, { date: '2026-10-14', cards: [] }] }, old);

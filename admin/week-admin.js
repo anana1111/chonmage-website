@@ -81,6 +81,9 @@
       if (cards.length) row.cards = cards;
       return row;
     }).sort((a, b) => a.date.localeCompare(b.date));
+    const notes = (result.notes || []).map((note) => String(note).trim()).filter(Boolean).slice(0, 5);
+    if (notes.some((note) => note.length > 120)) throw new Error('注意書きは1行120文字以内にしてください。');
+    if (notes.length) result.notes = notes; else delete result.notes;
     // The public page and Actions turn each day into events.json; it must pass the same checks.
     if (state.core) result.days.forEach((day) => state.core.validateSchedule(state.core.fillClose(week.daySchedule(result, day.date))));
     return result;
@@ -222,7 +225,7 @@
     if (!current) card.append(node('p', 'この週はもう終わっています。サイトの「今週のスケジュール」には表示されません。', 'callout'));
     const grid = node('ol', undefined, 'week-calendar');
     list.forEach((day, index) => grid.append(dayColumn(day, index, errors)));
-    card.append(grid);
+    card.append(grid, notesField());
     return card;
   }
   function dayColumn(day, index, errors) {
@@ -257,6 +260,28 @@
     const edit = button('編集', () => openDay(index), 'button secondary'); edit.setAttribute('aria-label', `${dayLabel(day.date)} を編集`);
     foot.append(edit); column.append(foot);
     return column;
+  }
+  // The ※ notes under the picture (施設利用料 etc.), one per line; shown under the site's week card.
+  function notesField() {
+    const wrap = node('div', undefined, 'field');
+    const label = node('label', '注意書き（※）'); label.htmlFor = 'week-notes';
+    const input = node('textarea'); input.id = 'week-notes'; input.rows = 3;
+    input.value = (state.data.notes || []).join('\n');
+    input.placeholder = '例：施設利用料（500円）とワンドリンクオーダー制となっております。';
+    input.addEventListener('input', () => {
+      const notes = input.value.split('\n').map((line) => line.replace(/^※\s*/, '').trim()).filter(Boolean);
+      if (notes.length) state.data.notes = notes; else delete state.data.notes;
+      refreshBadges();
+    });
+    wrap.append(label, input, node('p', '1行に1つ。画像の下にある「※」の文をそのまま入れます。サイトの「今週のスケジュール」の下に表示されます（5件まで）。', 'field-hint'));
+    return wrap;
+  }
+  // Keeps the typing focus: only the status chips and the save buttons follow the change.
+  function refreshBadges() {
+    const fresh = calendarPanel(problems()).querySelector('.item-meta');
+    view?.querySelector('.week-calendar')?.closest('.panel')?.querySelector('.item-meta')?.replaceWith(fresh);
+    const save = [...(view?.querySelectorAll('.button') || [])].find((item) => item.textContent === '下書き保存');
+    if (save) save.disabled = !dirty();
   }
   function listRow(time, title, detail, className = '') {
     const row = node('li', undefined, `week-col-item ${className}`.trim());
