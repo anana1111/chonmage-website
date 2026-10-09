@@ -247,3 +247,43 @@
   .timeline-card { flex-basis: min(82vw, 330px); }
   .timeline-card--open, .timeline-card--close { flex-basis: min(56vw, 220px); }
 }
+
+/* 今週のスケジュール (data/week.json) */
+.week[hidden] { display: none !important; }
+.week { margin-top: clamp(3rem, 7vw, 5.5rem); padding-top: 1rem; border-top: 1px solid var(--line); }
+.week-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1.5rem; }
+.week-head h3 { margin: 0; font-size: clamp(1.35rem, 2.6vw, 2rem); letter-spacing: -.03em; }
+.week-head h3 span { display: block; margin-bottom: .55rem; font-size: .66rem; font-weight: 800; letter-spacing: .15em; color: var(--orange); }
+.week-range { margin: 0; font-family: "Archivo Black", "Noto Sans JP", sans-serif; font-size: .95rem; letter-spacing: -.01em; }
+.week-list { list-style: none; margin: 1.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .6rem; }
+.week-day { min-width: 0; padding: .95rem .85rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: #fffdf8; }
+.week-day.is-today { border-color: var(--blue); box-shadow: inset 0 4px 0 var(--blue); }
+.week-day.is-past { opacity: .5; }
+.week-day.is-closed { background: transparent; }
+.week-day-head { display: grid; gap: .35rem; }
+.week-date { display: flex; align-items: baseline; gap: .4rem; margin: 0; }
+.week-date strong { font-family: "Archivo Black", "Noto Sans JP", sans-serif; font-size: 1.55rem; letter-spacing: -.04em; line-height: 1; }
+.week-date span { font-size: .66rem; font-weight: 800; letter-spacing: .12em; }
+.week-date em { margin-left: auto; padding: .2rem .45rem; border-radius: 99px; background: var(--blue); color: #fff; font-style: normal; font-size: .58rem; font-weight: 800; letter-spacing: .1em; }
+.week-hours { margin: 0; font-size: .8rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.week-day.is-closed .week-hours { opacity: .6; }
+.week-games { list-style: none; margin: .8rem 0 0; padding: .7rem 0 0; border-top: 1px solid var(--line); display: grid; gap: .55rem; }
+.week-game { display: grid; grid-template-columns: auto 1fr; gap: .1rem .5rem; font-size: .74rem; line-height: 1.45; }
+.week-game-time { font-weight: 800; font-variant-numeric: tabular-nums; }
+.week-game-title { min-width: 0; overflow-wrap: anywhere; }
+.week-game-entry { grid-column: 2; font-size: .68rem; opacity: .62; }
+.week-game.is-ring .week-game-title { opacity: .72; }
+.week-note { margin: 1rem 0 0; font-size: .75rem; opacity: .62; }
+.week-note a { color: inherit; }
+@media (max-width: 1100px) {
+  .week-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .week-list { grid-template-columns: 1fr; gap: .5rem; }
+  .week-day { display: grid; grid-template-columns: 6.2rem 1fr; gap: .75rem; padding: .85rem .9rem; }
+  .week-day-head { align-content: start; }
+  .week-date em { margin-left: 0; }
+  .week-date { flex-wrap: wrap; }
+  .week-games { margin: 0; padding: 0; border-top: 0; }
+  .week-day.is-past { display: none; }
+}

@@ -66,7 +66,7 @@ python3 -m http.server 8000
 
 ## 管理画面 `/admin/`
 
-分为 ホーム / 今日の予定 / News / 設定 四页。ホーム集中显示需要处理的事项（例如公开中的数据不是今天的）；事件用卡片列表加右侧编辑面板，常用字段在前、其余放在「詳細設定」里。“公開用ファイルを作成”只会生成并下载 `events.json`、`events.manual.json`、`news.json`，**不会自动上传**，需要在 GitHub 的 `data/` 上传并 commit 同名文件后才会公开。导出的 `events.json` 与 `scripts/merge-events.mjs` 的结果一致（同一份合并代码 `scripts/schedule-core.mjs`）。详见 [`admin/README.md`](admin/README.md)。
+分为 ホーム / 今日の予定 / 週間スケジュール / News / 予約公開 / 設定。「週間スケジュール」用日历查看和编辑一周（`data/week.json`），设置首页营业卡片几点到几点显示什么，也可以上传 X 的周日程图片让 Actions 读取。ホーム集中显示需要处理的事项（例如公开中的数据不是今天的）；事件用卡片列表加右侧编辑面板，常用字段在前、其余放在「詳細設定」里。“公開用ファイルを作成”只会生成并下载 `events.json`、`events.manual.json`、`news.json`，**不会自动上传**，需要在 GitHub 的 `data/` 上传并 commit 同名文件后才会公开。导出的 `events.json` 与 `scripts/merge-events.mjs` 的结果一致（同一份合并代码 `scripts/schedule-core.mjs`）。详见 [`admin/README.md`](admin/README.md)。
 
 ## 测试
 
@@ -75,6 +75,7 @@ node scripts/test-activity.mjs          # TODAY 优先级、截止边界、跨�
 node scripts/test-activity-browser.mjs [截图目录] # 七个时刻、九个宽度、时钟和后台预览
 node scripts/test-news.mjs              # NEWS 日期边界、兼容、抓取、去重及 X 照片复制
 node scripts/test-news-browser.mjs [截图目录] # NEWS 页面和后台的浏览器验收
+node scripts/test-week-browser.mjs [截图目录] # 今週のスケジュール、营业卡片表示时间段、后台週間スケジュール
 node scripts/test-schedule.mjs          # 数据校验、合并、抓取模拟（Actions 也会运行）
 node scripts/validate-events.mjs data/events.json data/events.auto.json data/news.json
 node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地安装 Playwright；Actions 不运行）

@@ -11,6 +11,7 @@ on:
       - 'data/news.json'
       - 'data/events.manual.json'
       - 'data/week.json'
+      - 'data/week-upload/**'
       - '.github/workflows/update-events.yml'
   schedule:
     # Cron is UTC (JST = UTC+9). Minutes are offset from :00 to avoid the busiest slot.
@@ -43,6 +44,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Commit times decide which uploaded week picture is the newest.
+          fetch-depth: 50
 
       - uses: actions/setup-node@v4
         with:
@@ -73,6 +77,7 @@ jobs:
           [ -f "$RUNNER_TEMP/x-week-posts.json" ] && node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('pinned post: ' + (d.data||[]).map(t=>t.id+' '+String(t.text).slice(0,30)).join(' / '))" "$RUNNER_TEMP/x-week-posts.json" || true
 
       # The Sunday week picture is read once by GitHub Models (free with GITHUB_TOKEN).
+      # A picture uploaded to data/week-upload/ (admin 週間スケジュール) is read the same way and wins.
       # A failure only warns: the old week.json and the daily OPEN posts still work.
       - name: Read the week schedule picture
         env:

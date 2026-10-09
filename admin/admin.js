@@ -4,7 +4,7 @@
   const frame = $('website-preview');
   const keys = ['chonmage-admin-events-draft', 'chonmage-admin-news-draft'];
   const clone = (value) => JSON.parse(JSON.stringify(value));
-  const VIEWS = { home: 'ホーム', schedule: '今日の予定', news: 'News', scheduled: '予約公開', settings: '設定' };
+  const VIEWS = { home: 'ホーム', schedule: '今日の予定', week: '週間スケジュール', news: 'News', scheduled: '予約公開', settings: '設定' };
   const TYPE_LABELS = { free: 'FREE ROLL', tournament: 'TOURNAMENT', special: 'SPECIAL', event: 'EVENT' };
   const newsCore = window.ChonmageNews;
   const publish = window.ChonmagePublish;
@@ -722,6 +722,12 @@
     view.append(data);
   }
 
+  // 週間スケジュール lives in week-admin.js with its own draft and week.json export.
+  function renderWeek(view) {
+    if (window.ChonmageWeekAdmin) window.ChonmageWeekAdmin.render(view, { notice });
+    else view.append(node('p', '週間スケジュールの画面を読み込めませんでした。再読み込みしてください。', 'error-text'));
+  }
+
   // ---------- drawer ----------
   function openDrawer(kind, index = null, focusPath) {
     state.drawer = { kind, index };
@@ -824,7 +830,7 @@
     [...controls.keys()].forEach((path) => { if (!$('drawer-body').contains(controls.get(path).input)) controls.delete(path); });
     Object.keys(VIEWS).forEach((name) => { $(`view-${name}`).replaceChildren(); $(`view-${name}`).hidden = name !== state.view; });
     validate();
-    ({ home: renderHome, schedule: renderSchedule, news: renderNews, scheduled: renderScheduled, settings: renderSettings })[state.view](view);
+    ({ home: renderHome, schedule: renderSchedule, week: renderWeek, news: renderNews, scheduled: renderScheduled, settings: renderSettings })[state.view](view);
     if (state.drawer) renderDrawer();
     validate(); savedState(); updateDataStatus();
   }

@@ -104,7 +104,74 @@
     return schedule;
   }
 
-  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening });
+  // ---------- 表示時間帯 (days[].cards) ----------
+  // A day can say what the home card shows from when to when: each card is a home card
+  // (same fields as heroOverrides) with start / end in Japan time. end may be 24:00.
+  const CARD_STATUSES = ['open', 'ongoing', 'ended', 'closed'];
+  const clock = (value) => (value === '24:00' ? 1440 : isTime(value) ? Number(value.slice(0, 2)) * 60 + Number(value.slice(3)) : NaN);
+  const text = (value) => typeof value === 'string' && value.trim() !== '';
+  const httpsUrl = (value) => { try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password; } catch { return false; } };
+
+  // Problems of one card as [{ key, message }]; an empty list means the card is valid.
+  function cardProblems(card) {
+    if (!card || typeof card !== 'object' || Array.isArray(card)) return [{ key: '', message: 'カードの形式が正しくありません。' }];
+    const problems = [];
+    const add = (key, message) => problems.push({ key, message });
+    if (!isTime(card.start)) add('start', '開始時刻を入力してください（例：17:00）。');
+    if (!isTime(card.end) && card.end !== '24:00') add('end', '終了時刻を入力してください（例：19:00、日付が変わるまでは 24:00）。');
+    else if (isTime(card.start) && clock(card.end) <= clock(card.start)) add('end', '終了は開始より後の時刻にしてください。翌日に続く場合は 24:00 で区切り、翌日の欄に続きを作ります。');
+    if (!CARD_STATUSES.includes(card.status)) add('status', '営業状況を選択してください。');
+    if ((card.status !== 'closed' || card.open) && !isTime(card.open)) add('open', 'OPEN の時刻を入力してください（例：17:00）。');
+    if (card.mainTime || card.mainTitle) {
+      if (!isTime(card.mainTime)) add('mainTime', 'MAIN TIME とイベント名を一緒に入力してください。');
+      if (!text(card.mainTitle)) add('mainTitle', 'MAIN EVENT を入力してください。');
+    }
+    if (!text(card.latestText)) add('latestText', 'LATEST に出す文言を入力してください。');
+    if (card.latestUrl && !httpsUrl(card.latestUrl)) add('latestUrl', 'https:// で始まるURLを入力してください。');
+    return problems;
+  }
+
+  // Problems of a whole day's cards: each card's own, plus overlapping time ranges.
+  function dayCardProblems(cards) {
+    const list = Array.isArray(cards) ? cards : [];
+    const problems = list.map((card) => cardProblems(card));
+    const ranges = list.map((card, index) => ({ index, start: clock(card?.start), end: clock(card?.end) }))
+      .filter((range, index) => !problems[index].some((problem) => ['start', 'end'].includes(problem.key)))
+      .sort((a, b) => a.start - b.start);
+    for (let i = 1; i < ranges.length; i += 1) {
+      if (ranges[i].start < ranges[i - 1].end) problems[ranges[i].index].push({ key: 'start', message: 'ほかの表示時間帯と重なっています。' });
+    }
+    return problems;
+  }
+
+  // The valid cards of one date, in time order. Invalid or overlapping cards are left out.
+  function dayCards(week, date) {
+    const day = rows(week).find((row) => row.date === date);
+    const cards = Array.isArray(day?.cards) ? day.cards : [];
+    const problems = dayCardProblems(cards);
+    return cards.filter((card, index) => !problems[index].length).sort((a, b) => clock(a.start) - clock(b.start));
+  }
+
+  // The card shown at `minute` (minutes since 00:00 JST) on `date`, or null.
+  function activeCard(week, date, minute) {
+    return dayCards(week, date).find((card) => clock(card.start) <= minute && minute < clock(card.end)) || null;
+  }
+
+  // Minutes since 00:00 in Japan time.
+  function japanMinute(now = new Date()) {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(now).map((part) => [part.type, part.value]));
+    return Number(parts.hour) * 60 + Number(parts.minute);
+  }
+
+  // The rows of the week picture for the public 「今週のスケジュール」 card, or [] when the
+  // picture has no day from `today` on (an old week is never shown as this week).
+  function weekDays(week, today) {
+    const list = rows(week).filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date)).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+    return list.some((row) => row.date >= today) ? list : [];
+  }
+
+  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays });
   root.ChonmageWeek = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(globalThis);
