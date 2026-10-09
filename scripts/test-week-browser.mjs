@@ -74,7 +74,15 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   yes(await page.isVisible('#week'), `week card visible at ${width}px`);
   equal(await page.$$eval('.week-date strong', (rows) => rows.map((row) => row.textContent)), ['9', '10', '11'], 'past days are gone; today and later stay');
   equal(await page.textContent('.week-day.is-today .week-date strong'), '9', 'today marked');
-  equal(await page.$$eval('.week-day.is-today .week-game-entry', (rows) => rows.map((row) => [...row.children].map((item) => item.textContent))), [['ENTRY 無料', 'RENTRY ¥500'], ['ENTRY ¥2,500', 'RENTRY ¥2,500']], 'ENTRY and RENTRY both shown');
+  equal(await page.$$eval('.week-day.is-today .week-game-entry', (rows) => rows.map((row) => [...row.children].map((item) => item.querySelector('dt').textContent + ' ' + item.querySelector('dd').textContent))), [['ENTRY 無料', 'RENTRY ¥500'], ['ENTRY ¥2,500', 'RENTRY ¥2,500']], 'ENTRY and RENTRY both read');
+  // Prices stay folded until the game is tapped.
+  const firstGame = '.week-day.is-today .week-game-details';
+  yes(!(await page.isVisible(firstGame + ' .week-game-entry')), 'prices folded by default');
+  await page.click(firstGame + ' summary');
+  yes(await page.isVisible(firstGame + ' .week-game-entry'), 'tap opens prices');
+  // 3 days left: 3 equal columns, side by side above the phone layout.
+  const lefts = await page.$$eval('.week-day', (rows) => rows.map((row) => Math.round(row.getBoundingClientRect().left)));
+  equal(new Set(lefts).size, width <= 700 ? 1 : 3, `3 days share the row at ${width}px`);
   equal(await page.$$eval('.week-notes li', (rows) => rows.map((row) => row.textContent)), ['施設利用料（500円）とワンドリンクオーダー制となっております。', '日程や内容については変更する場合があります。'], 'notes under the table');
   equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `no horizontal overflow at ${width}px`);
   if (shots) { const el = await page.$('#week'); await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: path.join(shots, `week-public-${width}.png`) }); }
@@ -83,8 +91,10 @@ for (const width of [320, 390, 768, 1024, 1440]) {
 }
 {
   // Early in the week a closed day is listed as 休業, and the range starts today.
-  const { page, context } = await open('/', { at: '2026-10-06T10:00:00+09:00' });
+  const { page, context } = await open('/', { at: '2026-10-06T10:00:00+09:00', width: 1440 });
   equal(await page.$$eval('.week-date strong', (rows) => rows.length), 6, 'from Tuesday on');
+  const columns = await page.$$eval('.week-day', (rows) => new Set(rows.map((row) => Math.round(row.getBoundingClientRect().left))).size);
+  equal(columns, 6, '6 days left = 6 columns');
   yes((await page.textContent('.week-day.is-closed')).includes('休業'), 'closed day says 休業');
   equal(await page.textContent('.week-range'), '10.06 – 10.11', 'range starts today');
   // Just after midnight the finished day goes away without reloading.

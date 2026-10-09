@@ -401,6 +401,8 @@ function renderWeek(week) {
   const weekday = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', weekday: 'short' }).format(noon(iso)).toUpperCase();
   const range = section.querySelector('.week-range');
   if (range) range.textContent = days[0].date.slice(5).replace('-', '.') + ' – ' + days[days.length - 1].date.slice(5).replace('-', '.');
+  // The remaining days share the full width: 3 days left = 3 columns, 7 = 7.
+  list.style.setProperty('--week-days', String(days.length));
   list.replaceChildren(...days.map((day) => {
     const open = /^\d{2}:\d{2}$/.test(day.open || '');
     const row = element('li', 'week-day' + (day.date === today ? ' is-today' : '') + (open ? '' : ' is-closed'));
@@ -417,15 +419,19 @@ function renderWeek(week) {
       ring.append(element('span', 'week-game-time', '終日'), element('span', 'week-game-title', 'NLHリングゲーム'));
       games.append(ring);
     }
+    // Each game shows time and name; ENTRY / RENTRY open with a tap.
     (open && Array.isArray(day.events) ? day.events : []).forEach((event) => {
       const item = element('li', 'week-game');
-      item.append(element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || '')));
-      const prices = [event.entry && 'ENTRY ' + event.entry, event.reentry && 'RENTRY ' + event.reentry].filter(Boolean);
-      if (prices.length) {
-        const line = element('span', 'week-game-entry');
-        line.append(...prices.map((price) => element('span', '', price)));
-        item.append(line);
-      }
+      const head = [element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || ''))];
+      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry]].filter(([, value]) => value);
+      if (!prices.length) { item.append(...head); games.append(item); return; }
+      const details = element('details', 'week-game-details');
+      const summary = element('summary');
+      summary.append(...head);
+      const list = element('dl', 'week-game-entry');
+      prices.forEach(([label, value]) => { const row = element('div'); row.append(element('dt', '', label), element('dd', '', String(value))); list.append(row); });
+      details.append(summary, list);
+      item.append(details);
       games.append(item);
     });
     if (games.children.length) row.append(games);
