@@ -403,6 +403,7 @@ function renderWeek(week) {
   if (range) range.textContent = days[0].date.slice(5).replace('-', '.') + ' – ' + days[days.length - 1].date.slice(5).replace('-', '.');
   // The remaining days share the full width: 3 days left = 3 columns, 7 = 7.
   list.style.setProperty('--week-days', String(days.length));
+  list.classList.toggle('is-dense', days.length >= 5);
   list.replaceChildren(...days.map((day) => {
     const open = /^\d{2}:\d{2}$/.test(day.open || '');
     const row = element('li', 'week-day' + (day.date === today ? ' is-today' : '') + (open ? '' : ' is-closed'));
@@ -427,7 +428,7 @@ function renderWeek(week) {
       if (!prices.length) { item.append(...head); games.append(item); return; }
       const details = element('details', 'week-game-details');
       const summary = element('summary');
-      summary.append(...head);
+      summary.append(...head, element('span', 'week-game-toggle', '料金'));
       const list = element('dl', 'week-game-entry');
       prices.forEach(([label, value]) => { const row = element('div'); row.append(element('dt', '', label), element('dd', '', String(value))); list.append(row); });
       details.append(summary, list);

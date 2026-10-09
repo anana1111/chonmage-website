@@ -271,8 +271,15 @@
 .week-game-details { grid-column: 1 / -1; }
 .week-game-details > summary { grid-template-columns: auto minmax(0, 1fr) auto; list-style: none; cursor: pointer; border-radius: 8px; margin: -.3rem -.4rem; padding: .3rem .4rem; }
 .week-game-details > summary::-webkit-details-marker { display: none; }
-.week-game-details > summary::after { content: "+"; align-self: center; display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border: 1px solid var(--line); border-radius: 50%; font-size: .8rem; font-weight: 700; line-height: 1; opacity: .7; transition: transform .2s var(--ease-out); }
-.week-game-details[open] > summary::after { transform: rotate(45deg); }
+.week-game-toggle { align-self: center; display: inline-flex; align-items: center; gap: .3em; padding: .2rem .45rem .2rem .55rem; border: 1px solid var(--line); border-radius: 999px; font-size: .62rem; font-weight: 800; letter-spacing: .06em; white-space: nowrap; opacity: .75; }
+/* 5+ narrow columns: the 料金 button moves under the name so names keep their width. */
+@media (min-width: 1024px) {
+  .week-list.is-dense .week-game-details > summary { grid-template-columns: auto minmax(0, 1fr); }
+  .week-list.is-dense .week-game-toggle { grid-column: 2; justify-self: start; margin-top: .2rem; }
+}
+.week-game-toggle::after { content: ""; width: .38em; height: .38em; margin-top: -.2em; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform .2s var(--ease-out), margin .2s var(--ease-out); }
+.week-game-details[open] .week-game-toggle { border-color: var(--blue); background: var(--blue); color: #fff; opacity: 1; }
+.week-game-details[open] .week-game-toggle::after { margin-top: .2em; transform: rotate(-135deg); }
 @media (hover: hover) and (pointer: fine) { .week-game-details > summary:hover { background: rgba(39, 56, 112, .06); } }
 .week-game-details > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .week-game-time { font-size: .78rem; font-weight: 800; font-variant-numeric: tabular-nums; }
