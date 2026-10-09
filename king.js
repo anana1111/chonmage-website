@@ -225,6 +225,47 @@
     return section;
   }
 
+  // Champion cards behave like a real foil card: they tilt toward the pointer with a moving shine,
+  // and on touch screens the foil sweeps once as each card scrolls into view (tap to sweep again).
+  // Nothing moves for visitors who ask for reduced motion.
+  function foil(root) {
+    const figures = root.querySelectorAll('.is-card');
+    if (!figures.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const sweep = (figure) => {
+      figure.classList.remove('is-shining'); void figure.offsetWidth; figure.classList.add('is-shining');
+    };
+    const seen = 'IntersectionObserver' in window && new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        seen.unobserve(entry.target); setTimeout(() => sweep(entry.target), 250);
+      });
+    }, { threshold: 0.6 });
+    figures.forEach((figure) => {
+      figure.append(node('span', 'king-foil'), node('span', 'king-glare'));
+      figure.addEventListener('animationend', () => figure.classList.remove('is-shining'));
+      if (seen) seen.observe(figure);
+      const card = figure.closest('.king-card, .king-latest, .home-king-card') || figure;
+      card.classList.add('is-foil');
+      const max = card === figure || card.classList.contains('king-card') ? 9 : 4;
+      card.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'touch') return;
+        const box = card.getBoundingClientRect();
+        const x = (event.clientX - box.left) / box.width, y = (event.clientY - box.top) / box.height;
+        const spot = figure.getBoundingClientRect();
+        card.style.setProperty('--ry', ((x - 0.5) * 2 * max).toFixed(2) + 'deg');
+        card.style.setProperty('--rx', ((0.5 - y) * 2 * max).toFixed(2) + 'deg');
+        figure.style.setProperty('--mx', (((event.clientX - spot.left) / spot.width) * 100).toFixed(1) + '%');
+        figure.style.setProperty('--my', (((event.clientY - spot.top) / spot.height) * 100).toFixed(1) + '%');
+        card.classList.add('is-tilting');
+      });
+      card.addEventListener('pointerleave', () => {
+        card.classList.remove('is-tilting');
+        card.style.removeProperty('--rx'); card.style.removeProperty('--ry');
+      });
+      figure.addEventListener('pointerup', (event) => { if (event.pointerType === 'touch') sweep(figure); });
+    });
+  }
+
   function render({ items, next }) {
     const fragment = document.createDocumentFragment();
     if (demo) fragment.append(node('p', 'king-preview-note', 'デモ表示：仮のKINGを含みます。'));
@@ -255,6 +296,7 @@
     }
     fragment.append(nextKing(next));
     view.replaceChildren(fragment);
+    foil(view);
     view.setAttribute('aria-busy', 'false');
     // A shared link (/king/#2026-08) lands on that KING once the records are in the page.
     const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
@@ -266,7 +308,7 @@
     .then((data) => {
       const cleaned = clean(data);
       if (view) render(cleaned);
-      else if (cleaned.items.length) home.replaceChildren(homeCard(cleaned.items[0]));
+      else if (cleaned.items.length) { home.replaceChildren(homeCard(cleaned.items[0])); foil(home); }
     })
     .catch(() => {
       // The homepage keeps its static link to /king/.

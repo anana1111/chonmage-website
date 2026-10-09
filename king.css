@@ -11,6 +11,22 @@
 /* A designed champion card is shown whole, in its own 4:5 shape. */
 .king-latest-photo.is-card, .king-card-photo.is-card, .home-king-photo.is-card { aspect-ratio: 4 / 5; background: #f7f1df; }
 .is-card img { object-fit: contain; }
+/* Foil: tilt toward the pointer, a moving shine, and a one-off sweep when the card comes into view. */
+.is-foil { transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .6s cubic-bezier(.2, .8, .2, 1), box-shadow .6s; }
+.is-foil.is-tilting { transition: transform .1s linear, box-shadow .3s; box-shadow: 0 22px 40px -18px rgba(23, 24, 22, .45); }
+.is-card { position: relative; }
+.king-foil, .king-glare { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .4s; }
+.king-foil { mix-blend-mode: color-dodge; background: linear-gradient(115deg, transparent 25%, rgba(255, 214, 120, .65) 42%, rgba(255, 255, 255, .8) 50%, rgba(255, 140, 170, .45) 58%, transparent 75%) var(--mx, 50%) var(--my, 50%) / 260% 260% no-repeat; }
+.king-glare { mix-blend-mode: soft-light; background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, .9), transparent 45%); }
+.is-tilting .king-foil { opacity: .55; }
+.is-tilting .king-glare { opacity: .8; }
+.is-shining .king-foil { animation: king-sweep 1.5s cubic-bezier(.3, .6, .3, 1) both; }
+@keyframes king-sweep {
+  0% { opacity: 0; background-position: 100% 100%; }
+  25% { opacity: .75; }
+  100% { opacity: 0; background-position: 0% 0%; }
+}
+@media (prefers-reduced-motion: reduce) { .is-foil { transform: none; } }
 .king-badge { align-self: flex-start; margin: 0; padding: .3rem .7rem; border-radius: 99px; background: var(--orange); color: #111; font-size: .72rem; font-weight: 800; }
 .king-facts { display: grid; gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 .king-facts div { display: flex; gap: 1rem; align-items: baseline; padding: .6rem .8rem; background: var(--paper); }
