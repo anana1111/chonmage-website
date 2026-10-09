@@ -8,6 +8,9 @@
 .king-photo-initial { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(3.5rem, 12vw, 6rem); line-height: 1; color: rgba(255, 255, 255, .9); }
 .king-latest-photo, .king-card-photo, .home-king-photo { margin: 0; aspect-ratio: 4 / 3; overflow: hidden; }
 .king-latest-photo img, .king-card-photo img, .home-king-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+/* A designed champion card is shown whole, in its own 4:5 shape. */
+.king-latest-photo.is-card, .king-card-photo.is-card, .home-king-photo.is-card { aspect-ratio: 4 / 5; background: #f7f1df; }
+.is-card img { object-fit: contain; }
 .king-badge { align-self: flex-start; margin: 0; padding: .3rem .7rem; border-radius: 99px; background: var(--orange); color: #111; font-size: .72rem; font-weight: 800; }
 .king-facts { display: grid; gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 .king-facts div { display: flex; gap: 1rem; align-items: baseline; padding: .6rem .8rem; background: var(--paper); }

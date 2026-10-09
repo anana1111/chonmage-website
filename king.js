@@ -43,7 +43,7 @@
       .filter((row) => row && (demo || row.placeholder !== true) && MONTH.test(text(row.month)) && text(row.name))
       .map((row) => ({
         month: text(row.month), period: text(row.period), name: text(row.name), prize: text(row.prize), entries: count(row.entries),
-        photo: PHOTO.test(text(row.photo)) ? text(row.photo) : '', comment: text(row.comment),
+        photo: PHOTO.test(text(row.photo)) ? text(row.photo) : '', card: PHOTO.test(text(row.card)) ? text(row.card) : '', comment: text(row.comment),
         post: POST.test(text(row.post)) ? text(row.post) : '', won: DAY.test(text(row.won)) ? text(row.won) : ''
       }))
       .sort((a, b) => b.month.localeCompare(a.month));
@@ -80,12 +80,14 @@
     return result;
   }
 
-  // The X picture when there is one; otherwise a placeholder in the shop colors with the initial.
+  // The champion card (portrait 4:5, shown whole) when there is one, then the X picture;
+  // otherwise a placeholder in the shop colors with the initial.
   function photo(item, className, eager) {
-    const figure = node('figure', className + (item.photo ? '' : ' is-blank'));
-    if (item.photo) {
+    const source = item.card || item.photo;
+    const figure = node('figure', className + (item.card ? ' is-card' : source ? '' : ' is-blank'));
+    if (source) {
       const image = node('img');
-      image.src = new URL(item.photo, siteRoot).href;
+      image.src = new URL(source, siteRoot).href;
       image.alt = label(item) + ' KING ' + item.name + '様';
       image.decoding = 'async'; image.loading = eager ? 'eager' : 'lazy';
       figure.append(image);
