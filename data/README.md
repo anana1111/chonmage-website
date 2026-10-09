@@ -108,4 +108,13 @@ JSON 読み込み失敗時や JavaScript が無効なときは、日付のない
 
 ## week.json（周日程）
 
-店铺每周日发一张下一周的日程图。Actions 用 GitHub Models（免费，使用 workflow 自带的 `GITHUB_TOKEN`）读图，结果存到 `data/week.json`（每天：日期、营业时间、是否有终日リングゲーム、活动的时间/名称/ENTRY/RENTRY）。当天的营业推文还没读到时，用 week.json 里今天那一行生成 `events.auto.json`；读到当天推文后以推文为准。读图结果不合理（日期不在那一周、时间格式不对等）时保留旧文件。手动修改：直接编辑本文件并 commit；想让 AI 重新读，手动运行 workflow 并勾选 `reread_week`。
+店铺每周日发一张下一周的日程图。Actions 用 GitHub Models（免费，使用 workflow 自带的 `GITHUB_TOKEN`）读图，结果存到 `data/week.json`（每天：日期、营业时间、是否有终日リングゲーム、活动的时间/名称/ENTRY/RENTRY；以及表格下方的 ※ 注意事项 `notes`）。当天的营业推文还没读到时，用 week.json 里今天那一行生成 `events.auto.json`；读到当天推文后以推文为准。读图结果不合理（日期不在那一周、时间格式不对等）时保留旧文件。手动修改：直接编辑本文件并 commit；想让 AI 重新读，手动运行 workflow 并勾选 `reread_week`。
+
+### 表示时间段（`days[].cards`）和上传图片
+
+- 每天可以有 `cards`：`[{ start, end, status, open, mainTime, mainTitle, latestText, latestUrl }]`。字段同 `heroOverrides`，另加显示的开始/结束时间（日本时间，`end` 不含，日付が変わるまでは `24:00`）。同一天的时间段不能重叠；不合格的时间段在前台直接忽略。
+- 前台首页的营业卡片：当天 `heroOverrides` ＞ 当前时刻所在的 `cards` ＞ 自动显示。页面开着时每分钟自动切换。
+- TODAY 区下方的「今週のスケジュール」显示 `week.json` 里今天及以后的日子；过完的一天在日本时间零点自动消失，全部过完时整个卡片隐藏。
+- 管理画面「週間スケジュール」可查看和编辑，并导出 `week.json`。
+- 上传图片：放进 `data/week-upload/`（JPG / PNG / WebP）并 commit 会触发 Actions，`scripts/read-week-image.mjs` 读取最新 commit 的那张（8 天以内）。结果写成 `source: "upload"`，带 `image`、`imageSha256`、`uploadedAt`；同一张图不会重复读。比上传时间旧的 X 投稿不会覆盖它，更新的 X 投稿（下周的）会覆盖。
+- 新读进来的一周会沿用旧 `week.json` 同一天、否则同一星期几的 `cards`。

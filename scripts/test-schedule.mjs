@@ -340,6 +340,8 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
     { month: 10, day: 6, open: '', close: '', ringGame: false, events: [] }] };
   const week = weekFromAnswer(answer, post);
   assert.deepEqual(week.days.map((day) => day.date), ['2026-10-05', '2026-10-06']);
+  assert.equal(week.notes, undefined);
+  assert.deepEqual(weekFromAnswer({ ...answer, notes: ['日程や内容については変更する場合があります。'] }, post).notes, ['日程や内容については変更する場合があります。']);
   assert.equal(weekDaySchedule(week, '2026-10-06').status, 'closed');
   assert.throws(() => weekFromAnswer({ days: [{ month: 11, day: 30, open: '17:00', events: [] }] }, post));
   assert.throws(() => weekFromAnswer({ days: [{ month: 10, day: 7, open: '7pm', events: [] }] }, post));
@@ -361,7 +363,88 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
   assert.equal(JSON.parse(fsm.readFileSync(file, 'utf8')).days.length, 2);
   assert.equal(await readWeekImage({ postsPath: posts, token: 't', fetch: fakeFetch, file, now }), false);
   assert.equal(calls.length, 2);
+  // A picture uploaded to data/week-upload/ is read once, keeps cards, and wins over an older X post.
+  const uploads = pathm.join(dir, 'upload');
+  fsm.mkdirSync(uploads);
+  const current = JSON.parse(fsm.readFileSync(file, 'utf8'));
+  current.days[0].cards = [{ start: '17:00', end: '19:00', status: 'ongoing', open: '17:00', latestText: '受付中' }];
+  fsm.writeFileSync(file, JSON.stringify(current));
+  const picture = pathm.join(uploads, 'IMG_1.jpg');
+  fsm.writeFileSync(picture, new Uint8Array([0xff, 0xd8, 0xff, 2]));
+  fsm.writeFileSync(pathm.join(uploads, 'README.md'), 'not a picture');
+  const uploadedAt = new Date('2026-10-07T03:00:00Z');
+  fsm.utimesSync(picture, uploadedAt, uploadedAt);
+  const midWeek = new Date('2026-10-07T04:00:00Z');
+  // The upload comes mid-week, so Monday 10/5 (two days before) must still be accepted.
+  assert.equal(await readWeekImage({ postsPath: posts, token: 't', fetch: fakeFetch, file, uploadDir: uploads, now: midWeek }), true);
+  const uploaded = JSON.parse(fsm.readFileSync(file, 'utf8'));
+  assert.equal(uploaded.source, 'upload');
+  assert.equal(uploaded.sourceUrl, 'https://x.com/ChonmageNiigata');
+  assert.match(uploaded.image, /IMG_1\.jpg$/);
+  assert.match(uploaded.imageSha256, /^[0-9a-f]{64}$/);
+  assert.equal(uploaded.uploadedAt.slice(0, 16), '2026-10-07T12:00');
+  assert.equal(uploaded.days[0].cards[0].latestText, '受付中');
+  assert.equal(calls.filter((url) => url.startsWith('https://pbs.twimg.com/')).length, 1); // the picture came from the file
+  // Same picture again: not re-read; the X post (posted 10/4, before the upload) does not replace it.
+  const before = calls.length;
+  assert.equal(await readWeekImage({ postsPath: posts, token: 't', fetch: fakeFetch, file, uploadDir: uploads, now: midWeek }), false);
+  assert.equal(calls.length, before);
+  // Next Sunday's X post is newer than the upload and replaces it; Monday keeps its cards.
+  fsm.writeFileSync(posts, JSON.stringify({ ok: true, data: [{ ...tweet, id: '2106713700346515999', createdAtISO: '2026-10-11T11:00:00+00:00' }] }));
+  const nextAnswer = { days: [{ month: 10, day: 12, open: '17:00', close: '23:30', ringGame: true, events: [] }] };
+  const nextFetch = async (url, init) => (url.startsWith('https://pbs.twimg.com/') ? fakeFetch(url, init) : new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(nextAnswer) } }] })));
+  assert.equal(await readWeekImage({ postsPath: posts, token: 't', fetch: nextFetch, file, uploadDir: uploads, now: new Date('2026-10-11T12:00:00Z') }), true);
+  const fromX = JSON.parse(fsm.readFileSync(file, 'utf8'));
+  assert.equal(fromX.source, undefined);
+  assert.deepEqual(fromX.days.map((day) => day.date), ['2026-10-12']);
+  assert.equal(fromX.days[0].cards[0].latestText, '受付中');
   fsm.rmSync(dir, { recursive: true });
+}
+// 表示時間帯 (week.json days[].cards): which home card shows from when to when.
+{
+  const { weekDaySchedule } = await import('./week-schedule.mjs');
+  const core = globalThis.ChonmageWeek;
+  const card = { start: '17:00', end: '19:10', status: 'ongoing', open: '17:00', mainTime: '19:10', mainTitle: 'TOURNAMENT', latestText: '受付中' };
+  assert.deepEqual(core.cardProblems(card), []);
+  assert.deepEqual(core.cardProblems({ ...card, end: '24:00' }), []);
+  assert.deepEqual(core.cardProblems({ ...card, end: '17:00' }).map((row) => row.key), ['end']);
+  assert.deepEqual(core.cardProblems({ ...card, end: '25:00' }).map((row) => row.key), ['end']);
+  assert.deepEqual(core.cardProblems({ ...card, status: 'x' }).map((row) => row.key), ['status']);
+  assert.deepEqual(core.cardProblems({ ...card, mainTitle: '' }).map((row) => row.key), ['mainTitle']);
+  assert.deepEqual(core.cardProblems({ ...card, latestText: ' ' }).map((row) => row.key), ['latestText']);
+  assert.deepEqual(core.cardProblems({ ...card, latestUrl: 'http://x.com' }).map((row) => row.key), ['latestUrl']);
+  assert.deepEqual(core.cardProblems({ ...card, status: 'closed', open: '' }), []);
+  assert.deepEqual(core.cardProblems({ ...card, open: '' }).map((row) => row.key), ['open']);
+  const late = { ...card, start: '23:30', end: '24:00', status: 'ended' };
+  const overlap = { ...card, start: '19:00', end: '20:00' };
+  const weekData = { version: 1, days: [{ date: '2026-10-09', open: '17:00', events: [], cards: [late, card, overlap, { start: 'x' }] }] };
+  assert.deepEqual(core.dayCardProblems(weekData.days[0].cards).map((list) => list.length > 0), [false, false, true, true]);
+  assert.deepEqual(core.dayCards(weekData, '2026-10-09'), [card, late]);
+  assert.equal(core.activeCard(weekData, '2026-10-09', 16 * 60 + 59), null);
+  assert.equal(core.activeCard(weekData, '2026-10-09', 17 * 60), card);
+  assert.equal(core.activeCard(weekData, '2026-10-09', 19 * 60 + 10), null); // end is exclusive
+  assert.equal(core.activeCard(weekData, '2026-10-09', 23 * 60 + 59), late);
+  assert.equal(core.activeCard(weekData, '2026-10-10', 17 * 60), null);
+  assert.equal(core.japanMinute(new Date('2026-10-09T09:05:00Z')), 18 * 60 + 5);
+  assert.deepEqual(core.weekDays(weekData, '2026-10-09').map((day) => day.date), ['2026-10-09']);
+  assert.deepEqual(core.weekDays(weekData, '2026-10-10'), []);
+  assert.deepEqual(core.weekDays({ days: [{ date: '2026-10-09' }, { date: '2026-10-08' }, { date: '2026-10-11' }] }, '2026-10-09').map((row) => row.date), ['2026-10-09', '2026-10-11']);
+  // Cards never change the events.json shape that the week fills in.
+  assert.equal(weekDaySchedule(weekData, '2026-10-09').cards, undefined);
+}
+// A newly read week keeps the 表示時間帯 of the same date, else the same weekday.
+{
+  const { withCards, weekNotes } = await import('./read-week-image.mjs');
+  assert.deepEqual(weekNotes(['※ 施設利用料（500円）\n とワンドリンク', '', 'x'.repeat(121), 3]), ['※ 施設利用料（500円） とワンドリンク', '3']);
+  assert.deepEqual(withCards({ days: [] }, { notes: ['old'] }).notes, ['old']);
+  assert.deepEqual(withCards({ days: [], notes: ['new'] }, { notes: ['old'] }).notes, ['new']);
+  const cards = [{ start: '00:00', end: '17:00', status: 'open', open: '17:00', latestText: 'Xで確認' }];
+  const old = { days: [{ date: '2026-10-05', cards }, { date: '2026-10-12', cards: [{ ...cards[0], latestText: 'same date' }] }] };
+  const next = withCards({ days: [{ date: '2026-10-12' }, { date: '2026-10-19' }, { date: '2026-10-13' }, { date: '2026-10-14', cards: [] }] }, old);
+  assert.equal(next.days[0].cards[0].latestText, 'same date');
+  assert.equal(next.days[1].cards[0].latestText, 'same date'); // the latest Monday
+  assert.equal(next.days[2].cards, undefined);
+  assert.deepEqual(next.days[3].cards, []);
 }
 // An early-bird line 「…までの着席でエントリー無料」 is not the entry price.
 {

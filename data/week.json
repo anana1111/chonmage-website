@@ -1,6 +1,10 @@
 {
   "version": 1,
   "sourceUrl": "https://x.com/ChonmageNiigata/status/2106713700346515720",
+  "notes": [
+    "施設利用料（500円）とワンドリンクオーダー制（フリーロールの参加者はファーストドリンクサービス）となっております。",
+    "日程や内容については変更する場合があります。"
+  ],
   "days": [
     { "date": "2026-10-05", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
       { "time": "18:00", "title": "THE DAILY", "entry": "¥1,500〜", "reentry": "¥2,000" }

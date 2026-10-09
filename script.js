@@ -343,7 +343,11 @@ function effectiveSchedule(source) {
   }
   // 本日終了 and 休業 say when the shop opens next.
   const next = isCurrentSchedule(data) ? week.nextOpening(liveWeek, data.date) : null;
-  return next ? { ...data, nextOpen: next } : data;
+  if (next) data = { ...data, nextOpen: next };
+  // 表示時間帯: the week's card for this time of day (a date's heroOverrides still wins).
+  const today = getJapanDate();
+  const card = !data.heroOverrides?.[today] && week.activeCard ? week.activeCard(liveWeek, today, week.japanMinute()) : null;
+  return card ? { ...data, heroWindow: { date: today, hero: card } } : data;
 }
 const signatureOf = (data) => (window.ChonmageSchedule?.scheduleSignature?.(effectiveSchedule(data)) || '') + (window.ChonmagePublish?.visibilityKey(data) || '') + getJapanDate();
 
@@ -369,6 +373,7 @@ async function loadEvents() {
       fetchData('./data/week.json').catch(() => null),
     ]);
     liveWeek = week;
+    renderWeek(week);
     liveEvents = validateEvents(events);
     showEvents(liveEvents);
   } catch (error) {
@@ -378,8 +383,68 @@ async function loadEvents() {
   }
 }
 
+// 「今週のスケジュール」: the week picture as a table, today marked. Hidden for an old week.
+let weekSignature = '';
+function renderWeek(week) {
+  const section = document.getElementById('week');
+  const core = window.ChonmageWeek;
+  if (!section || !core) return;
+  const today = getJapanDate();
+  const days = week ? core.weekDays(week, today) : [];
+  const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null);
+  if (signature === weekSignature) return;
+  weekSignature = signature;
+  section.hidden = !days.length;
+  const list = section.querySelector('.week-list');
+  if (!list || !days.length) return;
+  const noon = (iso) => new Date(iso + 'T12:00:00+09:00');
+  const weekday = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', weekday: 'short' }).format(noon(iso)).toUpperCase();
+  const range = section.querySelector('.week-range');
+  if (range) range.textContent = days[0].date.slice(5).replace('-', '.') + ' – ' + days[days.length - 1].date.slice(5).replace('-', '.');
+  list.replaceChildren(...days.map((day) => {
+    const open = /^\d{2}:\d{2}$/.test(day.open || '');
+    const row = element('li', 'week-day' + (day.date === today ? ' is-today' : '') + (open ? '' : ' is-closed'));
+    if (day.date === today) row.setAttribute('aria-current', 'date');
+    const head = element('div', 'week-day-head');
+    const date = element('p', 'week-date');
+    date.append(element('strong', '', String(Number(day.date.slice(8)))), element('span', '', weekday(day.date)));
+    if (day.date === today) date.append(element('em', '', 'TODAY'));
+    head.append(date, element('p', 'week-hours', open ? day.open + (day.close ? '–' + day.close : ' OPEN') : '休業'));
+    row.append(head);
+    const games = element('ul', 'week-games');
+    if (open && day.ringGame) {
+      const ring = element('li', 'week-game is-ring');
+      ring.append(element('span', 'week-game-time', '終日'), element('span', 'week-game-title', 'NLHリングゲーム'));
+      games.append(ring);
+    }
+    (open && Array.isArray(day.events) ? day.events : []).forEach((event) => {
+      const item = element('li', 'week-game');
+      item.append(element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || '')));
+      const prices = [event.entry && 'ENTRY ' + event.entry, event.reentry && 'RENTRY ' + event.reentry].filter(Boolean);
+      if (prices.length) {
+        const line = element('span', 'week-game-entry');
+        line.append(...prices.map((price) => element('span', '', price)));
+        item.append(line);
+      }
+      games.append(item);
+    });
+    if (games.children.length) row.append(games);
+    return row;
+  }));
+  // The ※ notes printed under the week picture (施設利用料 etc.).
+  const notes = section.querySelector('.week-notes');
+  if (notes) {
+    const rows = (Array.isArray(week.notes) ? week.notes : []).filter((note) => typeof note === 'string' && note.trim()).slice(0, 5);
+    notes.replaceChildren(...rows.map((note) => element('li', '', note.replace(/^※\s*/, ''))));
+    notes.hidden = !rows.length;
+  }
+  const link = section.querySelector('.week-source');
+  if (link && typeof week.sourceUrl === 'string' && /^https:\/\/x\.com\//.test(week.sourceUrl)) link.href = week.sourceUrl;
+}
+
 // NOW / NEXT / 本日終了 and the date check follow the clock while the page stays open.
 function refreshEvents() {
+  if (liveWeek) renderWeek(liveWeek);
   if (!liveEvents || signatureOf(liveEvents) === liveSignature) return;
   try { showEvents(liveEvents); } catch (error) { applyStaleState(true); console.warn('開催情報を更新できません。', error); }
 }

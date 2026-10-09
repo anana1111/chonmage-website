@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
     <link rel="shortcut icon" href="/favicon.ico?v=20261006chip" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261006chip" />
-    <link rel="stylesheet" href="./admin.css?v=8" />
+    <link rel="stylesheet" href="./admin.css?v=9" />
     <script src="./gate.js?v=1"></script>
   </head>
   <body>
@@ -22,7 +22,8 @@
         <nav class="nav" aria-label="ページ">
           <a href="#home" data-view-link="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg></span>ホーム</a>
           <a href="#schedule" data-view-link="schedule"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg></span>今日の予定<span class="nav-count" id="events-count">—</span></a>
-          <a href="#news" data-view-link="news"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg></span>News<span class="nav-count" id="news-count">—</span></a>
+          <a href="#week" data-view-link="week"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h2M11 13h2M15 13h2M7 16.5h2M11 16.5h2"/></svg></span>週間スケジュール</a>
+      <a href="#news" data-view-link="news"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg></span>News<span class="nav-count" id="news-count">—</span></a>
           <a href="#scheduled" data-view-link="scheduled"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg></span>予約公開<span class="nav-count" id="scheduled-count">—</span></a>
           <a href="#settings" data-view-link="settings"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h9M18 7h1M5 17h3M12 17h7"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>設定</a>
         </nav>
@@ -58,6 +59,7 @@
           <form id="editor-form" novalidate hidden>
             <section id="view-home" class="view" aria-labelledby="page-title"></section>
             <section id="view-schedule" class="view" aria-labelledby="page-title" hidden></section>
+            <section id="view-week" class="view" aria-labelledby="page-title" hidden></section>
             <section id="view-news" class="view" aria-labelledby="page-title" hidden></section>
             <section id="view-scheduled" class="view" aria-labelledby="page-title" hidden></section>
             <section id="view-settings" class="view" aria-labelledby="page-title" hidden></section>
@@ -83,6 +85,7 @@
     <nav class="tabbar" aria-label="ページ（モバイル）">
       <a href="#home" data-view-link="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg></span>ホーム</a>
       <a href="#schedule" data-view-link="schedule"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14.5" rx="2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg></span>予定</a>
+      <a href="#week" data-view-link="week"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4M7 13h2M11 13h2M15 13h2M7 16.5h2M11 16.5h2"/></svg></span>週間</a>
       <a href="#news" data-view-link="news"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg></span>News</a>
       <a href="#scheduled" data-view-link="scheduled"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg></span>予約</a>
       <a href="#settings" data-view-link="settings"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h9M18 7h1M5 17h3M12 17h7"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>設定</a>
@@ -92,6 +95,13 @@
       <form id="drawer-form" class="drawer-form" novalidate>
         <header class="drawer-header"><h2 id="drawer-title">編集</h2><button id="close-drawer" class="button secondary" type="button">完了</button></header>
         <div id="drawer-body" class="drawer-body"></div>
+      </form>
+    </dialog>
+
+    <dialog id="week-dialog" class="drawer" aria-labelledby="week-dialog-title">
+      <form id="week-dialog-form" class="drawer-form" novalidate>
+        <header class="drawer-header"><h2 id="week-dialog-title">予定</h2><button id="close-week-dialog" class="button secondary" type="button">完了</button></header>
+        <div id="week-dialog-body" class="drawer-body"></div>
       </form>
     </dialog>
 
@@ -118,6 +128,8 @@
     <noscript><p class="state-card">管理画面での編集には JavaScript が必要です。公開サイトはそのまま閲覧できます。</p></noscript>
     <script src="../publish-core.js?v=20261006"></script>
     <script src="../news-core.js?v=20261003news"></script>
-    <script src="./admin.js?v=20261007"></script>
+    <script src="../week-core.js?v=20261009week"></script>
+    <script src="./week-admin.js?v=20261009week"></script>
+    <script src="./admin.js?v=20261009week"></script>
   </body>
 </html>
