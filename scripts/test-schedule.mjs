@@ -426,6 +426,7 @@ validateSchedule({ ...base, heroOverrides: { '2026-10-03': { ...hero, mainTitle:
   assert.equal(core.japanMinute(new Date('2026-10-09T09:05:00Z')), 18 * 60 + 5);
   assert.deepEqual(core.weekDays(weekData, '2026-10-09').map((day) => day.date), ['2026-10-09']);
   assert.deepEqual(core.weekDays(weekData, '2026-10-10'), []);
+  assert.deepEqual(core.weekDays({ days: [{ date: '2026-10-09' }, { date: '2026-10-08' }, { date: '2026-10-11' }] }, '2026-10-09').map((row) => row.date), ['2026-10-09', '2026-10-11']);
   // Cards never change the events.json shape that the week fills in.
   assert.equal(weekDaySchedule(weekData, '2026-10-09').cards, undefined);
 }

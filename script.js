@@ -403,7 +403,7 @@ function renderWeek(week) {
   if (range) range.textContent = days[0].date.slice(5).replace('-', '.') + ' – ' + days[days.length - 1].date.slice(5).replace('-', '.');
   list.replaceChildren(...days.map((day) => {
     const open = /^\d{2}:\d{2}$/.test(day.open || '');
-    const row = element('li', 'week-day' + (day.date === today ? ' is-today' : day.date < today ? ' is-past' : '') + (open ? '' : ' is-closed'));
+    const row = element('li', 'week-day' + (day.date === today ? ' is-today' : '') + (open ? '' : ' is-closed'));
     if (day.date === today) row.setAttribute('aria-current', 'date');
     const head = element('div', 'week-day-head');
     const date = element('p', 'week-date');

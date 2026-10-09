@@ -258,7 +258,6 @@
 .week-list { list-style: none; margin: 1.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .6rem; }
 .week-day { min-width: 0; padding: .95rem .85rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: #fffdf8; }
 .week-day.is-today { border-color: var(--blue); box-shadow: inset 0 4px 0 var(--blue); }
-.week-day.is-past { opacity: .5; }
 .week-day.is-closed { background: transparent; }
 .week-day-head { display: grid; gap: .35rem; }
 .week-date { display: flex; align-items: baseline; gap: .4rem; margin: 0; }
@@ -285,5 +284,4 @@
   .week-date em { margin-left: 0; }
   .week-date { flex-wrap: wrap; }
   .week-games { margin: 0; padding: 0; border-top: 0; }
-  .week-day.is-past { display: none; }
 }

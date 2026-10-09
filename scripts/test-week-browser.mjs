@@ -72,13 +72,22 @@ const heroText = (page) => page.evaluate(() => ({
 for (const width of [320, 390, 768, 1024, 1440]) {
   const { page, errors, context } = await open('/', { at: '2026-10-09T10:00:00+09:00', width });
   yes(await page.isVisible('#week'), `week card visible at ${width}px`);
-  equal(await page.$$eval('.week-day', (rows) => rows.length), 7, 'seven days listed');
+  equal(await page.$$eval('.week-date strong', (rows) => rows.map((row) => row.textContent)), ['9', '10', '11'], 'past days are gone; today and later stay');
   equal(await page.textContent('.week-day.is-today .week-date strong'), '9', 'today marked');
-  yes((await page.textContent('.week-day.is-closed')).includes('休業'), 'closed day says 休業');
   equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `no horizontal overflow at ${width}px`);
-  if (width <= 700) equal(await page.$$eval('.week-day.is-past', (rows) => rows.filter((row) => row.getClientRects().length).length), 0, 'past days hidden on phones');
   if (shots) { const el = await page.$('#week'); await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: path.join(shots, `week-public-${width}.png`) }); }
   equal(errors, [], 'no console errors');
+  await context.close();
+}
+{
+  // Early in the week a closed day is listed as 休業, and the range starts today.
+  const { page, context } = await open('/', { at: '2026-10-06T10:00:00+09:00' });
+  equal(await page.$$eval('.week-date strong', (rows) => rows.length), 6, 'from Tuesday on');
+  yes((await page.textContent('.week-day.is-closed')).includes('休業'), 'closed day says 休業');
+  equal(await page.textContent('.week-range'), '10.06 – 10.11', 'range starts today');
+  // Just after midnight the finished day goes away without reloading.
+  await page.clock.runFor(14 * 3600000);
+  equal(await page.$$eval('.week-date strong', (rows) => rows.length), 5, 'Tuesday drops at midnight');
   await context.close();
 }
 {

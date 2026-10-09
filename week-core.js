@@ -164,11 +164,11 @@
     return Number(parts.hour) * 60 + Number(parts.minute);
   }
 
-  // The rows of the week picture for the public 「今週のスケジュール」 card, or [] when the
-  // picture has no day from `today` on (an old week is never shown as this week).
+  // The rows of the week picture for the public 「今週のスケジュール」 card: today and the days
+  // after it. A day disappears once it is over, so an old week shows nothing.
   function weekDays(week, today) {
-    const list = rows(week).filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date)).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
-    return list.some((row) => row.date >= today) ? list : [];
+    return rows(week).filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date) && row.date >= today)
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
   }
 
   const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays });
