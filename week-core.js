@@ -194,7 +194,7 @@
           title: String(event.title || '').replace(/\s*[\u{1F550}-\u{1F567}]\s*$/u, ''),
           entry: fact(event.facts, /^(?:ENTRY|エントリー|参加費|参加料金)$/i) || same.entry || '',
           reentry: fact(event.facts, /^(?:RE-?ENTRY|リエントリー|再エントリー)$/i) || same.reentry || '',
-          lastEntry: fact(event.facts, /^(?:最終受付|late\s*reg(?:istration)?)$/i),
+          lastEntry: fact(event.facts, /^(?:最終受付|late\s*reg(?:istration)?)$/i) || same.lastEntry || '',
         };
       }) : [],
     };
@@ -203,7 +203,15 @@
     return { ...week, days };
   }
 
-  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays, withDailyPost });
+  // A FREE ROLL's usual last entry when nothing says otherwise: 土日祝 (13:00 OPEN) 14:30,
+  // weekdays 18:40. Also in activity.js.
+  function freeRollLastEntry(event, open) {
+    if (!event || !isTime(event.time) || eventType(String(event.title || '')) !== 'free') return '';
+    const usual = isTime(open) && open < '15:00' ? '14:30' : '18:40';
+    return usual > event.time ? usual : '';
+  }
+
+  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays, withDailyPost, freeRollLastEntry });
   root.ChonmageWeek = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(globalThis);

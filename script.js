@@ -428,7 +428,8 @@ function renderWeek(week) {
     (open && Array.isArray(day.events) ? day.events : []).forEach((event) => {
       const item = element('li', 'week-game');
       const head = [element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || ''))];
-      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry], ['最終受付', event.lastEntry]].filter(([, value]) => value);
+      const lastEntry = event.lastEntry || (core.freeRollLastEntry ? core.freeRollLastEntry(event, day.open) : '');
+      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry], ['最終受付', lastEntry]].filter(([, value]) => value);
       if (!prices.length) { item.append(...head); games.append(item); return; }
       const details = element('details', 'week-game-details');
       const summary = element('summary');

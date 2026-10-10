@@ -74,7 +74,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   yes(await page.isVisible('#week'), `week card visible at ${width}px`);
   equal(await page.$$eval('.week-date strong', (rows) => rows.map((row) => row.textContent)), ['9', '10', '11'], 'past days are gone; today and later stay');
   equal(await page.textContent('.week-day.is-today .week-date strong'), '9', 'today marked');
-  equal(await page.$$eval('.week-day.is-today .week-game-entry', (rows) => rows.map((row) => [...row.children].map((item) => item.querySelector('dt').textContent + ' ' + item.querySelector('dd').textContent))), [['ENTRY 無料', 'RENTRY ¥500'], ['ENTRY ¥2,500', 'RENTRY ¥2,500']], 'ENTRY and RENTRY both read');
+  equal(await page.$$eval('.week-day.is-today .week-game-entry', (rows) => rows.map((row) => [...row.children].map((item) => item.querySelector('dt').textContent + ' ' + item.querySelector('dd').textContent))), [['ENTRY 無料', 'RENTRY ¥500', '最終受付 18:40'], ['ENTRY ¥2,500', 'RENTRY ¥2,500']], 'ENTRY, RENTRY and the usual FREE ROLL last entry');
   // Prices stay folded until the game is tapped.
   const firstGame = '.week-day.is-today .week-game-details';
   yes(!(await page.isVisible(firstGame + ' .week-game-entry')), 'prices folded by default');
