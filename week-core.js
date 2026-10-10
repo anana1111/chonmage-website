@@ -206,7 +206,7 @@
   // 最終受付の時間库 (data/last-entry.json): the usual last entry of a game when its post gives
   // none. A rule gives fixed times (weekday / holiday, 土日祝 = a 13:00 OPEN day) or `after`,
   // minutes after the start. The job adds `after` rules from posts that do say LATE REG.
-  const DEFAULT_LAST_ENTRY = { version: 1, rules: [{ title: 'フリーロール', weekday: '18:40', holiday: '14:30' }] };
+  const DEFAULT_LAST_ENTRY = { version: 1, rules: [{ title: 'フリーロール', weekday: '18:40', holiday: '14:30', weekdayEnd: '19:00', holidayEnd: '15:00' }] };
   const titleKey = (value) => String(value || '').normalize('NFKC').replace(/\p{Extended_Pictographic}|\uFE0F/gu, '').replace(/\s+/g, '').toLowerCase();
   function lastEntryRule(library, title) {
     const list = [...(Array.isArray(library?.rules) ? library.rules : []), ...DEFAULT_LAST_ENTRY.rules];
@@ -215,13 +215,22 @@
     return list.find((rule) => rule && key && titleKey(rule.title) === key) ||
       (free ? list.find((rule) => rule && eventType(String(rule.title || '')) === 'free') : null) || null;
   }
+  const hhmm = (minute) => String(Math.floor((minute % 1440) / 60)).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0');
+  // The usual end of a game (`duration` minutes, or weekdayEnd / holidayEnd), or ''.
+  function usualEnd(event, open, library) {
+    if (!event || !isTime(event.time)) return '';
+    const rule = lastEntryRule(library, event.title);
+    if (!rule) return '';
+    if (Number.isInteger(rule.duration) && rule.duration > 0 && rule.duration <= 720) return hhmm(clock(event.time) + rule.duration);
+    const fixed = isTime(open) && open < '15:00' ? rule.holidayEnd : rule.weekdayEnd;
+    return isTime(fixed) && fixed > event.time ? fixed : '';
+  }
   function usualLastEntry(event, open, library) {
     if (!event || !isTime(event.time)) return '';
     const rule = lastEntryRule(library, event.title);
     if (!rule) return '';
     if (Number.isInteger(rule.after) && rule.after > 0 && rule.after <= 720) {
-      const minute = (clock(event.time) + rule.after) % 1440;
-      return String(Math.floor(minute / 60)).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0');
+      return hhmm(clock(event.time) + rule.after);
     }
     const fixed = isTime(open) && open < '15:00' ? rule.holiday : rule.weekday;
     return isTime(fixed) && fixed > event.time ? fixed : '';
@@ -232,16 +241,21 @@
     if (!schedule || !Array.isArray(schedule.events)) return schedule;
     let changed = false;
     const events = schedule.events.map((event) => {
-      if (!event || (Array.isArray(event.facts) && event.facts.some((row) => row && LAST_ENTRY_LABEL.test(String(row.label || '').trim())))) return event;
-      const value = usualLastEntry(event, schedule.open, library);
-      if (!value) return event;
-      changed = true;
-      return { ...event, facts: [...(Array.isArray(event.facts) ? event.facts : []), { label: '最終受付', value }] };
+      if (!event) return event;
+      let next = event;
+      const hasLate = Array.isArray(event.facts) && event.facts.some((row) => row && LAST_ENTRY_LABEL.test(String(row.label || '').trim()));
+      const late = hasLate ? '' : usualLastEntry(event, schedule.open, library);
+      if (late) next = { ...next, facts: [...(Array.isArray(event.facts) ? event.facts : []), { label: '最終受付', value: late }] };
+      // Without an end the card would say the game runs for hours after it is over.
+      const end = isTime(event.end) ? '' : usualEnd(event, schedule.open, library);
+      if (end) next = { ...next, end };
+      if (next !== event) changed = true;
+      return next;
     });
     return changed ? { ...schedule, events } : schedule;
   }
 
-  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays, withDailyPost, titleKey, usualLastEntry, withLastEntries });
+  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays, withDailyPost, titleKey, usualLastEntry, usualEnd, withLastEntries });
   root.ChonmageWeek = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(globalThis);

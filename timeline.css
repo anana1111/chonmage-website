@@ -312,3 +312,8 @@
 .okibake a { display: inline-flex; align-items: center; gap: .4em; padding: .35rem .8rem; border-radius: 999px; background: var(--blue); color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; text-decoration: none; letter-spacing: .02em; }
 .okibake a::before { content: "☎"; font-size: .95em; }
 @media (hover: hover) and (pointer: fine) { .okibake a:hover { opacity: .88; } }
+.okibake-copy { padding: .35rem .8rem; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: .8rem; font-weight: 800; cursor: pointer; }
+@media (hover: hover) and (pointer: fine) { .okibake-copy:hover { background: rgba(39, 56, 112, .06); } }
+.okibake-copy:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.okibake-copied { font-size: .78rem; color: var(--blue); }
+.okibake-copied:empty { display: none; }

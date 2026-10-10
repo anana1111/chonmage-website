@@ -55,7 +55,7 @@ equal(a.adaptSchedule(fixture({ events: [{ time: '13:30', title: '不正なリ�
 {
   const core = (await import('../week-core.js')).default || globalThis.ChonmageWeek;
   const { learnLastEntries } = await import('./learn-last-entry.mjs');
-  const library = { version: 1, rules: [{ title: 'THE DAILY', after: 130 }] };
+  const library = { version: 1, rules: [{ title: 'THE DAILY', after: 130, duration: 240 }] };
   equal(core.usualLastEntry({ time: '13:30', title: 'フリーロール 🕜' }, '13:00', null), '14:30');
   equal(core.usualLastEntry({ time: '18:00', title: 'フリーロール' }, '17:00', null), '18:40');
   equal(core.usualLastEntry({ time: '19:10', title: 'ふるまちdeトナメ' }, '17:00', library), '');
@@ -63,6 +63,10 @@ equal(a.adaptSchedule(fixture({ events: [{ time: '13:30', title: '不正なリ�
   equal(core.usualLastEntry({ time: '23:00', title: 'THE DAILY' }, '17:00', library), '01:10');
   const enriched = core.withLastEntries(fixture({ events: [{ id: 'fr', time: '13:30', title: 'フリーロール', type: 'free' }, { id: 'd', time: '18:00', title: 'THE DAILY', facts: [{ label: 'LATE REG', value: '20:30' }] }] }), library);
   equal(enriched.events[0].facts, [{ label: '最終受付', value: '14:30' }]);
+  equal(enriched.events[0].end, '15:00');
+  equal(enriched.events[1].end, '22:00');
+  equal(core.usualEnd({ time: '18:00', title: '平日フリーロール' }, '17:00', null), '19:00');
+  equal(a.getEventStatus(a.adaptSchedule(enriched).events[0], 15 * 60).status, 'finished');
   equal(enriched.events[1].facts, [{ label: 'LATE REG', value: '20:30' }]);
   equal(a.adaptSchedule(enriched).events[0].registrationEnd, 14 * 60 + 30);
   // Learning keeps fixed rules and records `after` for tournaments with LATE REG.

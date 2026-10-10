@@ -27,7 +27,7 @@ export function learnLastEntries(library, schedule) {
     const index = rules.findIndex((row) => titleKey(row.title) === key);
     if (index < 0) { rules.push(rule); changed = true; continue; }
     if (rules[index].fixed || rules[index].after === after) continue;
-    rules[index] = rule;
+    rules[index] = { ...rules[index], ...rule };
     changed = true;
   }
   return changed ? { version: 1, ...library, rules } : library;

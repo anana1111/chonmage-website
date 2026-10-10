@@ -1,7 +1,12 @@
 {
   "version": 1,
   "rules": [
-    { "title": "フリーロール", "weekday": "18:40", "holiday": "14:30", "fixed": true, "source": "店舗" },
-    { "title": "THE DAILY", "after": 130, "source": "https://x.com/ChonmageNiigata/status/2107121977567989839", "learnedAt": "2026-10-05" }
+    { "title": "フリーロール", "weekday": "18:40", "holiday": "14:30", "weekdayEnd": "19:00", "holidayEnd": "15:00", "fixed": true, "source": "店舗" },
+    { "title": "THE DAILY", "after": 130, "duration": 240, "fixed": true, "source": "店舗" },
+    { "title": "ふるまちdeトナメ", "after": 100, "duration": 200, "fixed": true, "source": "店舗" },
+    { "title": "ふるまちdeトナメ(deep)", "after": 120, "duration": 240, "fixed": true, "source": "店舗" },
+    { "title": "ふるまちターボ", "after": 70, "duration": 150, "fixed": true, "source": "店舗" },
+    { "title": "クレイジーパイナップル", "after": 100, "duration": 200, "fixed": true, "source": "店舗" },
+    { "title": "HEADS-UP CHALLENGE THE FINAL4", "after": 67, "duration": 270, "fixed": true, "source": "店舗" }
   ]
 }

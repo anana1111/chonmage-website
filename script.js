@@ -499,6 +499,26 @@ async function loadNews() {
   }
 }
 
+// 置きバケ: copy the shop's number (tapping the number itself calls).
+document.querySelectorAll('.okibake-copy').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const status = button.parentElement.querySelector('.okibake-copied');
+    const number = button.dataset.copy || '';
+    let ok = false;
+    try { await navigator.clipboard.writeText(number); ok = true; } catch {
+      // Older browsers: copy through a hidden text field.
+      const field = document.createElement('textarea');
+      field.value = number; field.setAttribute('readonly', ''); field.style.position = 'fixed'; field.style.opacity = '0';
+      document.body.append(field); field.select();
+      try { ok = document.execCommand('copy'); } catch {}
+      field.remove();
+    }
+    if (status) status.textContent = ok ? 'コピーしました' : '長押しでコピーしてください';
+    clearTimeout(button._copiedTimer);
+    button._copiedTimer = setTimeout(() => { if (status) status.textContent = ''; }, 2500);
+  });
+});
+
 // Drafts are accepted only by the opt-in preview document from its same-origin parent.
 const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === '1';
 if (isPreviewMode) {
