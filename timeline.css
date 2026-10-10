@@ -306,3 +306,9 @@
   .week-date { flex-wrap: wrap; }
   .week-games { margin: 0; padding: 0; border-top: 0; }
 }
+
+/* 置きバケ: one line under all game cards. */
+.okibake { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .9rem; margin: 1.6rem 0 0; padding: .9rem 1.1rem; border: 1px solid var(--line); border-radius: 14px; background: #fffdf8; font-size: .9rem; font-weight: 700; line-height: 1.5; }
+.okibake a { display: inline-flex; align-items: center; gap: .4em; padding: .35rem .8rem; border-radius: 999px; background: var(--blue); color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; text-decoration: none; letter-spacing: .02em; }
+.okibake a::before { content: "☎"; font-size: .95em; }
+@media (hover: hover) and (pointer: fine) { .okibake a:hover { opacity: .88; } }

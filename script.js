@@ -325,13 +325,19 @@ async function fetchData(path) {
 
 let liveEvents = null;
 let liveWeek = null;
+let liveLastEntries = null;
 let liveSignature = '';
 
 // 予約公開: scheduled events and home cards stay hidden until their publishAt (JST).
 const visibleNow = (data) => window.ChonmagePublish ? window.ChonmagePublish.visibleSchedule(data) : data;
 // After midnight, before GitHub Actions has written the new day, today's row of the week
 // picture stands in so the page never waits for a job. A 25時CLOSE day stays until it closes.
+// 最終受付 from the time library (data/last-entry.json) where today's post gives none.
 function effectiveSchedule(source) {
+  const data = scheduleFromSources(source);
+  return window.ChonmageWeek?.withLastEntries ? window.ChonmageWeek.withLastEntries(data, liveLastEntries) : data;
+}
+function scheduleFromSources(source) {
   let data = visibleNow(source);
   const week = window.ChonmageWeek;
   if (!week || !liveWeek) return data;
@@ -368,11 +374,13 @@ async function loadEvents() {
   // Prevent old static times appearing as today's schedule while loading or on failure.
   applyStaleState(true);
   try {
-    const [events, week] = await Promise.all([
+    const [events, week, lastEntries] = await Promise.all([
       fetchData('./data/events.json'),
       fetchData('./data/week.json').catch(() => null),
+      fetchData('./data/last-entry.json').catch(() => null),
     ]);
     liveWeek = week;
+    liveLastEntries = lastEntries;
     liveEvents = validateEvents(events);
     renderWeek(week);
     showEvents(liveEvents);
@@ -395,7 +403,7 @@ function renderWeek(week) {
   // Today's own X post (events.json) wins over the week picture's row for today.
   if (week && liveEvents && core.withDailyPost) week = core.withDailyPost(week, liveEvents);
   const days = week ? core.weekDays(week, today) : [];
-  const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null);
+  const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null) + JSON.stringify(liveLastEntries);
   if (signature === weekSignature) return;
   weekSignature = signature;
   section.hidden = !days.length;
@@ -428,7 +436,7 @@ function renderWeek(week) {
     (open && Array.isArray(day.events) ? day.events : []).forEach((event) => {
       const item = element('li', 'week-game');
       const head = [element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || ''))];
-      const lastEntry = event.lastEntry || (core.freeRollLastEntry ? core.freeRollLastEntry(event, day.open) : '');
+      const lastEntry = event.lastEntry || (core.usualLastEntry ? core.usualLastEntry(event, day.open, liveLastEntries) : '');
       const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry], ['最終受付', lastEntry]].filter(([, value]) => value);
       if (!prices.length) { item.append(...head); games.append(item); return; }
       const details = element('details', 'week-game-details');
@@ -469,9 +477,10 @@ async function reloadEvents() {
   if (!liveEvents || Date.now() - lastDataLoad < 60000) return;
   lastDataLoad = Date.now();
   try {
-    const [events, week] = await Promise.all([fetchData('./data/events.json'), fetchData('./data/week.json').catch(() => liveWeek)]);
+    const [events, week, lastEntries] = await Promise.all([fetchData('./data/events.json'), fetchData('./data/week.json').catch(() => liveWeek), fetchData('./data/last-entry.json').catch(() => liveLastEntries)]);
     liveEvents = validateEvents(events);
     liveWeek = week;
+    liveLastEntries = lastEntries;
     refreshEvents();
   } catch (error) { console.warn('開催情報を再読み込みできません。', error); }
 }

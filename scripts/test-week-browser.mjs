@@ -84,6 +84,8 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   const lefts = await page.$$eval('.week-day', (rows) => rows.map((row) => Math.round(row.getBoundingClientRect().left)));
   equal(new Set(lefts).size, width <= 700 ? 1 : 3, `3 days share the row at ${width}px`);
   equal(await page.$$eval('.week-notes li', (rows) => rows.map((row) => row.textContent)), ['施設利用料（500円）とワンドリンクオーダー制となっております。', '日程や内容については変更する場合があります。'], 'notes under the table');
+  equal(await page.getAttribute('.okibake a', 'href'), 'tel:08014700011', '置きバケ line calls the shop');
+  yes(await page.isVisible('.okibake'), `置きバケ line visible at ${width}px`);
   equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `no horizontal overflow at ${width}px`);
   if (shots) { const el = await page.$('#week'); await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: path.join(shots, `week-public-${width}.png`) }); }
   equal(errors, [], 'no console errors');

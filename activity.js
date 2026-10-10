@@ -5,8 +5,6 @@
   const OFFICIAL_X = 'https://x.com/ChonmageNiigata';
   const LATE_FACT = /^(最終受付|late\s*reg(?:istration)?)$/i;
   const text = (value) => typeof value === 'string' ? value : '';
-  const FREE_ROLL_LAST_ENTRY = { weekday: 18 * 60 + 40, holiday: 14 * 60 + 30 };
-  const isFreeRoll = (event) => event.type === 'free' || /free\s*roll|フリー ?ロール/i.test(text(event.title));
   function timeToMinutes(value) {
     if (typeof value !== 'string' || !/^(?:[0-3]?\d|4[0-7]):[0-5]\d$/.test(value)) return null;
     const [hour, minute] = value.split(':').map(Number);
@@ -39,11 +37,6 @@
       const registrationText = text(event.registrationEnd) || text(facts.find((fact) => LATE_FACT.test(fact.label.trim()))?.value);
       const parsed = registrationText.match(/^\s*((?:[0-3]?\d|4[0-7])[:：][0-5]\d)(?:\s*(?:まで|締切|締め切り|終了))?\s*$/)?.[1]?.replace('：', ':');
       let registrationEnd = afterStart(parsed, start, open);
-      // A FREE ROLL post rarely gives its last entry: 土日祝 (13:00 OPEN) 14:30, weekdays 18:40.
-      if (registrationEnd === null && isFreeRoll(event)) {
-        const usual = open !== null && open < 15 * 60 ? FREE_ROLL_LAST_ENTRY.holiday : FREE_ROLL_LAST_ENTRY.weekday;
-        if (usual > start) registrationEnd = usual;
-      }
       if (registrationEnd !== null && (registrationEnd - start > 12 * 60 || close !== null && registrationEnd > close)) registrationEnd = null;
       const explicitEnd = afterStart(event.end, start, open);
       const end = explicitEnd !== null ? explicitEnd : (registrationEnd ?? start) + RUNNING;

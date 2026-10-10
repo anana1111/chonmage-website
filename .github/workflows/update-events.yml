@@ -12,6 +12,7 @@ on:
       - 'data/events.manual.json'
       - 'data/week.json'
       - 'data/week-upload/**'
+      - 'data/last-entry.json'
       - '.github/workflows/update-events.yml'
   schedule:
     # Cron is UTC (JST = UTC+9). Minutes are offset from :00 to avoid the busiest slot.
@@ -102,6 +103,10 @@ jobs:
       - name: Merge manual overrides over automatic data
         run: node scripts/merge-events.mjs
 
+      # 最終受付の時間库: a game whose post gives LATE REG is remembered for later days.
+      - name: Learn last-entry times from today's post
+        run: node scripts/learn-last-entry.mjs data/events.json || echo "::warning::last-entry times were not learned."
+
       - name: Validate final public schedule
         run: node scripts/validate-events.mjs data/events.json data/news.json
 
@@ -129,12 +134,13 @@ jobs:
             cp "$AUTO_TMP" data/events.auto.json
             if [ -f "$RUNNER_TEMP/week-changed" ]; then cp "$WEEK_TMP" data/week.json; fi
             node scripts/merge-events.mjs
+            node scripts/learn-last-entry.mjs data/events.json || echo "::warning::last-entry times were not learned."
             node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
             # A photo problem must never block the schedule update, so it only warns.
             node scripts/news-images.mjs data/news.json || echo "::warning::NEWS photos were not copied; the X links stay."
             node scripts/validate-events.mjs data/events.json data/news.json
             node scripts/generate-news-pages.mjs
-            git add data/events.auto.json data/events.json data/news.json data/week.json
+            git add data/events.auto.json data/events.json data/news.json data/week.json data/last-entry.json
             git add -A data/news-pages.generated.json news sitemap.xml
             if [ -d images/news ]; then git add images/news; fi
             if git diff --cached --quiet; then
