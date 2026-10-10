@@ -74,7 +74,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   yes(await page.isVisible('#week'), `week card visible at ${width}px`);
   equal(await page.$$eval('.week-date strong', (rows) => rows.map((row) => row.textContent)), ['9', '10', '11'], 'past days are gone; today and later stay');
   equal(await page.textContent('.week-day.is-today .week-date strong'), '9', 'today marked');
-  equal(await page.$$eval('.week-day.is-today .week-game-entry', (rows) => rows.map((row) => [...row.children].map((item) => item.querySelector('dt').textContent + ' ' + item.querySelector('dd').textContent))), [['ENTRY 無料', 'RENTRY ¥500', '最終受付 18:40'], ['ENTRY ¥2,500', 'RENTRY ¥2,500']], 'ENTRY, RENTRY and the usual FREE ROLL last entry');
+  equal(await page.$$eval('.week-day.is-today .week-game-entry', (rows) => rows.map((row) => [...row.children].map((item) => item.querySelector('dt').textContent + ' ' + item.querySelector('dd').textContent))), [['ENTRY 無料', 'RENTRY ¥500', '最終受付 18:40'], ['ENTRY ¥2,500', 'RENTRY ¥2,500', '最終受付 20:50']], 'ENTRY, RENTRY and the usual last entry from the time library');
   // Prices stay folded until the game is tapped.
   const firstGame = '.week-day.is-today .week-game-details';
   yes(!(await page.isVisible(firstGame + ' .week-game-entry')), 'prices folded by default');
@@ -84,6 +84,14 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   const lefts = await page.$$eval('.week-day', (rows) => rows.map((row) => Math.round(row.getBoundingClientRect().left)));
   equal(new Set(lefts).size, width <= 700 ? 1 : 3, `3 days share the row at ${width}px`);
   equal(await page.$$eval('.week-notes li', (rows) => rows.map((row) => row.textContent)), ['施設利用料（500円）とワンドリンクオーダー制となっております。', '日程や内容については変更する場合があります。'], 'notes under the table');
+  equal(await page.getAttribute('.okibake a', 'href'), 'tel:08014700011', '置きバケ line calls the shop');
+  yes(await page.isVisible('.okibake'), `置きバケ line visible at ${width}px`);
+  if (width === 390) {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
+    await page.click('.okibake-copy');
+    equal(await page.evaluate(() => navigator.clipboard.readText()), '080-1470-0011', 'copy button copies the number');
+    equal(await page.textContent('.okibake-copied'), 'コピーしました', 'copy is confirmed');
+  }
   equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, `no horizontal overflow at ${width}px`);
   if (shots) { const el = await page.$('#week'); await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: path.join(shots, `week-public-${width}.png`) }); }
   equal(errors, [], 'no console errors');
@@ -190,6 +198,9 @@ for (const width of [390, 1440]) {
   if (shots && width === 1440) await page.screenshot({ path: path.join(shots, 'admin-week-dialog.png') });
   await page.click('#close-week-dialog');
   await page.clock.runFor(300);
+  // The dialog's close event redraws the panel; type into the new notes field, not the old one.
+  await page.waitForFunction(() => !document.getElementById('week-dialog').open);
+  await page.waitForTimeout(100);
   await page.fill('#week-notes', '施設利用料（500円）とワンドリンクオーダー制となっております。\n\n※変更する場合があります。');
   const [download] = await Promise.all([page.waitForEvent('download'), page.click('#week-export')]);
   const exported = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
