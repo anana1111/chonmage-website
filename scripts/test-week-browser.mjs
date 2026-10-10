@@ -46,7 +46,7 @@ let checks = 0;
 const yes = (value, label) => { assert.ok(value, label); checks++; };
 const equal = (actual, expected, label) => { assert.deepEqual(actual, expected, label); checks++; };
 
-async function open(url, { at, width = 390, height = 900, weekData = week } = {}) {
+async function open(url, { at, width = 390, height = 900, weekData = week, eventsData = events } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, timezoneId: 'Asia/Tokyo', acceptDownloads: true });
   await context.addInitScript(() => { try { localStorage.setItem('chonmage-admin-unlock', '9e06018654272ea14463bc3c1652fd88ac344865948d75336ccf7b8f21c04360'); sessionStorage.setItem('chonmage-preloader-seen', '1'); } catch {} });
   const page = await context.newPage(); const errors = [];
@@ -54,7 +54,7 @@ async function open(url, { at, width = 390, height = 900, weekData = week } = {}
   page.on('pageerror', (error) => errors.push(String(error)));
   page.on('console', (message) => { if (message.type() === 'error' && !/Failed to load resource/.test(message.text())) errors.push(message.text()); });
   await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (route) => route.fulfill({ status: 200, contentType: route.request().resourceType() === 'stylesheet' ? 'text/css' : 'text/plain', body: '' }));
-  await page.route(/\/data\/events(?:\.auto)?\.json/, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(events) }));
+  await page.route(/\/data\/events(?:\.auto)?\.json/, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(typeof eventsData === 'function' ? eventsData() : eventsData) }));
   await page.route(/\/data\/events\.manual\.json/, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ version: 1, date: events.date }) }));
   await page.route(/\/data\/week\.json/, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(weekData) }));
   await page.goto(origin + url, { waitUntil: 'load' });
@@ -100,6 +100,23 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   // Just after midnight the finished day goes away without reloading.
   await page.clock.runFor(14 * 3600000);
   equal(await page.$$eval('.week-date strong', (rows) => rows.length), 5, 'Tuesday drops at midnight');
+  await context.close();
+}
+{
+  // The shop changed today's games on X: the week card's today row follows the daily post,
+  // and an open page picks up a later change without reloading.
+  let daily = { ...events, schedulePostUrl: 'https://x.com/ChonmageNiigata/status/9', source: { type: 'x', url: 'https://x.com/ChonmageNiigata/status/9', mode: 'auto' },
+    events: [{ ...events.events[0], title: 'フリーロール 🕕', facts: [{ label: 'ENTRY', value: '¥0' }, { label: '最終受付', value: '18:30' }] },
+      { ...events.events[1], time: '19:00', title: 'ふるまちトーナメント', facts: [{ label: 'ENTRY', value: '¥2,500' }] }] };
+  const { page, errors, context } = await open('/', { at: '2026-10-09T10:00:00+09:00', width: 1440, eventsData: () => daily });
+  const todayGames = () => page.$$eval('.week-day.is-today .week-game:not(.is-ring)', (rows) => rows.map((row) => row.querySelector('.week-game-time').textContent + ' ' + row.querySelector('.week-game-title').textContent));
+  equal(await todayGames(), ['18:00 フリーロール', '19:00 ふるまちトーナメント'], 'today row follows the X post');
+  await page.click('.week-day.is-today .week-game-details summary');
+  yes((await page.textContent('.week-day.is-today .week-game-entry')).includes('最終受付18:30'), 'last entry in the details');
+  equal(await page.$$eval('.week-day:not(.is-today) .week-date strong', (rows) => rows.map((row) => row.textContent)), ['10', '11'], 'other days stay from the week picture');
+  daily = { ...daily, events: [daily.events[0], { ...daily.events[1], time: '20:00' }] };
+  await page.clock.runFor(5 * 60000 + 2000);
+  equal(await todayGames(), ['18:00 フリーロール', '20:00 ふるまちトーナメント'], 'open page picks up a changed post');
   await context.close();
 }
 {

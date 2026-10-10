@@ -124,7 +124,10 @@
   function eventStatusText(event, selected) {
     if (event.status === 'upcoming') return selected ? '開催予定' : `開始まであと${formatRemaining(event.remaining)}`;
     if (['registering', 'last-call'].includes(event.status)) return `受付中 · あと${formatRemaining(event.remaining)}`;
-    return event.registrationEnd === null ? '開催中 · 受付はXで確認' : '開催中 · 受付終了';
+    // The end of a game is not known (a FREE ROLL can finish early), so a started game shows
+    // its start and last entry instead of 開催中.
+    const start = `${event.startTime} 開始`;
+    return event.registrationEnd === null ? `${start} · 最終受付はXで確認` : `${start} · 最終受付 ${minuteLabel(event.registrationEnd % DAY)}`;
   }
   function heroContent(state, schedule, selected) {
     const remaining = formatRemaining(state.remaining);

@@ -53,9 +53,9 @@ OPEN / RING / CLOSE は公開時に timeline card として生成するため、
 
 `.github/workflows/update-events.yml` の実行時刻（日本時間）：
 
-- 毎日 09:07 / 12:07 / 13:07 / 15:07
-- 平日 16:17〜19:47（30分ごと。17:00 OPEN 前後の当日投稿に合わせる）
-- 土日 11:17〜13:47（30分ごと。13:00 OPEN 前後）
+- 毎日 09:07
+- 毎日 11:17〜22:47（30分ごと。公式Xで当日の予定が変わっても、約30分で本日・今週のスケジュールに反映）
+- 毎日 00:05（週間スケジュールの日付切り替え）
 - `workflow_dispatch`、および main の `scripts/**` / `news-core.js` / `data/events.manual.json` / workflow の変更時
 
 処理順：

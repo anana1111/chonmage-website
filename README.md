@@ -56,7 +56,7 @@ python3 -m http.server 8000
 
 `.github/workflows/update-events.yml`：
 
-- 运行时间（日本时间）：每天 09:07 / 12:07 / 13:07 / 15:07；平日 16:17–19:47 每 30 分钟；周末 11:17–13:47 每 30 分钟。也可手动运行（workflow_dispatch）。
+- 运行时间（日本时间）：每天 09:07，以及 11:17–22:47 每 30 分钟（官方 X 改日程后约 30 分钟内反映到本日和每周日程）。也可手动运行（workflow_dispatch）。
 - `main` 上 `scripts/**`、`data/events.manual.json` 或 workflow 本身有变更时也会运行。
 - 步骤：测试 → 抓取公式 X → 合并 manual → 校验 → 只有数据真的变化时才 commit。
 - push 前会重新同步最新的 `main` 并重新合并，因此运行期间上传的 `events.manual.json` 不会被覆盖；push 被拒时最多重试 3 次。

@@ -89,7 +89,7 @@ try {
         yes(sizes.countdown > sizes.other, `${width} countdown is largest text ${JSON.stringify(sizes)}`);
       }
       if (state === 'after-close') equal(await page.locator('#secondary-cards article').count(), 0, 'No secondary after close');
-      if (time === '14:05') yes((await page.locator('[data-activity-event="free-roll"]').textContent()).includes('開催中 · 受付終了'), 'Registration ended card');
+      if (time === '14:05') yes((await page.locator('[data-activity-event="free-roll"]').textContent()).includes('13:30 開始 · 最終受付 14:00'), 'Started game shows start and last entry, not 開催中');
       if (shots && [390, 768, 1440].includes(width)) await page.locator('.event-list').screenshot({ path: path.join(shots, `activity-${width}-${time.replace(':', '')}.png`) });
       equal(errors, [], `${width} ${time} console`); await context.close();
     }
