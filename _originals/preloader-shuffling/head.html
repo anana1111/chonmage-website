@@ -1,0 +1,40 @@
+    <!-- Opening preloader: shown once per page load (short on return visits), skipped in the admin preview. -->
+    <style>
+      html.is-loading{overflow:hidden}
+      #preloader{--pl-red:#e60012;--pl-ink:#0d0d0d;--pl-paper:#f7f4ee;position:fixed;inset:0;z-index:1000;background:var(--pl-paper);display:grid;place-items:center}
+      html:not(.is-loading) #preloader{display:none}
+      #preloader .pl-stage{position:relative;aspect-ratio:1834/742;width:min(86vw,900px,calc(55vh * 2.47));width:min(86vw,900px,calc(55svh * 2.47))}
+      #preloader .pl-stage img,#preloader .pl-stage svg,#preloader .pl-bar{position:absolute;display:block}
+      #preloader .pl-stage svg{height:auto;color:var(--pl-ink);overflow:visible}
+      #preloader .pl-fig{position:absolute;left:0;top:0;width:37.9%;transform-origin:73.5% 79%;opacity:0;z-index:2}
+      #preloader .pl-shadow{position:absolute;left:21.5%;top:93.5%;width:12%;height:4.5%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.22),rgba(0,0,0,0));opacity:0;z-index:1}
+      #preloader .pl-shadow.rocking{animation:pl-sway 1.6s cubic-bezier(0.77,0,0.175,1) infinite}
+      @keyframes pl-sway{0%,100%{transform:scaleX(1)}35%{transform:scaleX(.9) translateX(-3%)}70%{transform:scaleX(1.04)}}
+      #preloader .pl-stage .pl-fig-inner{position:static;width:100%;height:auto;display:block}
+      #preloader .pl-t1{left:40.19%;top:31.27%;width:58.89%;clip-path:inset(100% 0 0 0)}
+      #preloader .pl-t2{left:39.8%;top:68.6%;width:59.2%;clip-path:inset(0 100% 0 0)}
+      #preloader .pl-bar{left:38.77%;top:61.6%;width:61.23%;height:2.83%;background:rgba(0,0,0,.08);overflow:hidden}
+      #preloader .pl-bar i{position:absolute;inset:0;background:var(--pl-ink);transform-origin:left;transform:scaleX(0);transition:transform .3s linear}
+      #preloader .pl-bar b{position:absolute;top:0;bottom:0;left:0;width:100%;transform:translateX(-100%);transition:transform .3s linear}
+      #preloader .pl-bar b::after{content:"";position:absolute;right:0;top:0;bottom:0;width:6%;background:var(--pl-red)}
+      #preloader .pl-fig.rocking .pl-fig-inner{animation:pl-rock 1.6s cubic-bezier(0.77,0,0.175,1) infinite;transform-origin:73.5% 79%}
+      @keyframes pl-rock{0%,100%{transform:rotate(0)}35%{transform:rotate(-4deg)}70%{transform:rotate(1.5deg)}}
+      #preloader .pl-meta{position:absolute;left:0;right:0;bottom:max(6vh,calc(env(safe-area-inset-bottom) + 16px));display:flex;justify-content:space-between;align-items:flex-end;padding:0 max(6vw,calc(env(safe-area-inset-right) + 16px)) 0 max(6vw,calc(env(safe-area-inset-left) + 16px));color:var(--pl-ink)}
+      #preloader .pl-label{font:700 12px/1 "Courier New",monospace;letter-spacing:.3em;opacity:.6;display:inline-block}
+      #preloader .pl-label.allin{color:var(--pl-red);opacity:1}
+      #preloader .pl-count{font:800 clamp(34px,min(7vw,11vh),88px)/1 Impact,"Arial Narrow",sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:.08em}
+      #preloader .pl-num{display:inline-block;min-width:2.2ch;text-align:right}
+      #preloader .pl-suit{display:inline-block;width:1em;text-align:center;color:var(--pl-ink);perspective:400px}
+      #preloader .pl-suit.red{color:var(--pl-red)}
+      .preloader-cards{position:fixed;inset:0;z-index:1001;display:flex;pointer-events:none}
+      .preloader-cards span{flex:1;background:#e60012;transform:translateY(101%);display:grid;place-items:center;color:rgba(247,244,238,.92);font-size:clamp(28px,5vw,64px);line-height:1}
+      .preloader-cards span:nth-child(even){color:#e60012;background:#0d0d0d}
+      @media (max-width:600px){#preloader .pl-meta{flex-direction:column;align-items:flex-start;gap:10px}#preloader .pl-stage{width:min(90vw,calc(55vh * 2.47));width:min(90vw,calc(55svh * 2.47))}}
+      @media (max-height:500px) and (orientation:landscape){#preloader .pl-meta{bottom:max(12px,env(safe-area-inset-bottom))}}
+      @media (prefers-reduced-motion:reduce){#preloader .pl-fig.rocking .pl-fig-inner,#preloader .pl-shadow.rocking{animation:none}#preloader .pl-bar i,#preloader .pl-bar b{transition:none}}
+    </style>
+    <noscript><style>#preloader,.preloader-cards{display:none!important}html.is-loading{overflow:auto!important}</style></noscript>
+    <script>
+      // Admin preview (?preview=1), time checks (?now=) and automated test browsers skip the preloader.
+      (function () { if (!/[?&](preview|now)=/.test(location.search) && !navigator.webdriver) document.documentElement.classList.add('is-loading'); })();
+    </script>

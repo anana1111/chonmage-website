@@ -27,6 +27,7 @@ python3 -m http.server 8000
 | `timeline.js` | TODAY 时间轴、NOW / NEXT / 本日終了 判定、Hero 的日期与营业状态 |
 | `script.js` | 菜单、滚动动效、读取并校验 `data/*.json`、日期过期判断、预览模式 |
 | `news/` / `news-core.js` / `news-view.js` / `news.css` | 站内 NEWS 列表和详情、统一 30 天规则、共享渲染与样式 |
+| `king-preloader.js` / `images/king/<key>/` | 开场 KING 卡片预加载：每次随机出一位王者（名单在 `index.html` 的 `KING_CARDS`），每位一个文件夹放 `card.webp`、`mask.webp`、`protect.png`。旧的 NOW SHUFFLING 预加载存在 `_originals/preloader-shuffling/`，里面写了换回来的步骤 |
 | `publish-core.js` | 予约公开（`publishAt`）的统一判定：公开页、管理画面和 Node 共用 |
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
