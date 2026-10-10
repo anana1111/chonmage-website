@@ -118,8 +118,9 @@ await scenario('before open', { time: jst('16:00'), events: fixture() }, (s) => 
 });
 await scenario('event without end just started stays NOW', { time: jst('18:05'), events: fixture() }, (s) => {
   assert.equal(s.status, '営業中');
-  assert.deepEqual(s.states, ['free-1800:running', 'event-1910:upcoming']);
-  assert.equal(s.activity, 'open-ring');
+  // A weekday FREE ROLL takes entries until 18:40 unless the post says otherwise.
+  assert.deepEqual(s.states, ['free-1800:registering', 'event-1910:upcoming']);
+  assert.equal(s.activity, 'tournament-open');
   assert.equal(s.next, 'NEXT · MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.main, null, 'MAIN is not repeated');
 });

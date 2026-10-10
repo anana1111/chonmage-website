@@ -15,12 +15,11 @@ on:
       - '.github/workflows/update-events.yml'
   schedule:
     # Cron is UTC (JST = UTC+9). Minutes are offset from :00 to avoid the busiest slot.
-    # Every day: JST 09:07 / 12:07 / 13:07 / 15:07
-    - cron: '7 0,3,4,6 * * *'
-    # Weekdays: daily posts appear around the 17:00 OPEN -> JST 16:17 – 19:47 every 30 min
-    - cron: '17,47 7-10 * * 1-5'
-    # Weekends: 13:00 OPEN -> JST 11:17 – 13:47 every 30 min
-    - cron: '17,47 2-4 * * 0,6'
+    # Every morning: JST 09:07
+    - cron: '7 0 * * *'
+    # Every day while the shop may post changes: JST 11:17 – 22:47 every 30 min, so a changed
+    # schedule on X reaches 本日のスケジュール and 今週のスケジュール within about 30 minutes.
+    - cron: '17,47 2-13 * * *'
     # Just after midnight JST (00:05): today's row of the week picture becomes the new day.
     # The page already switches by itself at midnight; this keeps events.json in step.
     - cron: '5 15 * * *'

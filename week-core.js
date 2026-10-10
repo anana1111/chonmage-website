@@ -171,7 +171,47 @@
       .sort((a, b) => (a.date < b.date ? -1 : 1));
   }
 
-  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays });
+  // The week picture with one day replaced by that day's own post (events.json), so a change
+  // the shop posts on X shows in 「今週のスケジュール」 too. The week's own row stays when the
+  // daily data was made from the week picture itself.
+  const fact = (facts, pattern) => (Array.isArray(facts) ? facts : []).find((row) => row && pattern.test(String(row.label || '').trim()))?.value || '';
+  function withDailyPost(week, daily) {
+    if (!week || !daily || typeof daily.date !== 'string' || !daily.source || daily.source.url === week.sourceUrl) return week;
+    const index = rows(week).findIndex((row) => row.date === daily.date);
+    if (index < 0) return week;
+    const old = rows(week)[index];
+    const open = daily.status !== 'closed' && isTime(daily.open);
+    const day = {
+      ...old,
+      open: open ? daily.open : null,
+      close: open && isTime(daily.close) ? daily.close : null,
+      ringGame: open && Boolean(daily.ringGame && daily.ringGame.enabled),
+      events: open ? (Array.isArray(daily.events) ? daily.events : []).filter((event) => event && !event.hidden && isTime(event.time)).map((event) => {
+        // A price the post leaves out stays from the week picture's game at the same time.
+        const same = (Array.isArray(old.events) ? old.events : []).find((row) => row && row.time === event.time) || {};
+        return {
+          time: event.time,
+          title: String(event.title || '').replace(/\s*[\u{1F550}-\u{1F567}]\s*$/u, ''),
+          entry: fact(event.facts, /^(?:ENTRY|エントリー|参加費|参加料金)$/i) || same.entry || '',
+          reentry: fact(event.facts, /^(?:RE-?ENTRY|リエントリー|再エントリー)$/i) || same.reentry || '',
+          lastEntry: fact(event.facts, /^(?:最終受付|late\s*reg(?:istration)?)$/i) || same.lastEntry || '',
+        };
+      }) : [],
+    };
+    const days = rows(week).slice();
+    days[index] = day;
+    return { ...week, days };
+  }
+
+  // A FREE ROLL's usual last entry when nothing says otherwise: 土日祝 (13:00 OPEN) 14:30,
+  // weekdays 18:40. Also in activity.js.
+  function freeRollLastEntry(event, open) {
+    if (!event || !isTime(event.time) || eventType(String(event.title || '')) !== 'free') return '';
+    const usual = isTime(open) && open < '15:00' ? '14:30' : '18:40';
+    return usual > event.time ? usual : '';
+  }
+
+  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays, withDailyPost, freeRollLastEntry });
   root.ChonmageWeek = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(globalThis);

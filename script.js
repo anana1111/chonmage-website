@@ -373,11 +373,13 @@ async function loadEvents() {
       fetchData('./data/week.json').catch(() => null),
     ]);
     liveWeek = week;
-    renderWeek(week);
     liveEvents = validateEvents(events);
+    renderWeek(week);
     showEvents(liveEvents);
   } catch (error) {
     liveEvents = null;
+    // The week card does not depend on a valid events.json.
+    if (liveWeek) renderWeek(liveWeek);
     applyStaleState(true);
     console.warn('開催情報を読み込めません。公式Xをご確認ください。', error);
   }
@@ -390,6 +392,8 @@ function renderWeek(week) {
   const core = window.ChonmageWeek;
   if (!section || !core) return;
   const today = getJapanDate();
+  // Today's own X post (events.json) wins over the week picture's row for today.
+  if (week && liveEvents && core.withDailyPost) week = core.withDailyPost(week, liveEvents);
   const days = week ? core.weekDays(week, today) : [];
   const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null);
   if (signature === weekSignature) return;
@@ -424,11 +428,12 @@ function renderWeek(week) {
     (open && Array.isArray(day.events) ? day.events : []).forEach((event) => {
       const item = element('li', 'week-game');
       const head = [element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || ''))];
-      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry]].filter(([, value]) => value);
+      const lastEntry = event.lastEntry || (core.freeRollLastEntry ? core.freeRollLastEntry(event, day.open) : '');
+      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry], ['最終受付', lastEntry]].filter(([, value]) => value);
       if (!prices.length) { item.append(...head); games.append(item); return; }
       const details = element('details', 'week-game-details');
       const summary = element('summary');
-      summary.append(...head, element('span', 'week-game-toggle', '料金'));
+      summary.append(...head, element('span', 'week-game-toggle', event.entry || event.reentry ? '料金' : '詳細'));
       const list = element('dl', 'week-game-entry');
       prices.forEach(([label, value]) => { const row = element('div'); row.append(element('dt', '', label), element('dd', '', String(value))); list.append(row); });
       details.append(summary, list);
@@ -454,6 +459,21 @@ function refreshEvents() {
   if (liveWeek) renderWeek(liveWeek);
   if (!liveEvents || signatureOf(liveEvents) === liveSignature) return;
   try { showEvents(liveEvents); } catch (error) { applyStaleState(true); console.warn('開催情報を更新できません。', error); }
+}
+
+// An open page reads events.json / week.json again now and then, so a schedule the shop
+// changed on X shows without reloading. A failed read keeps what is on screen.
+const RELOAD_MS = 5 * 60000;
+let lastDataLoad = Date.now();
+async function reloadEvents() {
+  if (!liveEvents || Date.now() - lastDataLoad < 60000) return;
+  lastDataLoad = Date.now();
+  try {
+    const [events, week] = await Promise.all([fetchData('./data/events.json'), fetchData('./data/week.json').catch(() => liveWeek)]);
+    liveEvents = validateEvents(events);
+    liveWeek = week;
+    refreshEvents();
+  } catch (error) { console.warn('開催情報を再読み込みできません。', error); }
 }
 
 async function loadNews() {
@@ -532,8 +552,9 @@ if (isPreviewMode) {
     activityTimer = setTimeout(() => { refreshEvents(); scheduleRefresh(); }, window.ChonmageActivity?.nextMinuteDelay() ?? 60000 - (Date.now() % 60000) + 20);
   };
   scheduleRefresh();
+  if (!window.ChonmageActivity?.testTime) setInterval(() => { if (!document.hidden) reloadEvents(); }, RELOAD_MS);
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { refreshEvents(); scheduleRefresh(); refreshNews(); }
+    if (!document.hidden) { refreshEvents(); scheduleRefresh(); refreshNews(); reloadEvents(); }
   });
   window.addEventListener('pageshow', refreshNews);
 }

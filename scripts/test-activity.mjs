@@ -51,4 +51,17 @@ equal(a.nextMinuteDelay(59999), 21); equal(a.nextMinuteDelay(120000), 60020);
 const original = fixture(), serialized = JSON.stringify(original); a.adaptSchedule(original); equal(JSON.stringify(original), serialized);
 equal(a.adaptSchedule(fixture({ events: [{ time: '13:30', title: '電話で確認', link: { label: '電話', url: 'tel:025-123-4567' } }] })).events[0].link.url, 'tel:025-123-4567');
 equal(a.adaptSchedule(fixture({ events: [{ time: '13:30', title: '不正なリンク', link: { url: 'javascript:alert(1)' } }] })).events[0].link.url, 'https://x.com/ChonmageNiigata');
+// FREE ROLL without 最終受付: 土日祝 (13:00 OPEN) 14:30, weekdays (17:00 OPEN) 18:40.
+const bare = { id: 'fr', time: '13:30', title: 'フリーロール 🕜', type: 'free' };
+equal(a.adaptSchedule(fixture({ events: [bare] })).events[0].registrationEnd, 14 * 60 + 30);
+equal(a.adaptSchedule(fixture({ open: '17:00', events: [{ ...bare, time: '18:00' }] })).events[0].registrationEnd, 18 * 60 + 40);
+equal(a.adaptSchedule(fixture({ events: [{ ...bare, facts: [{ label: '最終受付', value: '14:00' }] }] })).events[0].registrationEnd, 14 * 60);
+equal(a.adaptSchedule(fixture({ events: [{ ...bare, type: 'tournament', title: 'ふるまちトナメ' }] })).events[0].registrationEnd, null);
+{
+  const week = await import('../week-core.js');
+  const core = week.default || globalThis.ChonmageWeek;
+  equal(core.freeRollLastEntry({ time: '13:30', title: 'フリーロール' }, '13:00'), '14:30');
+  equal(core.freeRollLastEntry({ time: '18:00', title: 'フリーロール' }, '17:00'), '18:40');
+  equal(core.freeRollLastEntry({ time: '19:10', title: 'ふるまちdeトナメ' }, '17:00'), '');
+}
 console.log(`Activity state tests passed (${checks} checks)`);
