@@ -7,6 +7,8 @@
     { "title": "ふるまちdeトナメ(deep)", "after": 120, "duration": 240, "fixed": true, "source": "店舗" },
     { "title": "ふるまちターボ", "after": 70, "duration": 150, "fixed": true, "source": "店舗" },
     { "title": "クレイジーパイナップル", "after": 100, "duration": 200, "fixed": true, "source": "店舗" },
-    { "title": "HEADS-UP CHALLENGE THE FINAL4", "after": 67, "duration": 270, "fixed": true, "source": "店舗" }
+    { "title": "HEADS-UP CHALLENGE THE FINAL4", "after": 67, "duration": 270, "fixed": true, "source": "店舗" },
+    { "title": "HEADS-UP THE FINAL4", "after": 67, "duration": 270, "fixed": true, "source": "店舗" },
+    { "title": "超クレイジーパイナップル", "after": 120, "duration": 210, "fixed": true, "source": "店舗" }
   ]
 }
