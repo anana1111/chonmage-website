@@ -91,12 +91,12 @@ ${GENERATED_MARKER}
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Google tag (gtag.js) for GA4 G-LW40HNQ1PL. Visits from the admin preview, ?now= checks, local copies and test browsers are not sent. -->
+  <!-- Google tag (gtag.js) for GA4 G-LW40HNQ1PL. Visits from the admin preview, ?now= checks and local copies are not sent. -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW40HNQ1PL"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    if (!/(^|\\.)chonmagepoker\\.com$/.test(location.hostname) || /[?&](preview|now)=/.test(location.search) || navigator.webdriver) window['ga-disable-G-LW40HNQ1PL'] = true;
+    if (!/(^|\\.)chonmagepoker\\.com$/.test(location.hostname) || /[?&](preview|now)=/.test(location.search)) window['ga-disable-G-LW40HNQ1PL'] = true;
     gtag('js', new Date());
 
     gtag('config', 'G-LW40HNQ1PL');
