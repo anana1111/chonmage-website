@@ -53,6 +53,15 @@ python3 -m http.server 8000
 - 没有 JavaScript 或数据读取失败时，页面同样只显示指向公式 X 的安全提示，不显示任何带日期的旧营业信息。
 - 详细字段与规则见 [`data/README.md`](data/README.md)。
 
+
+## Google Analytics 4（GA4）
+
+- GA4 Measurement ID：\`G-LW40HNQ1PL\`。首页、NEWS 列表以及自动生成的 NEWS 详情页均使用相同的追踪编号，每页只插入一次。
+- 管理后台 \`admin/\`、设计原稿 \`_originals/\` 和本地预览不会记入访问统计；\`?now=\`、\`?preview=\` 也不计入。
+- 新增普通 HTML 页面，提交前运行 \`node scripts/ensure-ga4.mjs\`，脚本会自动扫描所有公开 HTML 页面并为遗漏页面补入追踪代码（可重复运行，不会重复添加）。\`node scripts/ensure-ga4.mjs --check\` 可只检查而不修改。
+- \`.github/workflows/ensure-ga4.yml\` 在公开 HTML 修改或新增时自动运行，发现遗漏就写回仓库；NEWS 页面生成器本身已内置 GA4，所以未来新 NEWS 也会自动携带标签。
+- **注意**：本站 Pages 使用 \`main\` 分支直接部署。通过 GitHub Actions 的 \`GITHUB_TOKEN\` 自动写回的 commit **不会单独触发 GitHub Pages 重新构建**，所以最好在第一次提交/推送新页面之前先运行脚本，确保网页上线当次就已经带有 GA4；如果 Actions 才补上遗漏，线上可能需要下一次正常推送才反映。
+
 ## 自动更新（GitHub Actions）
 
 `.github/workflows/update-events.yml`：

@@ -1,0 +1,57 @@
+name: Keep GA4 on public pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.html'
+      - 'scripts/ensure-ga4.mjs'
+      - '.github/workflows/ensure-ga4.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ensure-ga4-main
+  cancel-in-progress: false
+
+jobs:
+  ensure-ga4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Add GA4 to public HTML pages if missing
+        run: node scripts/ensure-ga4.mjs
+      - name: Verify exactly one configured tag on each public page
+        run: node scripts/ensure-ga4.mjs --check
+      - name: Commit any automatically tagged pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Re-apply only the tag change on the newest main; the NEWS automation can
+          # update main concurrently, and its generated pages already contain GA4.
+          for attempt in 1 2 3; do
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+            node scripts/ensure-ga4.mjs
+            node scripts/ensure-ga4.mjs --check
+            git add -u -- '*.html'
+            if git diff --cached --quiet; then
+              echo "Every public HTML page already has GA4."
+              exit 0
+            fi
+            git commit --quiet -m "Automatically add GA4 to newly created public pages"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "main moved during tag update; retrying ($attempt/3)."
+            sleep $((attempt * 3))
+          done
+          echo "::error::GA4 auto-tag commit failed after three retries."
+          exit 1
