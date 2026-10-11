@@ -275,13 +275,15 @@
 /* 5+ narrow columns: the 料金 button moves under the name so names keep their width. */
 @media (min-width: 1024px) {
   .week-list.is-dense .week-game-details > summary { grid-template-columns: auto minmax(0, 1fr); }
-  .week-list.is-dense .week-game-toggle { grid-column: 2; justify-self: start; margin-top: .2rem; }
+  .week-list.is-dense .week-game-details > summary > .week-game-toggle { grid-row: auto; grid-column: 2; justify-self: start; margin-top: .2rem; }
 }
 .week-game-toggle::after { content: ""; width: .38em; height: .38em; margin-top: -.2em; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform .2s var(--ease-out), margin .2s var(--ease-out); }
 .week-game-details[open] .week-game-toggle { border-color: var(--blue); background: var(--blue); color: #fff; opacity: 1; }
 .week-game-details[open] .week-game-toggle::after { margin-top: .2em; transform: rotate(-135deg); }
 @media (hover: hover) and (pointer: fine) { .week-game-details > summary:hover { background: rgba(39, 56, 112, .06); } }
 .week-game-details > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.week-game-times { grid-column: 2; display: grid; font-size: .7rem; font-weight: 700; font-variant-numeric: tabular-nums; opacity: .72; }
+.week-game-details > summary > .week-game-toggle { grid-row: 1; grid-column: 3; }
 .week-game-time { font-size: .78rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .week-game-title { min-width: 0; font-size: clamp(.9rem, 1.05vw, 1.02rem); font-weight: 800; letter-spacing: -.01em; overflow-wrap: anywhere; }
 .week-game.is-ring .week-game-time { font-size: .72rem; }
