@@ -437,7 +437,11 @@ function renderWeek(week) {
       const item = element('li', 'week-game');
       const head = [element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || ''))];
       const lastEntry = event.lastEntry || (core.usualLastEntry ? core.usualLastEntry(event, day.open, liveLastEntries) : '');
-      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry], ['最終受付', lastEntry]].filter(([, value]) => value);
+      const end = /^\d{2}:\d{2}$/.test(event.end || '') ? event.end : (core.usualEnd ? core.usualEnd(event, day.open, liveLastEntries) : '');
+      // 最終受付 and 終了予定 stay visible under the name; the prices open with a tap.
+      const times = [lastEntry && '最終受付 ' + lastEntry, end && '終了予定 ' + end].filter(Boolean);
+      if (times.length) { const box = element('span', 'week-game-times'); box.append(...times.map((value) => element('span', '', value))); head.push(box); }
+      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry], ['最終受付', lastEntry], ['終了予定', end]].filter(([, value]) => value);
       if (!prices.length) { item.append(...head); games.append(item); return; }
       const details = element('details', 'week-game-details');
       const summary = element('summary');
