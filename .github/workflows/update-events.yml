@@ -149,6 +149,7 @@ jobs:
             fi
             git commit --quiet -m "Update daily events, NEWS and SEO pages for $DATE"
             if git push origin HEAD:main; then
+              git show HEAD~1:sitemap.xml > "$RUNNER_TEMP/sitemap-before.xml" 2>/dev/null || true
               exit 0
             fi
             echo "Push rejected (main moved); retrying ($attempt/3)."
@@ -156,3 +157,13 @@ jobs:
           done
           echo "::error::Could not push schedule data after 3 attempts."
           exit 1
+
+      # Tells Bing and the other IndexNow engines which NEWS pages were added, changed or removed.
+      # Google does not use IndexNow; it reads sitemap.xml. A failure only warns.
+      - name: Notify IndexNow search engines
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        timeout-minutes: 12
+        run: |
+          if [ ! -f "$RUNNER_TEMP/sitemap-before.xml" ]; then echo "Nothing was pushed; skipping."; exit 0; fi
+          node scripts/indexnow.mjs "$RUNNER_TEMP/sitemap-before.xml" sitemap.xml
