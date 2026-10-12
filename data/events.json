@@ -7,27 +7,27 @@
   "source": {
     "type": "x",
     "url": "https://x.com/ChonmageNiigata/status/2109631964655284530",
-    "mode": "auto"
+    "mode": "merged"
   },
-  "open": "18:00",
+  "open": "17:00",
   "status": "open",
   "summary": [
     "本日の開催情報です。",
     "当日の変更は公式Xでお知らせします。"
   ],
   "ringGame": {
-    "enabled": false,
-    "start": "18:00",
-    "title": "RING GAME",
-    "description": "公式Xで確認"
+    "enabled": true,
+    "start": "17:00",
+    "title": "NLHリングゲーム",
+    "description": "終日開催。"
   },
   "events": [
     {
       "id": "event-1800",
       "time": "18:00",
-      "type": "event",
-      "title": "EVENT",
-      "heroTitle": "EVENT",
+      "type": "tournament",
+      "title": "THE DAILY",
+      "heroTitle": "THE DAILY",
       "theme": "orange",
       "tags": [],
       "description": "詳細は公式Xで確認してください。",
@@ -44,7 +44,8 @@
       "link": {
         "label": "最新情報 ↗",
         "url": "https://x.com/ChonmageNiigata/status/2109631964655284530"
-      }
+      },
+      "isMain": true
     }
   ],
   "close": "23:30"
