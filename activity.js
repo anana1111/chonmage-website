@@ -212,7 +212,10 @@
     });
     const closedText = schedule.nextOpen ? `次の営業は${schedule.nextOpen}です。` : '次回の開催情報は公式Xをご確認ください。';
     if (!later.length) list.append(node('li', 'activity-empty', ['after-close', 'closed-day'].includes(state.type) ? closedText : 'このあと予定されているゲームはありません。'));
-    laterSection.append(laterTitle, list); fragment.append(laterSection); container.replaceChildren(fragment);
+    laterSection.append(laterTitle, list);
+    // The 置きバケ phone line sits right above 「今日このあと」 (it starts below the week until today renders).
+    const okibake = document.querySelector('.okibake'); if (okibake) fragment.append(okibake);
+    fragment.append(laterSection); container.replaceChildren(fragment);
     let announce = document.getElementById('activity-announce');
     if (!announce) { announce = node('p', 'activity-sr-only'); announce.id = 'activity-announce'; announce.setAttribute('aria-live', 'polite'); announce.setAttribute('aria-atomic', 'true'); container.after(announce); }
     if (identity !== lastIdentity) announce.textContent = `${content.kicker} ${content.value} ${content.title}`;
