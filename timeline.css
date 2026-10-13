@@ -339,3 +339,8 @@
 /* While the 来店特典 bar is shown, move the hero eyebrow below it (translate works for both its static and absolute layouts). */
 body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 2.6rem; }
 @media (max-width: 900px) { body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 3.3rem; } }
+/* The 🎁 in the top bar: larger than the text so it reads as the icon. */
+.promo-strip-gift { flex: 0 0 auto; font-size: 1.55rem; line-height: 1; }
+@media (max-width: 900px) { .promo-strip-gift { font-size: 1.75rem; } }
+/* Phone: break the bar text after 来場者全員に so 参加無料券 never splits. */
+@media (max-width: 620px) { .promo-strip-line2 { display: block; white-space: nowrap; } .promo-strip-line2 b { margin-left: 0; } }
