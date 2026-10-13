@@ -2,11 +2,11 @@
   "version": 2,
   "date": "2026-10-13",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2109631964655284530",
-  "updatedAt": "2026-10-13T15:42:55+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2109901962351087801",
+  "updatedAt": "2026-10-13T18:27:32+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2109631964655284530",
+    "url": "https://x.com/ChonmageNiigata/status/2109901962351087801",
     "mode": "merged"
   },
   "open": "17:00",
@@ -23,7 +23,7 @@
   },
   "events": [
     {
-      "id": "event-1800",
+      "id": "the-daily-1800",
       "time": "18:00",
       "type": "tournament",
       "title": "THE DAILY",
@@ -33,17 +33,13 @@
       "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
-          "label": "ENTRY",
-          "value": "¥2,000"
-        },
-        {
           "label": "STARTING STACK",
           "value": "20,000pt"
         }
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2109631964655284530"
+        "url": "https://x.com/ChonmageNiigata/status/2109901962351087801"
       },
       "isMain": true
     }

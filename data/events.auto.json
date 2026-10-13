@@ -2,40 +2,36 @@
   "version": 2,
   "date": "2026-10-13",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2109631964655284530",
-  "updatedAt": "2026-10-13T15:42:55+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2109901962351087801",
+  "updatedAt": "2026-10-13T18:27:32+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2109631964655284530",
+    "url": "https://x.com/ChonmageNiigata/status/2109901962351087801",
     "mode": "auto"
   },
-  "open": "18:00",
+  "open": "17:00",
   "status": "open",
   "summary": [
     "本日の開催情報です。",
     "当日の変更は公式Xでお知らせします。"
   ],
   "ringGame": {
-    "enabled": false,
-    "start": "18:00",
+    "enabled": true,
+    "start": "17:00",
     "title": "RING GAME",
-    "description": "公式Xで確認"
+    "description": "リングゲームもOPENから参加者募集中🔥"
   },
   "events": [
     {
-      "id": "event-1800",
+      "id": "the-daily-1800",
       "time": "18:00",
       "type": "event",
-      "title": "EVENT",
-      "heroTitle": "EVENT",
+      "title": "THE DAILY 🕕",
+      "heroTitle": "THE DAILY 🕕",
       "theme": "orange",
       "tags": [],
       "description": "詳細は公式Xで確認してください。",
       "facts": [
-        {
-          "label": "ENTRY",
-          "value": "¥2,000"
-        },
         {
           "label": "STARTING STACK",
           "value": "20,000pt"
@@ -43,7 +39,7 @@
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2109631964655284530"
+        "url": "https://x.com/ChonmageNiigata/status/2109901962351087801"
       }
     }
   ],
