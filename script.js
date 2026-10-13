@@ -109,6 +109,9 @@ function getJapanDate(now = new Date()) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+// 来店特典 banner and top bar: shown through their data-promo-until date (JST), gone from the next day.
+document.querySelectorAll('[data-promo-until]').forEach((el) => { el.hidden = getJapanDate() > el.dataset.promoUntil; });
+
 function dateValue(iso) {
   if (typeof iso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) throw new Error('Invalid date');
   const value = new Date(`${iso}T12:00:00+09:00`);
@@ -407,13 +410,8 @@ function renderWeek(week) {
   if (signature === weekSignature) return;
   weekSignature = signature;
   section.hidden = !days.length;
-  // 特典 (week.json promos): a banner over the week while a promo day is still ahead, a badge on
-  // each promo day, and a line on today's card on the day itself.
+  // 特典 (week.json promos): a badge on each promo day. The banner and top bar are in index.html.
   const promos = (Array.isArray(week?.promos) ? week.promos : []).filter((promo) => promo && typeof promo.text === 'string' && promo.text.trim() && Array.isArray(promo.dates));
-  const ahead = promos.filter((promo) => promo.dates.some((date) => date >= today));
-  const showPromo = (el, rows) => { if (!el) return; el.replaceChildren(...rows.map((promo) => element('span', '', promo.text))); el.hidden = !rows.length; };
-  showPromo(section.querySelector('.week-promo'), ahead);
-  showPromo(document.querySelector('.today-promo'), promos.filter((promo) => promo.dates.includes(today)));
   const list = section.querySelector('.week-list');
   if (!list || !days.length) return;
   const noon = (iso) => new Date(iso + 'T12:00:00+09:00');
