@@ -339,8 +339,8 @@
 /* While the 来店特典 bar is shown, move the hero eyebrow below it (translate works for both its static and absolute layouts). */
 body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 3.3rem; }
 @media (max-width: 900px) { body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 3.3rem; } }
-/* The 🎁 in the top bar: a cream badge (banner colours) with gold sparkles and a small periodic wiggle. */
-.promo-strip-gift { position: relative; flex: 0 0 auto; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: #fdf4e0; box-shadow: 0 0 0 2px #fff, 0 3px 8px rgba(120, 45, 10, .35); font-size: 1.6rem; line-height: 1; animation: promo-gift-wiggle 3.2s ease-in-out infinite; }
+/* The 🎁 in the top bar: larger than the text, with a soft shadow, gold sparkles and a small periodic wiggle. */
+.promo-strip-gift { position: relative; flex: 0 0 auto; display: grid; place-items: center; width: 2.4rem; height: 2.4rem; font-size: 2rem; line-height: 1; filter: drop-shadow(0 2px 3px rgba(110, 35, 5, .35)); animation: promo-gift-wiggle 3.2s ease-in-out infinite; }
 .promo-strip-gift::before, .promo-strip-gift::after { content: ""; position: absolute; background: linear-gradient(135deg, #fff3b8, #f2c14e 55%, #c99a2e); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: promo-gift-sparkle 1.6s ease-in-out infinite; }
 .promo-strip-gift::before { width: .8rem; height: .8rem; top: -.3rem; right: -.35rem; }
 .promo-strip-gift::after { width: .55rem; height: .55rem; bottom: -.1rem; left: -.35rem; animation-delay: .8s; }
@@ -348,7 +348,7 @@ body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 3.3rem; }
 @keyframes promo-gift-wiggle { 0%, 70%, 100% { transform: rotate(0); } 76% { transform: rotate(-12deg) scale(1.08); } 82% { transform: rotate(10deg) scale(1.08); } 88% { transform: rotate(-6deg); } 94% { transform: rotate(3deg); } }
 @keyframes promo-gift-sparkle { 0%, 100% { opacity: .35; transform: scale(.7); } 50% { opacity: 1; transform: scale(1.1); } }
 @keyframes promo-arrow-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
-@media (max-width: 900px) { .promo-strip-gift { width: 2.75rem; height: 2.75rem; font-size: 1.75rem; } }
+@media (max-width: 900px) { .promo-strip-gift { width: 2.5rem; height: 2.5rem; font-size: 2.1rem; } }
 @media (prefers-reduced-motion: reduce) { .promo-strip-gift, .promo-strip-gift::before, .promo-strip-gift::after, .promo-strip-arrow { animation: none; } }
 /* Phone: break the bar text after 来場者全員に so 参加無料券 never splits. */
 @media (max-width: 620px) { .promo-strip-line2 { display: block; white-space: nowrap; } .promo-strip-line2 b { margin-left: 0; } }
