@@ -255,10 +255,6 @@
 .week-head h3 { margin: 0; font-size: clamp(1.35rem, 2.6vw, 2rem); letter-spacing: -.03em; }
 .week-head h3 span { display: block; margin-bottom: .55rem; font-size: .66rem; font-weight: 800; letter-spacing: .15em; color: var(--orange); }
 .week-range { margin: 0; font-family: "Archivo Black", "Noto Sans JP", sans-serif; font-size: .95rem; letter-spacing: -.01em; }
-.week-promo, .today-promo { display: grid; gap: .35rem; margin: 1.2rem 0 0; padding: .85rem 1.1rem .85rem 3.1rem; border-radius: 14px; background: var(--orange); color: #fff; font-weight: 800; font-size: clamp(.92rem, 1.5vw, 1.08rem); line-height: 1.5; position: relative; }
-.week-promo::before, .today-promo::before { content: "🎁"; position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.45rem; }
-.week-promo[hidden], .today-promo[hidden] { display: none; }
-.today-promo { margin: 0 0 1.2rem; }
 .week-day-promo { justify-self: start; margin: .6rem 0 0; padding: .2rem .55rem; border-radius: 999px; background: var(--orange); color: #fff; font-size: .66rem; font-weight: 800; letter-spacing: .02em; }
 .week-day-promo::before { content: "🎁 "; }
 .week-list { --week-days: 7; list-style: none; margin: 1.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--week-days), minmax(0, 1fr)); gap: .6rem; }
@@ -325,3 +321,21 @@
 .okibake-copy:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .okibake-copied { font-size: .78rem; color: var(--blue); }
 .okibake-copied:empty { display: none; }
+
+/* 来店特典: top bar under the navigation and the main banner under the hero. */
+.promo-strip { position: absolute; top: 86px; left: 0; right: 0; z-index: 9; display: flex; align-items: center; justify-content: center; gap: .6rem; padding: .55rem var(--pad); background: var(--orange); color: #fff; font-size: .82rem; font-weight: 700; line-height: 1.4; text-decoration: none; text-align: center; }
+.promo-strip[hidden], .promo[hidden] { display: none; }
+.promo-strip b { margin: 0 .3em; font-weight: 900; }
+.promo-strip-arrow { font-weight: 900; }
+@media (hover: hover) and (pointer: fine) { .promo-strip:hover { background: #e55a26; } }
+.promo-strip:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+.promo { position: relative; padding: clamp(2rem, 5vw, 3.5rem) var(--pad) 0; scroll-margin-top: 1rem; }
+/* The banner artwork carries the copy; the heading stays for screen readers and search. Phone gets the square version. */
+.promo-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.promo-art, .promo-art img { display: block; width: 100%; height: auto; }
+.promo-art img { border-radius: 22px; box-shadow: 0 10px 30px rgba(120, 70, 20, .14); }
+@media (max-width: 900px) { .promo-strip { top: 70px; font-size: .74rem; padding: .5rem 1rem; } }
+@media (max-width: 620px) { .promo-art img { aspect-ratio: 1; border-radius: 18px; } }
+/* While the 来店特典 bar is shown, move the hero eyebrow below it (translate works for both its static and absolute layouts). */
+body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 2.6rem; }
+@media (max-width: 900px) { body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 3.3rem; } }
