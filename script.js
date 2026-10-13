@@ -437,7 +437,15 @@ function renderWeek(week) {
     date.append(element('strong', '', String(Number(day.date.slice(8)))), element('span', '', weekday(day.date)));
     if (day.date === today) date.append(element('em', '', 'TODAY'));
     head.append(date, element('p', 'week-hours', open ? day.open + (day.close ? '–' + day.close : ' OPEN') : '休業'));
-    promos.filter((promo) => promo.dates.includes(day.date)).forEach((promo) => head.append(element('p', 'week-day-promo', promo.badge || '特典あり')));
+    promos.filter((promo) => promo.dates.includes(day.date)).forEach((promo) => {
+      const badge = element('p', 'week-day-promo');
+      const gift = element('span', 'week-day-promo-gift', '🎁'); gift.setAttribute('aria-hidden', 'true');
+      // Split at the last space so a narrow column breaks as 「THE DAILY」/「参加無料券」, never inside a word.
+      const text = element('span', 'week-day-promo-text');
+      (promo.badge || '特典あり').split(/\s+(?=\S+$)/).forEach((part, index) => text.append(index ? ' ' : '', element('span', '', part)));
+      badge.append(gift, text);
+      head.append(badge);
+    });
     row.append(head);
     const games = element('ul', 'week-games');
     if (open && day.ringGame) {
