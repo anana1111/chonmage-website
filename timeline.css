@@ -255,8 +255,13 @@
 .week-head h3 { margin: 0; font-size: clamp(1.35rem, 2.6vw, 2rem); letter-spacing: -.03em; }
 .week-head h3 span { display: block; margin-bottom: .55rem; font-size: .66rem; font-weight: 800; letter-spacing: .15em; color: var(--orange); }
 .week-range { margin: 0; font-family: "Archivo Black", "Noto Sans JP", sans-serif; font-size: .95rem; letter-spacing: -.01em; }
-.week-day-promo { justify-self: start; margin: .6rem 0 0; padding: .2rem .55rem; border-radius: 999px; background: var(--orange); color: #fff; font-size: .66rem; font-weight: 800; letter-spacing: .02em; }
-.week-day-promo::before { content: "🎁 "; }
+.week-day-promo { justify-self: start; display: inline-flex; align-items: center; gap: .45rem; margin: .7rem 0 0; padding: .4rem .8rem .4rem .5rem; border-radius: 14px; background: var(--orange); color: #fff; font-size: .72rem; font-weight: 800; line-height: 1.3; letter-spacing: .02em; }
+/* Same 🎁 treatment as the top bar (.promo-strip-gift): larger than the text, soft shadow, gold sparkle, small wiggle. */
+.week-day-promo-gift { position: relative; flex: 0 0 auto; font-size: 1.55rem; line-height: 1; filter: drop-shadow(0 2px 2px rgba(110, 35, 5, .35)); animation: promo-gift-wiggle 3.2s ease-in-out infinite; }
+.week-day-promo-gift::after { content: ""; position: absolute; top: -.25rem; right: -.3rem; width: .6rem; height: .6rem; background: linear-gradient(135deg, #fff3b8, #f2c14e 55%, #c99a2e); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: promo-gift-sparkle 1.6s ease-in-out infinite; }
+.week-day-promo { max-width: 100%; }
+.week-day-promo-text > span { display: inline-block; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .week-day-promo-gift, .week-day-promo-gift::after { animation: none; } }
 .week-list { --week-days: 7; list-style: none; margin: 1.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--week-days), minmax(0, 1fr)); gap: .6rem; }
 .week-day { min-width: 0; padding: .95rem .85rem 1rem; border: 1px solid var(--line); border-radius: 16px; background: #fffdf8; }
 .week-day.is-today { border-color: var(--blue); box-shadow: inset 0 4px 0 var(--blue); }
@@ -352,3 +357,5 @@ body:has(.promo-strip:not([hidden])) .hero-v2 .eyebrow { translate: 0 3.3rem; }
 @media (prefers-reduced-motion: reduce) { .promo-strip-gift, .promo-strip-gift::before, .promo-strip-gift::after, .promo-strip-arrow { animation: none; } }
 /* Phone: break the bar text after 来場者全員に so 参加無料券 never splits. */
 @media (max-width: 620px) { .promo-strip-line2 { display: block; white-space: nowrap; } .promo-strip-line2 b { margin-left: 0; } }
+/* Phone: the day column is narrow, so the badge tightens up to stay inside it. */
+@media (max-width: 620px) { .week-day-promo { gap: .3rem; padding: .35rem .55rem .35rem .4rem; font-size: .64rem; } .week-day-promo-gift { font-size: 1.3rem; } }
