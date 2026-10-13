@@ -68,7 +68,7 @@ async function open(url, width = 390, fixture = data) {
   await page.goto(origin + url, { waitUntil: 'load' });
   if (url.includes('/admin/')) await page.waitForFunction(() => !document.getElementById('editor-form').hidden);
   else if (url.includes('/news/')) await page.waitForFunction(() => document.getElementById('news-content-view')?.getAttribute('aria-busy') === 'false');
-  else await page.waitForFunction(() => document.querySelector('.news-grid .news-card'));
+  else await page.waitForFunction(() => document.querySelector('.news-grid .news-feature'));
   await page.waitForFunction(() => [...document.images].filter((image) => image.loading !== 'lazy').every((image) => image.complete));
   return { page, context, errors };
 }
@@ -92,8 +92,11 @@ try {
       check(report.overflow <= 0 && report.outside === 0, width + ' ' + url + ': no overflow');
       check(errors.length === 0, width + ' ' + url + ': no JS/console error ' + errors.join(';'));
       if (url === '/') {
-        check(await page.locator('#news .news-card').count() === 3, 'Homepage caps NEWS at 3');
-        const hrefs = await page.locator('#news .news-card a').evaluateAll((links) => links.map((link) => link.href));
+        check(await page.locator('#news .news-feature').count() === 1 && await page.locator('#news .news-row').count() === 3, 'Homepage shows one large NEWS card and three rows');
+        check((await page.locator('#news .news-feature .news-badge').textContent()) === '最新', 'Large card marks the latest NEWS');
+        check(await page.locator('#news .news-row .news-badge').count() === 0, 'Rows have no badge when nothing is pinned');
+        const hrefs = await page.locator('#news .news-feature a, #news .news-row a').evaluateAll((links) => links.map((link) => link.href));
+        check(hrefs.length === 4, 'Each homepage NEWS has exactly one link');
         check(hrefs.every((url) => /\/news\/[A-Za-z0-9._-]+\/$/.test(new URL(url).pathname) && !url.includes('x.com')), 'Home cards link to their own NEWS page');
         check(await page.locator('.all-news-link').getAttribute('href') === './news/', 'All NEWS uses relative directory');
       }
@@ -121,6 +124,23 @@ try {
       }
       await context.close();
     }
+  }
+  {
+    // A pinned post takes the large card as 注目; categories read in Japanese on the homepage.
+    const pinned = { items: data.items.map((row) => row?.id === 'noimage' ? { ...row, pinned: true, category: 'RESULT' } : row?.id === 'manual' ? { ...row, category: 'SCHEDULE' } : row) };
+    const { page, context, errors } = await open('/', 390, pinned);
+    await page.locator('#news .news-list').scrollIntoViewIfNeeded();
+    check((await page.locator('#news .news-feature h3').textContent()) === 'お知らせ noimage', 'Pinned NEWS takes the large card');
+    check((await page.locator('#news .news-feature .news-badge').textContent()) === '注目', 'Pinned NEWS is marked 注目');
+    check((await page.locator('#news .news-feature .news-category').textContent()) === '大会結果', 'RESULT reads 大会結果');
+    check((await page.locator('#news .news-row').first().locator('.news-category').textContent()) === '営業案内', 'SCHEDULE reads 営業案内');
+    check(await page.locator('#news .news-feature .news-image-fallback').isVisible(), 'Large card without a photo shows its label');
+    const tapped = await page.locator('#news .news-row').first().locator('.news-row-image').evaluate((picture) => {
+      const box = picture.getBoundingClientRect();
+      return document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)?.closest('a')?.getAttribute('href') || '';
+    });
+    check(tapped.endsWith('/news/manual/'), 'Tapping a row picture opens that post');
+    check(!errors.length, 'Pinned homepage NEWS has no console error'); await context.close();
   }
   for (const [id, message] of [['expired', 'このニュースは掲載終了しました。'], ['pinned-expired', 'このニュースは掲載終了しました。'], ['missing', 'ニュースが見つかりませんでした。'], ['future', 'このニュースは現在公開されていません。'], ['draft', 'このニュースは現在公開されていません。']]) {
     const { page, context, errors } = await open('/news/?id=' + id);

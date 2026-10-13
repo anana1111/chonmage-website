@@ -811,7 +811,7 @@
       const advanced = node('details', undefined, 'advanced'); advanced.open = Boolean(openDetails);
       advanced.append(node('summary', '詳細設定'));
       const inner = node('div', undefined, 'advanced-body');
-      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像なしのときの文字', 'text', { hint: '例：TODAY / SPECIAL / NEWS' })), field(`${base}.theme`, 'カードの色', 'select', { values: NEWS_THEMES }), field(`${base}.pinned`, '固定表示（30日間の制限は同じ）', 'checkbox'));
+      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像なしのときの文字', 'text', { hint: '例：TODAY / SPECIAL / NEWS' })), field(`${base}.theme`, 'カードの色', 'select', { values: NEWS_THEMES }), field(`${base}.pinned`, '注目として固定（トップの大きいカードに表示・30日間の制限は同じ）', 'checkbox'));
       advanced.append(inner); body.append(advanced, publishControl(base, 'news'));
       const footer = node('div', undefined, 'drawer-footer');
       footer.append(button('本文プレビュー', () => openNewsDetailPreview(index)), button('コピー', () => duplicateNews(index), 'text-button'), button('削除', () => deleteItem('news.items', index, 'この News'), 'text-button danger'));

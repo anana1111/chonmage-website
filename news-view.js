@@ -55,6 +55,80 @@
     result.append(visual, meta, heading, node('p', 'news-summary', item.summary));
     return result;
   }
+  // Homepage labels are Japanese; the stored category keys stay as they are.
+  const CATEGORY_LABELS = { RESULT: '大会結果', SCHEDULE: '営業案内', EVENT: 'イベント' };
+  const categoryLabel = (item) => CATEGORY_LABELS[item.category.toUpperCase()] || item.category;
+  const FEATURE_SIZES = '(max-width: 900px) 100vw, 58vw';
+  const ROW_SIZES = '(max-width: 620px) 92px, (max-width: 900px) 120px, 148px';
+  // The large card takes the photo's own shape within limits (phones, wider screens), so
+  // posters stay whole and portraits keep their heads; a blurred copy fills what is left.
+  const clampRatio = (ratio, min) => String(Math.min(1.78, Math.max(min, ratio)));
+  function fitRatio(visual, ratio) {
+    visual.style.setProperty('--photo-ratio', clampRatio(ratio, 0.8));
+    visual.style.setProperty('--photo-ratio-wide', clampRatio(ratio, 1.5));
+  }
+  // Pictures are decoration here: the title link covers the whole card or row.
+  function homeVisual(item, siteRoot, className, sizes, fitted) {
+    const visual = node('div', className + ' news-image--' + item.theme);
+    visual.setAttribute('aria-hidden', 'true');
+    const fallback = node('span', 'news-image-fallback', item.visualLabel);
+    if (!item.image) {
+      if (fitted) fitRatio(visual, 1.78);
+      visual.append(fallback); return visual;
+    }
+    visual.classList.add('news-image--photo');
+    const figure = photo(item.image, '', siteRoot, false, sizes);
+    const image = figure.querySelector('img');
+    image.addEventListener('error', () => {
+      if (!figure.hidden) return;
+      visual.classList.remove('news-image--photo');
+      if (fitted) fitRatio(visual, 1.78);
+    });
+    if (fitted) {
+      // Reuses the file the browser already chose, so the blur costs no extra download.
+      const backdrop = node('img', 'news-photo-backdrop'); backdrop.alt = '';
+      image.addEventListener('load', () => {
+        fitRatio(visual, image.naturalWidth / image.naturalHeight);
+        backdrop.src = image.currentSrc || image.src;
+      });
+      visual.append(backdrop);
+    }
+    visual.append(figure, fallback);
+    return visual;
+  }
+  function homeTitle(item, siteRoot) {
+    const heading = node('h3');
+    heading.append(link(item.title, new URL('news/' + encodeURIComponent(item.id) + '/', siteRoot).href));
+    return heading;
+  }
+  function homeMeta(item, badge) {
+    const meta = node('div', 'news-meta');
+    if (badge) meta.append(node('span', 'news-badge' + (item.pinned ? ' news-badge--pinned' : ''), badge));
+    meta.append(date(item), node('span', 'news-category', categoryLabel(item)));
+    return meta;
+  }
+  // The teaser leaves out bare links and a repeated title, so it adds to the heading.
+  function lead(item) {
+    const summary = item.summary.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+    return summary.startsWith(item.title) ? summary.slice(item.title.length).trim() : summary;
+  }
+  // Homepage: one large card (a pinned post shows 注目, otherwise the latest shows 最新) and compact rows.
+  function featured(item, siteRoot) {
+    const result = node('article', 'news-feature');
+    const body = node('div', 'news-feature-body');
+    body.append(homeMeta(item, item.pinned ? '注目' : '最新'), homeTitle(item, siteRoot));
+    const teaser = lead(item);
+    if (teaser) body.append(node('p', 'news-summary', teaser));
+    result.append(homeVisual(item, siteRoot, 'news-feature-image', FEATURE_SIZES, true), body);
+    return result;
+  }
+  function row(item, siteRoot) {
+    const result = node('article', 'news-row');
+    const body = node('div', 'news-row-body');
+    body.append(homeMeta(item, item.pinned ? '注目' : ''), homeTitle(item, siteRoot));
+    result.append(homeVisual(item, siteRoot, 'news-row-image', ROW_SIZES, false), body);
+    return result;
+  }
   function detail(item, siteRoot) {
     const article = node('article', 'news-detail');
     const meta = node('div', 'news-meta'); meta.append(date(item), node('span', '', item.category));
@@ -68,5 +142,5 @@
     }
     return article;
   }
-  root.ChonmageNewsView = Object.freeze({ node, link, date, card, detail });
+  root.ChonmageNewsView = Object.freeze({ node, link, date, card, featured, row, categoryLabel, detail });
 })(globalThis);
