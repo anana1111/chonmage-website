@@ -302,19 +302,26 @@ function applyStaleState(isStale, latestXUrl = officialXUrl, heroIsStale = isSta
 let liveNews = null;
 let newsTimer = null;
 let newsSignature = '';
+const HOME_NEWS_COUNT = 4;
 function renderNews(data, now = Date.now()) {
   const grid = document.querySelector('.news-grid');
   if (!grid || !window.ChonmageNews || !window.ChonmageNewsView) return;
   const cards = document.createDocumentFragment();
-  const items = window.ChonmageNews.visibleItems(data, now, 3);
+  // One large card (pinned item, else the latest) and three compact rows.
+  const items = window.ChonmageNews.visibleItems(data, now, HOME_NEWS_COUNT);
   const root = new URL('./', location.href);
-  items.forEach((item) => cards.append(window.ChonmageNewsView.card(item, root)));
+  if (items.length) cards.append(window.ChonmageNewsView.featured(items[0], root));
+  if (items.length > 1) {
+    const list = element('div', 'news-list');
+    items.slice(1).forEach((item) => list.append(window.ChonmageNewsView.row(item, root)));
+    cards.append(list);
+  }
   if (!items.length) cards.append(element('p', 'news-empty', '最近30日間のニュースはありません。'));
   grid.replaceChildren(cards);
 }
 function refreshNews() {
   if (!liveNews || !window.ChonmageNews) return;
-  const signature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+  const signature = window.ChonmageNews.visibleItems(liveNews, Date.now(), HOME_NEWS_COUNT).map((item) => item.id).join('|');
   if (signature !== newsSignature) { renderNews(liveNews); newsSignature = signature; }
   clearTimeout(newsTimer);
   newsTimer = setTimeout(refreshNews, window.ChonmageNews.nextRefreshDelay(liveNews));
@@ -500,7 +507,7 @@ async function loadNews() {
     liveNews = await fetchData('./data/news.json');
     if (!liveNews || !Array.isArray(liveNews.items)) throw new Error('Missing news items');
     renderNews(liveNews);
-    newsSignature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+    newsSignature = window.ChonmageNews.visibleItems(liveNews, Date.now(), HOME_NEWS_COUNT).map((item) => item.id).join('|');
     refreshNews();
   } catch (error) {
     const grid = document.querySelector('.news-grid');
