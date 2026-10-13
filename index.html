@@ -92,7 +92,7 @@
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" /></noscript>
     <link rel="stylesheet" href="./styles.css?v=20261006perf" />
     <link rel="stylesheet" href="./v2.css?v=20261006logo2" />
-    <link rel="stylesheet" href="./timeline.css?v=20261012times" />
+    <link rel="stylesheet" href="./timeline.css?v=20261013promo" />
     <link rel="stylesheet" href="./activity.css?v=20261012times" />
     <link rel="stylesheet" href="./news.css?v=20261003news" />
     <link rel="stylesheet" href="./story.css?v=20261006story3" />
@@ -343,6 +343,7 @@
             <h2 id="today-title" class="reveal">今日の<br />ゲーム。</h2>
             <div class="today-summary reveal"><span>TODAY</span><strong></strong><p></p></div>
           </div>
+          <p class="today-promo" hidden></p>
           <div class="event-list"></div>
           <p class="schedule-note reveal">※「置きバケ連絡締切」と「トーナメント最終受付」は異なります。最終受付時間は公式Xまたは店舗へご確認ください。</p>
         </div>
@@ -360,12 +361,13 @@
             <h3 id="week-title"><span>THIS WEEK</span>今週のスケジュール</h3>
             <p class="week-range"></p>
           </div>
+          <p class="week-promo" hidden></p>
           <ol class="week-list"></ol>
           <ul class="week-notes" hidden></ul>
           <p class="week-note">週間スケジュールより。当日の変更は<a class="week-source" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">公式X <span aria-hidden="true">↗</span></a>でお知らせします。</p>
         </div>
 
-        <!-- One line under all game cards (today and this week). -->
+        <!-- activity.js moves this line above 「今日このあと」 once today's games render. -->
         <p class="okibake reveal"><span>置きバケはお電話で受け付けています。</span><a href="tel:08014700011">080-1470-0011</a><button type="button" class="okibake-copy" data-copy="080-1470-0011">番号をコピー</button><span class="okibake-copied" role="status" aria-live="polite"></span></p>
       </section>
 
@@ -429,7 +431,7 @@
               </div>
             </div>
             <div class="story-card-body">
-              <time class="story-date" datetime="2026-06">2026.06</time>
+              <time class="story-date" datetime="2026-07">2026.07</time>
               <h3 id="story-card-title"><span>ちょんまげ、</span><span>1周年。</span></h3>
               <p class="story-thanks"><span>一緒に遊んでくれた<wbr />みなさまへ、<wbr />ありがとう。</span><span>これからも、<wbr />気軽に集まれる場所に。</span></p>
               <!-- /1st-anniversary/ ページ公開後に戻す: <a class="story-card-link" href="/1st-anniversary/">この日の記録を見る <span aria-hidden="true">↗</span></a> -->
@@ -441,7 +443,7 @@
               <div class="story-step-row"><time datetime="2025-06">2025.06</time><span><span class="story-step-label">OPEN</span><span class="story-step-text">古町に、<wbr />ちょんまげオープン。</span></span></div>
             </li>
             <li class="story-step story-step--now">
-              <!-- /1st-anniversary/ ページ公開後に <a href> へ戻す --><div class="story-step-row"><time datetime="2026-06">2026.06</time><span><span class="story-step-label">1周年</span><span class="story-step-text">おかげさまで1周年。<wbr />2年目がスタート。</span></span><!-- <span class="story-step-arrow" aria-hidden="true">↗</span> --></div>
+              <!-- /1st-anniversary/ ページ公開後に <a href> へ戻す --><div class="story-step-row"><time datetime="2026-07">2026.07</time><span><span class="story-step-label">1周年</span><span class="story-step-text">おかげさまで1周年。<wbr />2年目がスタート。</span></span><!-- <span class="story-step-arrow" aria-hidden="true">↗</span> --></div>
             </li>
           </ol>
         </div>
@@ -493,11 +495,11 @@
       <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><span>© 2026</span></div>
     </footer>
     <script src="./timeline.js?v=20261009week"></script>
-    <script src="./activity.js?v=20261012times"></script>
+    <script src="./activity.js?v=20261013okibake"></script>
     <script src="./publish-core.js?v=20261006"></script>
     <script src="./news-core.js?v=20261003news"></script>
     <script src="./news-view.js?v=20261006seo"></script>
     <script src="./week-core.js?v=20261010copy"></script>
-    <script src="./script.js?v=20261012times"></script>
+    <script src="./script.js?v=20261013promo"></script>
   </body>
 </html>

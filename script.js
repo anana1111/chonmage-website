@@ -403,10 +403,17 @@ function renderWeek(week) {
   // Today's own X post (events.json) wins over the week picture's row for today.
   if (week && liveEvents && core.withDailyPost) week = core.withDailyPost(week, liveEvents);
   const days = week ? core.weekDays(week, today) : [];
-  const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null) + JSON.stringify(liveLastEntries);
+  const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null) + JSON.stringify(week?.promos || null) + JSON.stringify(liveLastEntries);
   if (signature === weekSignature) return;
   weekSignature = signature;
   section.hidden = !days.length;
+  // 特典 (week.json promos): a banner over the week while a promo day is still ahead, a badge on
+  // each promo day, and a line on today's card on the day itself.
+  const promos = (Array.isArray(week?.promos) ? week.promos : []).filter((promo) => promo && typeof promo.text === 'string' && promo.text.trim() && Array.isArray(promo.dates));
+  const ahead = promos.filter((promo) => promo.dates.some((date) => date >= today));
+  const showPromo = (el, rows) => { if (!el) return; el.replaceChildren(...rows.map((promo) => element('span', '', promo.text))); el.hidden = !rows.length; };
+  showPromo(section.querySelector('.week-promo'), ahead);
+  showPromo(document.querySelector('.today-promo'), promos.filter((promo) => promo.dates.includes(today)));
   const list = section.querySelector('.week-list');
   if (!list || !days.length) return;
   const noon = (iso) => new Date(iso + 'T12:00:00+09:00');
@@ -425,6 +432,7 @@ function renderWeek(week) {
     date.append(element('strong', '', String(Number(day.date.slice(8)))), element('span', '', weekday(day.date)));
     if (day.date === today) date.append(element('em', '', 'TODAY'));
     head.append(date, element('p', 'week-hours', open ? day.open + (day.close ? '–' + day.close : ' OPEN') : '休業'));
+    promos.filter((promo) => promo.dates.includes(day.date)).forEach((promo) => head.append(element('p', 'week-day-promo', promo.badge || '特典あり')));
     row.append(head);
     const games = element('ul', 'week-games');
     if (open && day.ringGame) {
