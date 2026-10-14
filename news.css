@@ -36,6 +36,7 @@
 .news-state { padding: 2rem 0; line-height: 1.8; }
 .news-state h1 { font-size: clamp(1.3rem, 4vw, 2rem); overflow-wrap: anywhere; }
 .news-page-end { padding: 1.5rem var(--pad); border-top: 1px solid var(--line); font-size: .7rem; color: var(--blue); }
+.news-page-end a { color: inherit; text-underline-offset: .3em; }
 .news-skip { position: absolute; left: 1rem; top: -100px; background: white; padding: .8rem; z-index: 20; }
 .news-skip:focus { top: 1rem; }
 @media (min-width: 600px) { .news-page .news-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
