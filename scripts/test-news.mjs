@@ -1,7 +1,7 @@
 // Fixed clocks cover NEWS retention, legacy migration, safe URLs and crawl merging.
 import assert from 'node:assert/strict';
 import '../news-core.js';
-import { mergeNews, newsFromCandidate } from './sync-news.mjs';
+import { mergeNews, newsFromCandidate, postTitle } from './sync-news.mjs';
 import { candidateFromObject, candidatesFromCliJson, loadCandidates } from './fetch-events.mjs';
 import { rssCandidatesFromText } from './x-reader.mjs';
 import { mirrorNewsImages, xImageName } from './news-images.mjs';
@@ -73,6 +73,25 @@ equal(newsFromCandidate({ ...candidate, url: 'https://x.com/other/status/123' },
 equal(newsFromCandidate({ text: 'unbounded reader window', url: candidate.url }, now), null);
 const snowflake = ((BigInt(now - 60000) - 1288834974657n) << 22n).toString();
 equal(n.publishedTime(newsFromCandidate({ ...candidate, url: 'https://x.com/ChonmageNiigata/status/' + snowflake, publishedAt: '' }, now).publishedAt), now - 60000);
+// X result posts get a title that names the game and the winner.
+equal(postTitle('【トーナメント結果】\nTHE DAILY入賞者🃏\n\n🥇優勝🥇\nカイ様\n\n入賞おめでとうございます㊗️', 'result'), 'THE DAILY 優勝はカイ様！');
+equal(postTitle('【トーナメント結果】\nHEADS-UP CHALLENGE THE FINAL4\n入賞者🃏\n\n🥇優勝🥇\nREJI様\n\n🥈2位🥈\nじゅん様', 'result'), 'HEADS-UP CHALLENGE THE FINAL4 優勝はREJI様！');
+equal(postTitle('【トーナメント結果】✨\n\n本日のフリーロール優勝者は…\n\n🏆SR様🏆\n\n優勝おめでとうございます🎉', 'result'), 'フリーロール 優勝はSR様！');
+equal(postTitle('トーナメント結果\n2-7TD &amp; Badugiトーナメント入賞者🃏\n🥇優勝🥇 フェイク様', 'result'), '2-7TD & Badugiトーナメント 優勝はフェイク様！');
+equal(postTitle('【トーナメント結果】\n入賞者🃏\n🥇優勝🥇\nはる様', 'result'), '優勝ははる様！');
+// Without a winner line, and for other posts, the first line stays the title.
+equal(postTitle('【大会結果】\n入賞者を発表しました。', 'result'), '【大会結果】');
+equal(postTitle('🎁優勝者には無料参加券🎁\nぜひご参加ください', 'event'), '🎁優勝者には無料参加券🎁');
+equal(postTitle('13日(火)17時OPEN✨\n本日のトーナメントはこちら👇', 'schedule'), '13日(火)17時OPEN✨');
+// A capture that repeats the post as one flattened line, or starts with X's pin label, uses the real first line.
+equal(postTitle('Pinned: 明日も【THE DAILY】 🐦 EARLY BIRDもあります‼️\n明日も【THE DAILY】\n🐦 EARLY BIRDもあります‼️', 'event'), '明日も【THE DAILY】');
+const resultPost = { ...candidate, newsText: '【トーナメント結果】\nTHE DAILY入賞者🃏\n🥇優勝🥇\nカイ様\n入賞おめでとうございます㊗️' };
+const resultItem = newsFromCandidate(resultPost, now);
+equal([resultItem.title, resultItem.summary], ['THE DAILY 優勝はカイ様！', 'THE DAILY入賞者🃏 🥇優勝🥇 カイ様 入賞おめでとうございます㊗️']);
+// Stored posts that still follow X pick up the rules on the next run; edited ones keep their words.
+const storedOld = { ...resultItem, title: '【トーナメント結果】', summary: '【トーナメント結果】 THE DAILY入賞者', description: '【トーナメント結果】 THE DAILY入賞者' };
+equal(mergeNews({ items: [storedOld] }, [], now).items[0].title, 'THE DAILY 優勝はカイ様！');
+equal(mergeNews({ items: [{ ...storedOld, autoUpdate: false }] }, [], now).items[0].title, '【トーナメント結果】');
 const structured = [];
 candidateFromObject({ id_str: '123', created_at: candidate.publishedAt, full_text: candidate.newsText, entities: { media: [{ media_url_https: candidate.images[0] }] } }, structured, new Set(), true);
 equal(structured[0].newsText, candidate.newsText);

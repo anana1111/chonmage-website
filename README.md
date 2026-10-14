@@ -27,6 +27,7 @@ python3 -m http.server 8000
 | `timeline.js` | TODAY 时间轴、NOW / NEXT / 本日終了 判定、Hero 的日期与营业状态 |
 | `script.js` | 菜单、滚动动效、读取并校验 `data/*.json`、日期过期判断、预览模式 |
 | `news/` / `news-core.js` / `news-view.js` / `news.css` | 站内 NEWS 列表和详情、统一 30 天规则、共享渲染与样式 |
+| `king-preloader.js` / `images/king/<key>/` | 开场 KING 卡片预加载：每次随机出一位王者（名单在 `index.html` 的 `KING_CARDS`），每位一个文件夹放 `card.webp`、`mask.webp`、`protect.png`。旧的 NOW SHUFFLING 预加载存在 `_originals/preloader-shuffling/`，里面写了换回来的步骤 |
 | `publish-core.js` | 予约公开（`publishAt`）的统一判定：公开页、管理画面和 Node 共用 |
 | `admin/` | 管理画面（编辑 TODAY / NEWS，生成公开用 JSON） |
 | `data/` | 公开数据：`events.json`、`news.json`，以及 `events.auto.json`、`events.manual.json` |
@@ -52,11 +53,20 @@ python3 -m http.server 8000
 - 没有 JavaScript 或数据读取失败时，页面同样只显示指向公式 X 的安全提示，不显示任何带日期的旧营业信息。
 - 详细字段与规则见 [`data/README.md`](data/README.md)。
 
+
+## Google Analytics 4（GA4）
+
+- GA4 Measurement ID：\`G-LW40HNQ1PL\`。首页、NEWS 列表以及自动生成的 NEWS 详情页均使用相同的追踪编号，每页只插入一次。
+- 管理后台 \`admin/\`、设计原稿 \`_originals/\` 和本地预览不会记入访问统计；\`?now=\`、\`?preview=\` 也不计入。
+- 新增普通 HTML 页面，提交前运行 \`node scripts/ensure-ga4.mjs\`，脚本会自动扫描所有公开 HTML 页面并为遗漏页面补入追踪代码（可重复运行，不会重复添加）。\`node scripts/ensure-ga4.mjs --check\` 可只检查而不修改。
+- \`.github/workflows/ensure-ga4.yml\` 在公开 HTML 修改或新增时自动运行，发现遗漏就写回仓库；NEWS 页面生成器本身已内置 GA4，所以未来新 NEWS 也会自动携带标签。
+- **注意**：本站 Pages 使用 \`main\` 分支直接部署。通过 GitHub Actions 的 \`GITHUB_TOKEN\` 自动写回的 commit **不会单独触发 GitHub Pages 重新构建**，所以最好在第一次提交/推送新页面之前先运行脚本，确保网页上线当次就已经带有 GA4；如果 Actions 才补上遗漏，线上可能需要下一次正常推送才反映。
+
 ## 自动更新（GitHub Actions）
 
 `.github/workflows/update-events.yml`：
 
-- 运行时间（日本时间）：每天 09:07 / 12:07 / 13:07 / 15:07；平日 16:17–19:47 每 30 分钟；周末 11:17–13:47 每 30 分钟。也可手动运行（workflow_dispatch）。
+- 运行时间（日本时间）：每天 09:07，以及 11:17–22:47 每 30 分钟（官方 X 改日程后约 30 分钟内反映到本日和每周日程）。也可手动运行（workflow_dispatch）。
 - `main` 上 `scripts/**`、`data/events.manual.json` 或 workflow 本身有变更时也会运行。
 - 步骤：测试 → 抓取公式 X → 合并 manual → 校验 → 只有数据真的变化时才 commit。
 - push 前会重新同步最新的 `main` 并重新合并，因此运行期间上传的 `events.manual.json` 不会被覆盖；push 被拒时最多重试 3 次。
@@ -66,7 +76,7 @@ python3 -m http.server 8000
 
 ## 管理画面 `/admin/`
 
-分为 ホーム / 今日の予定 / News / 設定 四页。ホーム集中显示需要处理的事项（例如公开中的数据不是今天的）；事件用卡片列表加右侧编辑面板，常用字段在前、其余放在「詳細設定」里。“公開用ファイルを作成”只会生成并下载 `events.json`、`events.manual.json`、`news.json`，**不会自动上传**，需要在 GitHub 的 `data/` 上传并 commit 同名文件后才会公开。导出的 `events.json` 与 `scripts/merge-events.mjs` 的结果一致（同一份合并代码 `scripts/schedule-core.mjs`）。详见 [`admin/README.md`](admin/README.md)。
+分为 ホーム / 今日の予定 / 週間スケジュール / News / 予約公開 / 設定。「週間スケジュール」用日历查看和编辑一周（`data/week.json`），设置首页营业卡片几点到几点显示什么，也可以上传 X 的周日程图片让 Actions 读取。ホーム集中显示需要处理的事项（例如公开中的数据不是今天的）；事件用卡片列表加右侧编辑面板，常用字段在前、其余放在「詳細設定」里。“公開用ファイルを作成”只会生成并下载 `events.json`、`events.manual.json`、`news.json`，**不会自动上传**，需要在 GitHub 的 `data/` 上传并 commit 同名文件后才会公开。导出的 `events.json` 与 `scripts/merge-events.mjs` 的结果一致（同一份合并代码 `scripts/schedule-core.mjs`）。详见 [`admin/README.md`](admin/README.md)。
 
 ## 测试
 
@@ -75,6 +85,7 @@ node scripts/test-activity.mjs          # TODAY 优先级、截止边界、跨�
 node scripts/test-activity-browser.mjs [截图目录] # 七个时刻、九个宽度、时钟和后台预览
 node scripts/test-news.mjs              # NEWS 日期边界、兼容、抓取、去重及 X 照片复制
 node scripts/test-news-browser.mjs [截图目录] # NEWS 页面和后台的浏览器验收
+node scripts/test-week-browser.mjs [截图目录] # 今週のスケジュール、营业卡片表示时间段、后台週間スケジュール
 node scripts/test-schedule.mjs          # 数据校验、合并、抓取模拟（Actions 也会运行）
 node scripts/validate-events.mjs data/events.json data/events.auto.json data/news.json
 node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地安装 Playwright；Actions 不运行）

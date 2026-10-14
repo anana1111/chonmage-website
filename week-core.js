@@ -104,7 +104,158 @@
     return schedule;
   }
 
-  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening });
+  // ---------- 表示時間帯 (days[].cards) ----------
+  // A day can say what the home card shows from when to when: each card is a home card
+  // (same fields as heroOverrides) with start / end in Japan time. end may be 24:00.
+  const CARD_STATUSES = ['open', 'ongoing', 'ended', 'closed'];
+  const clock = (value) => (value === '24:00' ? 1440 : isTime(value) ? Number(value.slice(0, 2)) * 60 + Number(value.slice(3)) : NaN);
+  const text = (value) => typeof value === 'string' && value.trim() !== '';
+  const httpsUrl = (value) => { try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password; } catch { return false; } };
+
+  // Problems of one card as [{ key, message }]; an empty list means the card is valid.
+  function cardProblems(card) {
+    if (!card || typeof card !== 'object' || Array.isArray(card)) return [{ key: '', message: 'カードの形式が正しくありません。' }];
+    const problems = [];
+    const add = (key, message) => problems.push({ key, message });
+    if (!isTime(card.start)) add('start', '開始時刻を入力してください（例：17:00）。');
+    if (!isTime(card.end) && card.end !== '24:00') add('end', '終了時刻を入力してください（例：19:00、日付が変わるまでは 24:00）。');
+    else if (isTime(card.start) && clock(card.end) <= clock(card.start)) add('end', '終了は開始より後の時刻にしてください。翌日に続く場合は 24:00 で区切り、翌日の欄に続きを作ります。');
+    if (!CARD_STATUSES.includes(card.status)) add('status', '営業状況を選択してください。');
+    if ((card.status !== 'closed' || card.open) && !isTime(card.open)) add('open', 'OPEN の時刻を入力してください（例：17:00）。');
+    if (card.mainTime || card.mainTitle) {
+      if (!isTime(card.mainTime)) add('mainTime', 'MAIN TIME とイベント名を一緒に入力してください。');
+      if (!text(card.mainTitle)) add('mainTitle', 'MAIN EVENT を入力してください。');
+    }
+    if (!text(card.latestText)) add('latestText', 'LATEST に出す文言を入力してください。');
+    if (card.latestUrl && !httpsUrl(card.latestUrl)) add('latestUrl', 'https:// で始まるURLを入力してください。');
+    return problems;
+  }
+
+  // Problems of a whole day's cards: each card's own, plus overlapping time ranges.
+  function dayCardProblems(cards) {
+    const list = Array.isArray(cards) ? cards : [];
+    const problems = list.map((card) => cardProblems(card));
+    const ranges = list.map((card, index) => ({ index, start: clock(card?.start), end: clock(card?.end) }))
+      .filter((range, index) => !problems[index].some((problem) => ['start', 'end'].includes(problem.key)))
+      .sort((a, b) => a.start - b.start);
+    for (let i = 1; i < ranges.length; i += 1) {
+      if (ranges[i].start < ranges[i - 1].end) problems[ranges[i].index].push({ key: 'start', message: 'ほかの表示時間帯と重なっています。' });
+    }
+    return problems;
+  }
+
+  // The valid cards of one date, in time order. Invalid or overlapping cards are left out.
+  function dayCards(week, date) {
+    const day = rows(week).find((row) => row.date === date);
+    const cards = Array.isArray(day?.cards) ? day.cards : [];
+    const problems = dayCardProblems(cards);
+    return cards.filter((card, index) => !problems[index].length).sort((a, b) => clock(a.start) - clock(b.start));
+  }
+
+  // The card shown at `minute` (minutes since 00:00 JST) on `date`, or null.
+  function activeCard(week, date, minute) {
+    return dayCards(week, date).find((card) => clock(card.start) <= minute && minute < clock(card.end)) || null;
+  }
+
+  // Minutes since 00:00 in Japan time.
+  function japanMinute(now = new Date()) {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(now).map((part) => [part.type, part.value]));
+    return Number(parts.hour) * 60 + Number(parts.minute);
+  }
+
+  // The rows of the week picture for the public 「今週のスケジュール」 card: today and the days
+  // after it. A day disappears once it is over, so an old week shows nothing.
+  function weekDays(week, today) {
+    return rows(week).filter((row) => /^\d{4}-\d{2}-\d{2}$/.test(row.date) && row.date >= today)
+      .sort((a, b) => (a.date < b.date ? -1 : 1));
+  }
+
+  // The week picture with one day replaced by that day's own post (events.json), so a change
+  // the shop posts on X shows in 「今週のスケジュール」 too. The week's own row stays when the
+  // daily data was made from the week picture itself.
+  const fact = (facts, pattern) => (Array.isArray(facts) ? facts : []).find((row) => row && pattern.test(String(row.label || '').trim()))?.value || '';
+  function withDailyPost(week, daily) {
+    if (!week || !daily || typeof daily.date !== 'string' || !daily.source || daily.source.url === week.sourceUrl) return week;
+    const index = rows(week).findIndex((row) => row.date === daily.date);
+    if (index < 0) return week;
+    const old = rows(week)[index];
+    const open = daily.status !== 'closed' && isTime(daily.open);
+    const day = {
+      ...old,
+      open: open ? daily.open : null,
+      close: open && isTime(daily.close) ? daily.close : null,
+      ringGame: open && Boolean(daily.ringGame && daily.ringGame.enabled),
+      events: open ? (Array.isArray(daily.events) ? daily.events : []).filter((event) => event && !event.hidden && isTime(event.time)).map((event) => {
+        // A price the post leaves out stays from the week picture's game at the same time.
+        const same = (Array.isArray(old.events) ? old.events : []).find((row) => row && row.time === event.time) || {};
+        return {
+          time: event.time,
+          title: String(event.title || '').replace(/\s*[\u{1F550}-\u{1F567}]\s*$/u, ''),
+          entry: fact(event.facts, /^(?:ENTRY|エントリー|参加費|参加料金)$/i) || same.entry || '',
+          reentry: fact(event.facts, /^(?:RE-?ENTRY|リエントリー|再エントリー)$/i) || same.reentry || '',
+          lastEntry: fact(event.facts, /^(?:最終受付|late\s*reg(?:istration)?)$/i) || same.lastEntry || '',
+        };
+      }) : [],
+    };
+    const days = rows(week).slice();
+    days[index] = day;
+    return { ...week, days };
+  }
+
+  // 最終受付の時間库 (data/last-entry.json): the usual last entry of a game when its post gives
+  // none. A rule gives fixed times (weekday / holiday, 土日祝 = a 13:00 OPEN day) or `after`,
+  // minutes after the start. The job adds `after` rules from posts that do say LATE REG.
+  const DEFAULT_LAST_ENTRY = { version: 1, rules: [{ title: 'フリーロール', weekday: '18:40', holiday: '14:30', weekdayEnd: '19:00', holidayEnd: '15:00' }] };
+  const titleKey = (value) => String(value || '').normalize('NFKC').replace(/\p{Extended_Pictographic}|\uFE0F/gu, '').replace(/\s+/g, '').toLowerCase();
+  function lastEntryRule(library, title) {
+    const list = [...(Array.isArray(library?.rules) ? library.rules : []), ...DEFAULT_LAST_ENTRY.rules];
+    const key = titleKey(title);
+    const free = eventType(String(title || '')) === 'free';
+    return list.find((rule) => rule && key && titleKey(rule.title) === key) ||
+      (free ? list.find((rule) => rule && eventType(String(rule.title || '')) === 'free') : null) || null;
+  }
+  const hhmm = (minute) => String(Math.floor((minute % 1440) / 60)).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0');
+  // The usual end of a game (`duration` minutes, or weekdayEnd / holidayEnd), or ''.
+  function usualEnd(event, open, library) {
+    if (!event || !isTime(event.time)) return '';
+    const rule = lastEntryRule(library, event.title);
+    if (!rule) return '';
+    if (Number.isInteger(rule.duration) && rule.duration > 0 && rule.duration <= 720) return hhmm(clock(event.time) + rule.duration);
+    const fixed = isTime(open) && open < '15:00' ? rule.holidayEnd : rule.weekdayEnd;
+    return isTime(fixed) && fixed > event.time ? fixed : '';
+  }
+  function usualLastEntry(event, open, library) {
+    if (!event || !isTime(event.time)) return '';
+    const rule = lastEntryRule(library, event.title);
+    if (!rule) return '';
+    if (Number.isInteger(rule.after) && rule.after > 0 && rule.after <= 720) {
+      return hhmm(clock(event.time) + rule.after);
+    }
+    const fixed = isTime(open) && open < '15:00' ? rule.holiday : rule.weekday;
+    return isTime(fixed) && fixed > event.time ? fixed : '';
+  }
+  // A copy of a day's events.json with 最終受付 added from the library where the post gave none.
+  const LAST_ENTRY_LABEL = /^(?:最終受付|late\s*reg(?:istration)?)$/i;
+  function withLastEntries(schedule, library) {
+    if (!schedule || !Array.isArray(schedule.events)) return schedule;
+    let changed = false;
+    const events = schedule.events.map((event) => {
+      if (!event) return event;
+      let next = event;
+      const hasLate = Array.isArray(event.facts) && event.facts.some((row) => row && LAST_ENTRY_LABEL.test(String(row.label || '').trim()));
+      const late = hasLate ? '' : usualLastEntry(event, schedule.open, library);
+      if (late) next = { ...next, facts: [...(Array.isArray(event.facts) ? event.facts : []), { label: '最終受付', value: late }] };
+      // Without an end the card would say the game runs for hours after it is over.
+      const end = isTime(event.end) ? '' : usualEnd(event, schedule.open, library);
+      if (end) next = { ...next, end };
+      if (next !== event) changed = true;
+      return next;
+    });
+    return changed ? { ...schedule, events } : schedule;
+  }
+
+  const api = Object.freeze({ DEFAULT_CLOSE, fillClose, daySchedule, nextOpening, cardProblems, dayCardProblems, dayCards, activeCard, japanMinute, weekDays, withDailyPost, titleKey, usualLastEntry, usualEnd, withLastEntries });
   root.ChonmageWeek = api;
   if (typeof module === 'object' && module.exports) module.exports = api;
 })(globalThis);

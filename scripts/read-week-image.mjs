@@ -2,8 +2,17 @@
 // logged-in X read (X_POSTS_PATH), asks GitHub Models (free with the workflow's GITHUB_TOKEN)
 // to read the picture, checks the answer strictly and saves it as data/week.json.
 // Anything unclear keeps the old file; the daily OPEN post still corrects each day.
+// Staff can also upload the picture to data/week-upload/ (from /admin/); the newest uploaded
+// picture is read the same way and wins over an X post that is not newer than the upload.
 import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { WEEK_FILE, weekDaySchedule } from './week-schedule.mjs';
+
+export const UPLOAD_DIR = 'data/week-upload';
+const PROFILE_URL = 'https://x.com/ChonmageNiigata';
+const IMAGE_TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
 
 const HANDLE = 'ChonmageNiigata';
 const MODEL = 'openai/gpt-4.1';
@@ -33,13 +42,20 @@ export function findWeekPost(value, now = new Date()) {
     .sort((a, b) => b.postedAt - a.postedAt)[0] || null;
 }
 
+// The ※ lines under the table (施設利用料, 変更の可能性…): short plain strings only.
+export function weekNotes(value) {
+  return (Array.isArray(value) ? value : []).map((note) => String(note ?? '').replace(/\s+/g, ' ').trim())
+    .filter((note) => note && note.length <= 120).slice(0, 5);
+}
+
 // Turns the model's {days:[{month, day, ...}]} into week.json, or throws on anything doubtful.
-export function weekFromAnswer(answer, post) {
+// An X post comes a day before its week; an upload may come in the middle of the week (daysBefore 7).
+export function weekFromAnswer(answer, post, { daysBefore = 1 } = {}) {
   const rows = answer?.days;
   if (!Array.isArray(rows) || rows.length < 1 || rows.length > 14) throw new Error('expected 1-14 days');
   const posted = jstDate(post.postedAt);
   const year = Number(posted.slice(0, 4));
-  const earliest = new Date(Date.parse(posted + 'T00:00:00+09:00') - DAY_MS);
+  const earliest = new Date(Date.parse(posted + 'T00:00:00+09:00') - daysBefore * DAY_MS);
   const latest = new Date(Date.parse(posted + 'T00:00:00+09:00') + 14 * DAY_MS);
   const seen = new Set();
   const days = rows.map((row) => {
@@ -65,6 +81,8 @@ export function weekFromAnswer(answer, post) {
     return { date, open: row.open || '', close: row.close || '', ringGame: Boolean(row.ringGame), events };
   }).sort((a, b) => a.date.localeCompare(b.date));
   const week = { version: 1, sourceUrl: post.url, days };
+  const notes = weekNotes(answer?.notes);
+  if (notes.length) week.notes = notes;
   for (const row of days) weekDaySchedule(week, row.date);
   return week;
 }
@@ -76,7 +94,10 @@ Rules: one row per date shown, in order. open/close are the business hours (24h 
 ringGame is true when a ring game runs all day (終日 NLHリングゲーム); do not list it as an event.
 Each timed row is an event: copy the title exactly as printed, entry from the ENTRY column and
 reentry from the RENTRY column exactly as printed (無料 stays 無料; empty string if none).
-If a date says closed (休業/定休日), give it "open":"" and no events. Do not guess unreadable text.`;
+If a date says closed (休業/定休日), give it "open":"" and no events.
+"notes": every ※ note printed under the table, one string per note, joined into one line each
+(e.g. "施設利用料（500円）とワンドリンクオーダー制（フリーロールの参加者はファーストドリンクサービス）となっております。");
+[] if none. Do not guess unreadable text.`;
 
 async function askModel(imageBytes, type, token, fetchImpl) {
   const problems = [];
@@ -113,7 +134,63 @@ async function askModel(imageBytes, type, token, fetchImpl) {
   throw new Error('GitHub Models did not answer: ' + problems.join(' | ') + ' | text-only probe: ' + probe + ' | picture ' + imageBytes.length + ' bytes');
 }
 
-export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, weekPostsPath = process.env.X_WEEK_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, now = new Date() } = {}) {
+// 表示時間帯 (days[].cards) are set by staff, not read from the picture. A new week keeps the
+// cards of the same date, or else of the latest earlier day with the same weekday.
+export function withCards(next, old) {
+  // The ※ notes rarely change; a picture read without them keeps the previous week's.
+  if (!next.notes?.length && Array.isArray(old?.notes) && old.notes.length) next.notes = weekNotes(old.notes);
+  const oldDays = (Array.isArray(old?.days) ? old.days : []).filter((day) => day && typeof day.date === 'string' && Array.isArray(day.cards) && day.cards.length)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+  const weekday = (date) => new Date(date + 'T12:00:00+09:00').getUTCDay();
+  next.days.forEach((day) => {
+    if (day.cards?.length) return;
+    const source = oldDays.find((row) => row.date === day.date) || oldDays.find((row) => weekday(row.date) === weekday(day.date));
+    if (source) day.cards = JSON.parse(JSON.stringify(source.cards));
+  });
+  return next;
+}
+
+const jstIso = (date) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+  .format(date).replace(' ', 'T') + '+09:00';
+
+// The newest picture in data/week-upload/ (by commit time, else file time), or null.
+export function findUpload(dir = UPLOAD_DIR) {
+  let names = [];
+  try { names = fs.readdirSync(dir); } catch { return null; }
+  return names.filter((name) => IMAGE_TYPES[path.extname(name).toLowerCase()])
+    .map((name) => {
+      const file = path.join(dir, name);
+      let at = NaN;
+      try { at = Date.parse(execFileSync('git', ['log', '-1', '--format=%cI', '--', file], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()); } catch {}
+      if (Number.isNaN(at)) at = fs.statSync(file).mtimeMs;
+      return { file: file.split(path.sep).join('/'), name, at: new Date(at), type: IMAGE_TYPES[path.extname(name).toLowerCase()] };
+    })
+    .sort((a, b) => b.at - a.at || (a.name < b.name ? 1 : -1))[0] || null;
+}
+
+async function readUpload({ upload, token, force, fetchImpl, file, current }) {
+  const bytes = fs.readFileSync(upload.file);
+  const sha = crypto.createHash('sha256').update(bytes).digest('hex');
+  if (current?.imageSha256 === sha && !force) { console.log('Uploaded week picture already read: ' + upload.file); return false; }
+  if (!token) throw new Error('GITHUB_TOKEN is missing');
+  const post = { url: PROFILE_URL, postedAt: upload.at };
+  const read = weekFromAnswer(await askModel(bytes, upload.type, token, fetchImpl), post, { daysBefore: 7 });
+  const week = withCards({ version: 1, sourceUrl: PROFILE_URL, source: 'upload', image: upload.file, imageSha256: sha, uploadedAt: jstIso(upload.at), ...(read.notes ? { notes: read.notes } : {}), days: read.days }, current);
+  fs.writeFileSync(file, JSON.stringify(week, null, 2) + '\n');
+  console.log('read the week schedule from the uploaded picture ' + upload.file + ':');
+  for (const day of week.days) console.log('  ' + day.date + ' ' + (day.open || '休業') + (day.close ? '-' + day.close : '') + ' | ' + day.events.map((event) => event.time + ' ' + event.title).join(' | '));
+  return true;
+}
+
+export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, weekPostsPath = process.env.X_WEEK_POSTS_PATH, token = process.env.GITHUB_TOKEN, force = process.env.REREAD_WEEK === 'true', fetch: fetchImpl = globalThis.fetch, file = WEEK_FILE, uploadDir = UPLOAD_DIR, now = new Date() } = {}) {
+  let current = null;
+  try { current = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
+  // A picture uploaded by staff is read first; an unread one always wins.
+  const upload = findUpload(uploadDir);
+  if (upload && now - upload.at < 8 * DAY_MS) {
+    const changed = await readUpload({ upload, token, force, fetchImpl, file, current });
+    if (changed) return true;
+  }
   const files = [postsPath, weekPostsPath].filter((file) => file && fs.existsSync(file));
   if (!files.length) { console.log('No logged-in X posts; week picture not checked.'); return false; }
   const tweets = files.flatMap((file) => { try { const value = JSON.parse(fs.readFileSync(file, 'utf8')); return Array.isArray(value?.data) ? value.data : []; } catch { return []; } });
@@ -125,15 +202,14 @@ export async function readWeekImage({ postsPath = process.env.X_POSTS_PATH, week
     for (const tweet of rows.filter((row) => /スケジュール/.test(row.text || ''))) console.log('  schedule-like post ' + tweet.id + ' ' + (tweet.createdAtISO || '') + ' media=' + (tweet.media || []).map((item) => item.type).join(',') + ': ' + String(tweet.text).replace(/\s+/g, ' ').slice(0, 80));
     return false;
   }
-  let current = null;
-  try { current = JSON.parse(fs.readFileSync(file, 'utf8')); } catch {}
   if (current?.sourceUrl === post.url && !force) { console.log('Week schedule already read from ' + post.url); return false; }
+  if (current?.source === 'upload' && post.postedAt <= Date.parse(current.uploadedAt)) { console.log('The uploaded week picture is newer than ' + post.url + '; keeping it.'); return false; }
   if (!token) throw new Error('GITHUB_TOKEN is missing');
   const image = await fetchImpl(post.image + '?format=jpg&name=medium', { signal: AbortSignal.timeout(20000) });
   if (!image.ok) throw new Error('picture HTTP ' + image.status);
   const bytes = Buffer.from(await image.arrayBuffer());
   const type = (image.headers.get('content-type') || 'image/jpeg').split(';')[0];
-  const week = weekFromAnswer(await askModel(bytes, type, token, fetchImpl), post);
+  const week = withCards(weekFromAnswer(await askModel(bytes, type, token, fetchImpl), post), current);
   fs.writeFileSync(file, JSON.stringify(week, null, 2) + '\n');
   console.log('read the week schedule from ' + post.url + ':');
   for (const day of week.days) console.log('  ' + day.date + ' ' + (day.open || '休業') + (day.close ? '-' + day.close : '') + ' | ' + day.events.map((event) => event.time + ' ' + event.title + ' ' + event.entry + '/' + event.reentry).join(' | '));

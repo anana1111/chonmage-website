@@ -46,7 +46,8 @@ const server = http.createServer((request, response) => {
   let file = path.join(root, decodeURIComponent(pathname));
   if (!file.startsWith(root + path.sep) && file !== root) { response.writeHead(403).end(); return; }
   if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
-  if (!fs.existsSync(file)) { response.writeHead(404).end(); return; }
+  // Like GitHub Pages: a missing path answers 404 with the site's 404.html as the body.
+  if (!fs.existsSync(file)) { response.writeHead(404, { 'content-type': 'text/html' }).end(fs.readFileSync(path.join(root, '404.html'))); return; }
   response.writeHead(200, { 'content-type': mime[path.extname(file)] || 'application/octet-stream' }); fs.createReadStream(file).pipe(response);
 });
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -56,6 +57,8 @@ let checks = 0;
 function check(condition, label) { assert.ok(condition, label); checks++; }
 async function open(url, width = 390, fixture = data) {
   const context = await browser.newContext({ viewport: { width, height: 900 }, locale: 'ja-JP', timezoneId: 'Asia/Tokyo' });
+  // Same unlock the week browser test uses, so the admin opens without the password screen.
+  await context.addInitScript(() => { try { localStorage.setItem('chonmage-admin-unlock', '9e06018654272ea14463bc3c1652fd88ac344865948d75336ccf7b8f21c04360'); } catch {} });
   const page = await context.newPage(); const errors = [];
   page.on('pageerror', (error) => errors.push(String(error)));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
@@ -64,8 +67,8 @@ async function open(url, width = 390, fixture = data) {
   await page.route(/\/data\/news\.json/, (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(fixture) }));
   await page.goto(origin + url, { waitUntil: 'load' });
   if (url.includes('/admin/')) await page.waitForFunction(() => !document.getElementById('editor-form').hidden);
-  else if (url.includes('/news/')) await page.waitForFunction(() => document.getElementById('news-content-view').getAttribute('aria-busy') === 'false');
-  else await page.waitForFunction(() => document.querySelector('.news-grid .news-card'));
+  else if (url.includes('/news/')) await page.waitForFunction(() => document.getElementById('news-content-view')?.getAttribute('aria-busy') === 'false');
+  else await page.waitForFunction(() => document.querySelector('.news-grid .news-feature'));
   await page.waitForFunction(() => [...document.images].filter((image) => image.loading !== 'lazy').every((image) => image.complete));
   return { page, context, errors };
 }
@@ -89,10 +92,13 @@ try {
       check(report.overflow <= 0 && report.outside === 0, width + ' ' + url + ': no overflow');
       check(errors.length === 0, width + ' ' + url + ': no JS/console error ' + errors.join(';'));
       if (url === '/') {
-        check(await page.locator('#news .news-card').count() === 3, 'Homepage caps NEWS at 3');
-        const hrefs = await page.locator('#news .news-card a').evaluateAll((links) => links.map((link) => link.href));
-        check(hrefs.every((url) => url.includes('/news/?id=') && !url.includes('x.com')), 'Home cards link internally');
-        check(await page.locator('.all-news-link').getAttribute('href') === './news/', 'All NEWS uses relative directory');
+        check(await page.locator('#news .news-feature').count() === 1 && await page.locator('#news .news-row').count() === 3, 'Homepage shows one large NEWS card and three rows');
+        check((await page.locator('#news .news-feature .news-badge').textContent()) === '最新', 'Large card marks the latest NEWS');
+        check(await page.locator('#news .news-row .news-badge').count() === 0, 'Rows have no badge when nothing is pinned');
+        const hrefs = await page.locator('#news .news-feature a, #news .news-row a').evaluateAll((links) => links.map((link) => link.href));
+        check(hrefs.length === 4, 'Each homepage NEWS has exactly one link');
+        check(hrefs.every((url) => /\/news\/[A-Za-z0-9._-]+\/$/.test(new URL(url).pathname) && !url.includes('x.com')), 'Home cards link to their own NEWS page');
+        check(await page.locator('#news .all-news-link').getAttribute('href') === './news/', 'All NEWS uses relative directory');
       }
       if (url === '/news/') check(await page.locator('.news-card').count() === validCount, 'Only current published NEWS rendered');
       if (url.includes('id=long')) {
@@ -104,7 +110,7 @@ try {
         check(await page.locator('.news-source').getAttribute('href') === 'https://x.com/ChonmageNiigata/status/2', 'Original X button uses captured URL');
         check((await page.title()).includes('お知らせ x'), 'Detail title uses NEWS heading');
         check(await page.locator('time').getAttribute('datetime') === '2026-10-03T12:58:00+09:00', 'Semantic Japan publication date');
-        check((await page.locator('img').getAttribute('alt')).includes('お知らせ'), 'Image has alt');
+        check((await page.locator('.news-photo img').getAttribute('alt')).includes('お知らせ'), 'Image has alt');
       }
       if (url.includes('id=tall')) {
         await page.locator('.news-photo').scrollIntoViewIfNeeded();
@@ -118,6 +124,23 @@ try {
       }
       await context.close();
     }
+  }
+  {
+    // A pinned post takes the large card as 注目; categories read in Japanese on the homepage.
+    const pinned = { items: data.items.map((row) => row?.id === 'noimage' ? { ...row, pinned: true, category: 'RESULT' } : row?.id === 'manual' ? { ...row, category: 'SCHEDULE' } : row) };
+    const { page, context, errors } = await open('/', 390, pinned);
+    await page.locator('#news .news-list').scrollIntoViewIfNeeded();
+    check((await page.locator('#news .news-feature h3').textContent()) === 'お知らせ noimage', 'Pinned NEWS takes the large card');
+    check((await page.locator('#news .news-feature .news-badge').textContent()) === '注目', 'Pinned NEWS is marked 注目');
+    check((await page.locator('#news .news-feature .news-category').textContent()) === '大会結果', 'RESULT reads 大会結果');
+    check((await page.locator('#news .news-row').first().locator('.news-category').textContent()) === '営業案内', 'SCHEDULE reads 営業案内');
+    check(await page.locator('#news .news-feature .news-image-fallback').isVisible(), 'Large card without a photo shows its label');
+    const tapped = await page.locator('#news .news-row').first().locator('.news-row-image').evaluate((picture) => {
+      const box = picture.getBoundingClientRect();
+      return document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)?.closest('a')?.getAttribute('href') || '';
+    });
+    check(tapped.endsWith('/news/manual/'), 'Tapping a row picture opens that post');
+    check(!errors.length, 'Pinned homepage NEWS has no console error'); await context.close();
   }
   for (const [id, message] of [['expired', 'このニュースは掲載終了しました。'], ['pinned-expired', 'このニュースは掲載終了しました。'], ['missing', 'ニュースが見つかりませんでした。'], ['future', 'このニュースは現在公開されていません。'], ['draft', 'このニュースは現在公開されていません。']]) {
     const { page, context, errors } = await open('/news/?id=' + id);
@@ -155,12 +178,39 @@ try {
   }
   {
     const { page, context } = await open('/chonmage-website/');
-    await page.locator('.all-news-link').click(); await page.waitForURL('**/chonmage-website/news/');
+    await page.locator('#news .all-news-link').click(); await page.waitForURL('**/chonmage-website/news/');
     await page.locator('.news-card h3 a').first().click(); await page.waitForURL('**/news/?id=*');
     await page.locator('.news-backlinks a').first().click(); await page.waitForURL('**/chonmage-website/news/');
     await page.goBack(); check(page.url().includes('?id='), 'Browser Back restores detail');
     await page.reload(); await page.waitForSelector('.news-body'); check(page.url().includes('/chonmage-website/news/'), 'Project path direct refresh works');
     await page.locator('.news-backlinks a').nth(1).click(); await page.waitForURL('**/chonmage-website/'); check(true, 'NEWS navigation returns HOME'); await context.close();
+  }
+  // A post that is live in the browser but whose static page is not generated yet (scheduled post
+  // before the next workflow run) must open in the live viewer, never on a 404 or in a redirect loop.
+  {
+    const { page, context, errors } = await open('/news/manual/');
+    await page.waitForURL('**/news/?id=manual'); await page.waitForSelector('.news-body');
+    check((await page.locator('h1').first().innerText()).includes('10月イベント'), 'Missing NEWS page falls back to the live viewer');
+    await page.waitForTimeout(500); check(page.url().endsWith('/news/?id=manual'), 'Fallback does not loop back to the missing page');
+    // The only console line allowed is Chrome's note about the 404 response that started the fallback.
+    const unexpected = errors.filter((error) => !error.includes('status of 404'));
+    check(unexpected.length === 0, 'Fallback has no JS error ' + unexpected.join(';')); await context.close();
+  }
+  {
+    const { page, context } = await open('/news/does-not-exist/');
+    await page.waitForURL('**/news/?id=does-not-exist'); await page.waitForSelector('.news-state');
+    check((await page.locator('.news-state').innerText()).includes('見つかりません'), 'Unknown NEWS id shows not-found state'); await context.close();
+  }
+  {
+    const context = await browser.newContext(); const page = await context.newPage();
+    await page.goto(origin + '/no-such-page/');
+    check((await page.locator('h1').innerText()).includes('ページが見つかりません') && page.url().endsWith('/no-such-page/'), 'Other missing paths show the 404 page'); await context.close();
+  }
+  {
+    // Old shared links still move to the crawlable page once it exists.
+    const generated = JSON.parse(fs.readFileSync(path.join(root, 'data/news-pages.generated.json'), 'utf8')).ids[0];
+    const { page, context } = await open('/news/?id=' + generated, 390, { items: [record(generated)] });
+    await page.waitForURL('**/news/' + generated + '/'); check(true, 'Old ?id= link redirects to an existing static page'); await context.close();
   }
   {
     const { page, context } = await open('/news/?id=x');

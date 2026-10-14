@@ -41,7 +41,7 @@
       const explicitEnd = afterStart(event.end, start, open);
       const end = explicitEnd !== null ? explicitEnd : (registrationEnd ?? start) + RUNNING;
       if (registrationEnd !== null && registrationEnd > end) registrationEnd = null;
-      return [{ id: text(event.id) || `event-${index}`, title: text(event.title), start, startTime: text(event.time), registrationEnd, end,
+      return [{ id: text(event.id) || `event-${index}`, title: text(event.title), start, startTime: text(event.time), registrationEnd, end, endKnown: explicitEnd !== null,
         facts, tags: (Array.isArray(event.tags) ? event.tags : []).filter((tag) => typeof tag === 'string'), description: text(event.description),
         link: { label: text(event.link?.label) || '公式Xで確認 ↗', url: safeLink(event.link?.url, true) || safeLink(data.schedulePostUrl) || safeLink(data.latestXUrl) || OFFICIAL_X } }];
     }).sort((a, b) => a.start - b.start);
@@ -124,7 +124,18 @@
   function eventStatusText(event, selected) {
     if (event.status === 'upcoming') return selected ? '開催予定' : `開始まであと${formatRemaining(event.remaining)}`;
     if (['registering', 'last-call'].includes(event.status)) return `受付中 · あと${formatRemaining(event.remaining)}`;
-    return event.registrationEnd === null ? '開催中 · 受付はXで確認' : '開催中 · 受付終了';
+    // The end of a game is not known (a FREE ROLL can finish early), so a started game shows
+    // its start and last entry instead of 開催中.
+    const start = `${event.startTime} 開始`;
+    return event.registrationEnd === null ? `${start} · 最終受付はXで確認` : `${start} · 最終受付 ${minuteLabel(event.registrationEnd % DAY)}`;
+  }
+  // 最終受付 and 終了予定 shown on the card itself (from the post or the time library).
+  // A started game already says its 最終受付 in eventStatusText.
+  function timesText(event) {
+    const parts = [];
+    if (event.status === 'upcoming' && event.registrationEnd !== null) parts.push(`最終受付 ${minuteLabel(event.registrationEnd % DAY)}`);
+    if (event.endKnown) parts.push(`終了予定 ${minuteLabel(event.end % DAY)}`);
+    return parts.join(' · ');
   }
   function heroContent(state, schedule, selected) {
     const remaining = formatRemaining(state.remaining);
@@ -169,6 +180,7 @@
     hero.append(status, value);
     if (content.title) hero.append(node('p', 'activity-title', content.title));
     hero.append(node('p', 'activity-description', content.description));
+    if (state.event && timesText(state.event)) hero.append(node('p', 'activity-times', timesText(state.event)));
     if (state.event) {
       const highlights = state.event.facts.filter((fact) => /entry|参加|施設利用料|stack|持ち点/i.test(fact.label)).slice(0, 3);
       if (highlights.length) hero.append(factsList(highlights, 'activity-meta'));
@@ -184,6 +196,7 @@
       card.append(node('p', 'activity-card-label', label), node('h3', 'activity-card-title', event.title));
       const description = ring ? event.status === 'upcoming' ? `${minuteLabel(event.start)}から参加OK` : 'いつでも参加OK' : eventStatusText(event, selected);
       card.append(node('p', 'activity-card-state', description));
+      if (!ring && timesText(event)) card.append(node('p', 'activity-card-times', timesText(event)));
       card.append(detailsFor(ring ? { ...event, link: { label: 'Xで状況を見る ↗', url: schedule.latestUrl } } : event, openIds)); secondarySection.append(card);
     });
     fragment.append(secondarySection);
@@ -194,11 +207,15 @@
       const row = node('li'); row.dataset.activityEvent = event.id; row.dataset.eventStatus = event.status;
       const details = detailsFor(event, openIds), summary = details.querySelector('summary');
       summary.replaceChildren(node('span', 'activity-later-time', event.startTime), node('span', 'activity-later-name', event.title), node('span', 'activity-later-remaining', selected ? '開催予定' : `あと${formatRemaining(event.remaining)}`));
+      if (timesText(event)) summary.append(node('span', 'activity-later-times', timesText(event)));
       row.append(details); list.append(row);
     });
     const closedText = schedule.nextOpen ? `次の営業は${schedule.nextOpen}です。` : '次回の開催情報は公式Xをご確認ください。';
     if (!later.length) list.append(node('li', 'activity-empty', ['after-close', 'closed-day'].includes(state.type) ? closedText : 'このあと予定されているゲームはありません。'));
-    laterSection.append(laterTitle, list); fragment.append(laterSection); container.replaceChildren(fragment);
+    laterSection.append(laterTitle, list);
+    // The 置きバケ phone line sits right above 「今日このあと」 (it starts below the week until today renders).
+    const okibake = document.querySelector('.okibake'); if (okibake) fragment.append(okibake);
+    fragment.append(laterSection); container.replaceChildren(fragment);
     let announce = document.getElementById('activity-announce');
     if (!announce) { announce = node('p', 'activity-sr-only'); announce.id = 'activity-announce'; announce.setAttribute('aria-live', 'polite'); announce.setAttribute('aria-atomic', 'true'); container.after(announce); }
     if (identity !== lastIdentity) announce.textContent = `${content.kicker} ${content.value} ${content.title}`;

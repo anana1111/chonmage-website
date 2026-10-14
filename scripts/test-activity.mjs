@@ -51,4 +51,30 @@ equal(a.nextMinuteDelay(59999), 21); equal(a.nextMinuteDelay(120000), 60020);
 const original = fixture(), serialized = JSON.stringify(original); a.adaptSchedule(original); equal(JSON.stringify(original), serialized);
 equal(a.adaptSchedule(fixture({ events: [{ time: '13:30', title: '電話で確認', link: { label: '電話', url: 'tel:025-123-4567' } }] })).events[0].link.url, 'tel:025-123-4567');
 equal(a.adaptSchedule(fixture({ events: [{ time: '13:30', title: '不正なリンク', link: { url: 'javascript:alert(1)' } }] })).events[0].link.url, 'https://x.com/ChonmageNiigata');
+// 最終受付の時間库: FREE ROLL 土日祝 (13:00 OPEN) 14:30 / weekdays 18:40, learned `after` rules.
+{
+  const core = (await import('../week-core.js')).default || globalThis.ChonmageWeek;
+  const { learnLastEntries } = await import('./learn-last-entry.mjs');
+  const library = { version: 1, rules: [{ title: 'THE DAILY', after: 130, duration: 240 }] };
+  equal(core.usualLastEntry({ time: '13:30', title: 'フリーロール 🕜' }, '13:00', null), '14:30');
+  equal(core.usualLastEntry({ time: '18:00', title: 'フリーロール' }, '17:00', null), '18:40');
+  equal(core.usualLastEntry({ time: '19:10', title: 'ふるまちdeトナメ' }, '17:00', library), '');
+  equal(core.usualLastEntry({ time: '18:00', title: 'THE DAILY 🕕' }, '17:00', library), '20:10');
+  equal(core.usualLastEntry({ time: '23:00', title: 'THE DAILY' }, '17:00', library), '01:10');
+  const enriched = core.withLastEntries(fixture({ events: [{ id: 'fr', time: '13:30', title: 'フリーロール', type: 'free' }, { id: 'd', time: '18:00', title: 'THE DAILY', facts: [{ label: 'LATE REG', value: '20:30' }] }] }), library);
+  equal(enriched.events[0].facts, [{ label: '最終受付', value: '14:30' }]);
+  equal(enriched.events[0].end, '15:00');
+  equal(enriched.events[1].end, '22:00');
+  equal(core.usualEnd({ time: '18:00', title: '平日フリーロール' }, '17:00', null), '19:00');
+  equal(a.getEventStatus(a.adaptSchedule(enriched).events[0], 15 * 60).status, 'finished');
+  equal(enriched.events[1].facts, [{ label: 'LATE REG', value: '20:30' }]);
+  equal(a.adaptSchedule(enriched).events[0].registrationEnd, 14 * 60 + 30);
+  // Learning keeps fixed rules and records `after` for tournaments with LATE REG.
+  const learned = learnLastEntries({ version: 1, rules: [{ title: 'フリーロール', weekday: '18:40', holiday: '14:30', fixed: true }] },
+    { date: '2026-10-12', source: { url: 'https://x.com/ChonmageNiigata/status/1' }, events: [
+      { time: '13:30', title: 'フリーロール', type: 'free', facts: [{ label: '最終受付', value: '14:00' }] },
+      { time: '19:10', title: 'ふるまちdeトナメ 🕖', facts: [{ label: '最終受付', value: '21:00' }] }] });
+  equal(learned.rules.map((rule) => [rule.title, rule.after ?? rule.weekday]), [['フリーロール', '18:40'], ['ふるまちdeトナメ', 110]]);
+  equal(learnLastEntries(learned, { events: [] }), learned);
+}
 console.log(`Activity state tests passed (${checks} checks)`);

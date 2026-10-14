@@ -118,13 +118,15 @@ await scenario('before open', { time: jst('16:00'), events: fixture() }, (s) => 
 });
 await scenario('event without end just started stays NOW', { time: jst('18:05'), events: fixture() }, (s) => {
   assert.equal(s.status, '営業中');
-  assert.deepEqual(s.states, ['free-1800:running', 'event-1910:upcoming']);
-  assert.equal(s.activity, 'open-ring');
+  // A weekday FREE ROLL takes entries until 18:40 unless the post says otherwise.
+  assert.deepEqual(s.states, ['free-1800:registering', 'event-1910:upcoming']);
+  assert.equal(s.activity, 'tournament-open');
   assert.equal(s.next, 'NEXT · MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.main, null, 'MAIN is not repeated');
 });
 await scenario('NOW preferred over NEXT', { time: jst('19:30'), events: fixture() }, (s) => {
-  assert.deepEqual(s.states, ['free-1800:running', 'event-1910:running']);
+  // The weekday FREE ROLL ends at 19:00 (time library).
+  assert.deepEqual(s.states, ['event-1910:running']);
   assert.equal(s.next, 'NOW · MAIN 19:10 ふるまちトーナメント');
   assert.equal(s.main, null);
 });
@@ -236,7 +238,10 @@ await scenario('repository data (real events.json) at a later date', { time: jst
 
 // --- page left open: the minute refresh follows the clock without closing open details ---
 {
-  const { page, context, errors } = await openPage({ time: jst('18:55'), events: fixture() });
+  // The FREE ROLL runs past 19:15 here so its card stays (the time library ends it at 19:00).
+  const events = fixture();
+  events.events = events.events.map((event) => (event.id === 'free-1800' ? { ...event, end: '20:00' } : event));
+  const { page, context, errors } = await openPage({ time: jst('18:55'), events });
   await page.locator('[data-activity-event="free-1800"] summary').click();
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
   ok(await page.locator('[data-activity-event="free-1800"] details').evaluate((d) => d.open), 'refresh without changes keeps details open');

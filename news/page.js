@@ -20,9 +20,21 @@
       if (!item) state('ニュースが見つかりませんでした。');
       else if (core.status(item, now) === 'Expired') state('このニュースは掲載終了しました。');
       else if (core.status(item, now) !== 'Published') state('このニュースは現在公開されていません。');
-      // Old shared links (/news/?id=…) move to the item's own crawlable page.
-      else if (/^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/.test(id)) location.replace(new URL('news/' + id + '/', siteRoot).href);
-      else { title(item.title); container.replaceChildren(view.detail(item, siteRoot)); }
+      else {
+        title(item.title); container.replaceChildren(view.detail(item, siteRoot));
+        // Old shared links (/news/?id=…) move to the item's own crawlable page, but only once that
+        // page exists: a scheduled post goes live in the browser before the next workflow run
+        // generates its page, and redirecting then would land on a 404.
+        if (/^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/.test(id)) {
+          // data/news-pages.generated.json lists the pages the workflow has generated.
+          fetch(new URL('data/news-pages.generated.json?v=' + Date.now(), siteRoot), { cache: 'no-store' })
+            .then((response) => (response.ok ? response.json() : null))
+            .then((manifest) => {
+              if (Array.isArray(manifest?.ids) && manifest.ids.includes(id)) location.replace(new URL('news/' + id + '/', siteRoot).href);
+            })
+            .catch(() => {});
+        }
+      }
     } else {
       title('NEWS');
       const fragment = document.createDocumentFragment();

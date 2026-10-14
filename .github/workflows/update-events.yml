@@ -11,15 +11,16 @@ on:
       - 'data/news.json'
       - 'data/events.manual.json'
       - 'data/week.json'
+      - 'data/week-upload/**'
+      - 'data/last-entry.json'
       - '.github/workflows/update-events.yml'
   schedule:
     # Cron is UTC (JST = UTC+9). Minutes are offset from :00 to avoid the busiest slot.
-    # Every day: JST 09:07 / 12:07 / 13:07 / 15:07
-    - cron: '7 0,3,4,6 * * *'
-    # Weekdays: daily posts appear around the 17:00 OPEN -> JST 16:17 – 19:47 every 30 min
-    - cron: '17,47 7-10 * * 1-5'
-    # Weekends: 13:00 OPEN -> JST 11:17 – 13:47 every 30 min
-    - cron: '17,47 2-4 * * 0,6'
+    # Every morning: JST 09:07
+    - cron: '7 0 * * *'
+    # Every day while the shop may post changes: JST 11:17 – 22:47 every 30 min, so a changed
+    # schedule on X reaches 本日のスケジュール and 今週のスケジュール within about 30 minutes.
+    - cron: '17,47 2-13 * * *'
     # Just after midnight JST (00:05): today's row of the week picture becomes the new day.
     # The page already switches by itself at midnight; this keeps events.json in step.
     - cron: '5 15 * * *'
@@ -43,6 +44,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Commit times decide which uploaded week picture is the newest.
+          fetch-depth: 50
 
       - uses: actions/setup-node@v4
         with:
@@ -73,6 +77,7 @@ jobs:
           [ -f "$RUNNER_TEMP/x-week-posts.json" ] && node -e "const d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));console.log('pinned post: ' + (d.data||[]).map(t=>t.id+' '+String(t.text).slice(0,30)).join(' / '))" "$RUNNER_TEMP/x-week-posts.json" || true
 
       # The Sunday week picture is read once by GitHub Models (free with GITHUB_TOKEN).
+      # A picture uploaded to data/week-upload/ (admin 週間スケジュール) is read the same way and wins.
       # A failure only warns: the old week.json and the daily OPEN posts still work.
       - name: Read the week schedule picture
         env:
@@ -97,6 +102,10 @@ jobs:
 
       - name: Merge manual overrides over automatic data
         run: node scripts/merge-events.mjs
+
+      # 最終受付の時間库: a game whose post gives LATE REG is remembered for later days.
+      - name: Learn last-entry times from today's post
+        run: node scripts/learn-last-entry.mjs data/events.json || echo "::warning::last-entry times were not learned."
 
       - name: Validate final public schedule
         run: node scripts/validate-events.mjs data/events.json data/news.json
@@ -125,12 +134,13 @@ jobs:
             cp "$AUTO_TMP" data/events.auto.json
             if [ -f "$RUNNER_TEMP/week-changed" ]; then cp "$WEEK_TMP" data/week.json; fi
             node scripts/merge-events.mjs
+            node scripts/learn-last-entry.mjs data/events.json || echo "::warning::last-entry times were not learned."
             node scripts/sync-news.mjs "$RUNNER_TEMP/chonmage-news-candidates.json"
             # A photo problem must never block the schedule update, so it only warns.
             node scripts/news-images.mjs data/news.json || echo "::warning::NEWS photos were not copied; the X links stay."
             node scripts/validate-events.mjs data/events.json data/news.json
             node scripts/generate-news-pages.mjs
-            git add data/events.auto.json data/events.json data/news.json data/week.json
+            git add data/events.auto.json data/events.json data/news.json data/week.json data/last-entry.json
             git add -A data/news-pages.generated.json news sitemap.xml
             if [ -d images/news ]; then git add images/news; fi
             if git diff --cached --quiet; then
@@ -139,6 +149,7 @@ jobs:
             fi
             git commit --quiet -m "Update daily events, NEWS and SEO pages for $DATE"
             if git push origin HEAD:main; then
+              git show HEAD~1:sitemap.xml > "$RUNNER_TEMP/sitemap-before.xml" 2>/dev/null || true
               exit 0
             fi
             echo "Push rejected (main moved); retrying ($attempt/3)."
@@ -146,3 +157,13 @@ jobs:
           done
           echo "::error::Could not push schedule data after 3 attempts."
           exit 1
+
+      # Tells Bing and the other IndexNow engines which NEWS pages were added, changed or removed.
+      # Google does not use IndexNow; it reads sitemap.xml. A failure only warns.
+      - name: Notify IndexNow search engines
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        timeout-minutes: 12
+        run: |
+          if [ ! -f "$RUNNER_TEMP/sitemap-before.xml" ]; then echo "Nothing was pushed; skipping."; exit 0; fi
+          node scripts/indexnow.mjs "$RUNNER_TEMP/sitemap-before.xml" sitemap.xml

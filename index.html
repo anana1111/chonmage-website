@@ -4,6 +4,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Google tag (gtag.js) for GA4 G-LW40HNQ1PL. Visits from the admin preview, ?now= checks and local copies are not sent. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW40HNQ1PL"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      if (!/(^|\.)chonmagepoker\.com$/.test(location.hostname) || /[?&](preview|now)=/.test(location.search)) window['ga-disable-G-LW40HNQ1PL'] = true;
+      gtag('js', new Date());
+
+      gtag('config', 'G-LW40HNQ1PL');
+    </script>
     <meta name="theme-color" content="#141513" />
     <meta name="description" content="新潟市中央区・古町のポーカールーム「ちょんまげ」。初心者講習無料、おひとり様・見学も歓迎。明るい店内でポーカーを気軽に楽しめます。" />
     <title>新潟市中央区・古町のポーカールーム｜ちょんまげ｜初心者歓迎</title>
@@ -61,7 +71,7 @@
                 "closes": "23:30"
               }
             ],
-            "hasMap": "https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E",
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=%E3%83%9D%E3%83%BC%E3%82%AB%E3%83%BC%E3%83%AB%E3%83%BC%E3%83%A0%20%E3%81%A1%E3%82%87%E3%82%93%E3%81%BE%E3%81%92&query_place_id=ChIJ0cF_OADJ9F8RCRn_DRdDsL8",
             "sameAs": ["https://x.com/ChonmageNiigata"]
           },
           {
@@ -81,12 +91,12 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" /></noscript>
     <link rel="stylesheet" href="./styles.css?v=20261006perf" />
-    <link rel="stylesheet" href="./v2.css?v=20261006logo2" />
-    <link rel="stylesheet" href="./timeline.css?v=20261007" />
-    <link rel="stylesheet" href="./activity.css?v=20261004" />
-    <link rel="stylesheet" href="./news.css?v=20261003news" />
+    <link rel="stylesheet" href="./v2.css?v=20261014credit" />
+    <link rel="stylesheet" href="./timeline.css?v=20261014badge" />
+    <link rel="stylesheet" href="./activity.css?v=20261012times" />
+    <link rel="stylesheet" href="./news.css?v=20261014home" />
     <link rel="stylesheet" href="./story.css?v=20261006story3" />
-    <link rel="stylesheet" href="./king.css?v=20261014v11" />
+    <link rel="stylesheet" href="./king.css?v=20261014v15" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
@@ -269,10 +279,12 @@
       </a>
       <nav aria-label="メインナビゲーション">
         <a href="#today">TODAY</a>
+        <a href="#king">KING</a>
         <a href="#news">NEWS</a>
         <a href="#first">FIRST VISIT</a>
         <a href="#space">SPACE</a>
         <a href="#access">ACCESS</a>
+        <a href="./faq/">FAQ</a>
       </nav>
       <div class="header-actions">
         <a class="x-link" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" aria-label="ちょんまげ公式Xを開く">X <span>↗</span></a>
@@ -281,11 +293,13 @@
       </div>
       <nav class="mobile-nav" id="mobile-nav" aria-label="モバイルナビゲーション">
         <a href="#today">TODAY</a>
+        <a href="#king">KING</a>
         <a href="#news">NEWS</a>
         <a href="#first">FIRST VISIT</a>
         <a href="#space">SPACE</a>
         <a href="#price">PRICE</a>
         <a href="#access">ACCESS</a>
+        <a href="./faq/">FAQ</a>
       </nav>
       <script>
         // Collapse the mobile menu the same way script.js does, before the first paint, so the hero does not jump down and back up.
@@ -296,6 +310,8 @@
         }
       </script>
     </header>
+    <!-- 来店特典 (10/17–10/18): a thin bar under the navigation; script.js hides it from 10/19 (JST). -->
+    <a class="promo-strip" href="#promo" data-promo-until="2026-10-18" hidden><span class="promo-strip-gift" aria-hidden="true">🎁</span><span>10/17（土）・10/18（日）来場者全員に<span class="promo-strip-line2"><b>THE DAILY 参加無料券</b>プレゼント</span></span><span class="promo-strip-arrow" aria-hidden="true">↓</span></a>
 
     <main id="top">
       <section class="hero hero-v2" aria-labelledby="hero-title">
@@ -326,6 +342,15 @@
         </div>
       </section>
 
+      <!-- 来店特典 main banner, under the hero; script.js hides it from 10/19 (JST). -->
+      <section class="promo" id="promo" data-promo-until="2026-10-18" aria-labelledby="promo-title" hidden>
+        <h2 id="promo-title" class="promo-title">10/17（土）・10/18（日）来場者全員に THE DAILY 参加無料券プレゼント！</h2>
+        <picture class="promo-art">
+          <source media="(max-width: 620px)" srcset="./images/promo-daily-square-800.webp 800w, ./images/promo-daily-square.webp 1254w" sizes="94vw" />
+          <img src="./images/promo-daily-wide.webp" srcset="./images/promo-daily-wide-1200.webp 1200w, ./images/promo-daily-wide.webp 2172w" sizes="94vw" alt="" width="2172" height="724" decoding="async" />
+        </picture>
+      </section>
+
       <section class="today section-pad is-stale" id="today" aria-labelledby="today-stale-title">
         <div class="section-kicker reveal"><span>01</span><span>WHAT'S ON TODAY</span></div>
         <!-- Filled from data/events.json only when its date is today in Japan. The static default is the official-X message below. -->
@@ -344,6 +369,20 @@
           <p>営業時間・トーナメント・リングゲームなどの最新情報は公式Xでお知らせしています。</p>
           <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer" class="today-stale-x">公式Xで最新情報を見る <span aria-hidden="true">↗</span></a>
         </div>
+
+        <!-- Filled from data/week.json (the weekly schedule picture) while that week is current. -->
+        <div class="week" id="week" aria-labelledby="week-title" hidden>
+          <div class="week-head">
+            <h3 id="week-title"><span>THIS WEEK</span>今週のスケジュール</h3>
+            <p class="week-range"></p>
+          </div>
+          <ol class="week-list"></ol>
+          <ul class="week-notes" hidden></ul>
+          <p class="week-note">週間スケジュールより。当日の変更は<a class="week-source" href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">公式X <span aria-hidden="true">↗</span></a>でお知らせします。</p>
+        </div>
+
+        <!-- activity.js moves this line above 「今日このあと」 once today's games render. -->
+        <p class="okibake reveal"><span>置きバケはお電話で受け付けています。</span><a href="tel:08014700011">080-1470-0011</a><button type="button" class="okibake-copy" data-copy="080-1470-0011">番号をコピー</button><span class="okibake-copied" role="status" aria-live="polite"></span></p>
       </section>
 
       <section class="home-king section-pad" id="king" aria-labelledby="home-king-heading">
@@ -367,9 +406,9 @@
         <div class="section-kicker reveal"><span>02</span><span>NEWS FROM CHONMAGE</span></div>
         <div class="news-heading">
           <h2 id="news-title" class="reveal">最新の<br /><span class="news-name">ちょんまげ。</span></h2>
-          <a class="all-news-link reveal" href="./news/">NEWS一覧を見る <span aria-hidden="true">→</span></a>
         </div>
         <div class="news-grid" aria-live="polite"><p class="news-empty">最近のニュースは NEWS一覧でご確認ください。</p></div>
+        <div class="news-more"><a class="all-news-link" href="./news/">NEWS一覧を見る <span aria-hidden="true">→</span></a></div>
       </section>
 
       <section class="ticker" aria-label="店舗の特徴">
@@ -391,6 +430,7 @@
             <article class="promise reveal"><span>01</span><h3>まずは見るだけ</h3><p>店内の雰囲気を見てから決めても大丈夫です。</p></article>
             <article class="promise reveal"><span>02</span><h3>無料の初心者講習</h3><p>役やルールを、スタッフがわかりやすく説明します。</p></article>
             <article class="promise reveal"><span>03</span><h3>ひとりでも自然</h3><p>その日のゲームに合わせて、気軽に参加できます。</p></article>
+            <div class="news-more reveal"><a class="all-news-link faq-link" href="./faq/">よくある質問を見る <span aria-hidden="true">→</span></a></div>
           </div>
         </div>
       </section>
@@ -432,7 +472,7 @@
 
           <ol class="story-timeline reveal" aria-label="ちょんまげの歩み">
             <li class="story-step">
-              <div class="story-step-row"><time datetime="2025">2025</time><span><span class="story-step-label">OPEN</span><span class="story-step-text">古町に、<wbr />ちょんまげオープン。</span></span></div>
+              <div class="story-step-row"><time datetime="2025-06">2025.06</time><span><span class="story-step-label">OPEN</span><span class="story-step-text">古町に、<wbr />ちょんまげオープン。</span></span></div>
             </li>
             <li class="story-step story-step--now">
               <!-- /1st-anniversary/ ページ公開後に <a href> へ戻す --><div class="story-step-row"><time datetime="2026-07">2026.07</time><span><span class="story-step-label">1周年</span><span class="story-step-text">おかげさまで1周年。<wbr />2年目がスタート。</span></span><!-- <span class="story-step-arrow" aria-hidden="true">↗</span> --></div>
@@ -473,7 +513,7 @@
           <p class="eyebrow reveal">SEE YOU IN FURUMACHI</p>
           <h2 id="cta-title" class="reveal">今日、<br /><span class="cta-question">遊びに<wbr />来ませんか？</span></h2>
           <div class="cta-actions reveal">
-            <a href="https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%BD%9F%E7%9C%8C%E6%96%B0%E6%BD%9F%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%8F%A4%E7%94%BA%E9%80%9A6%E7%95%AA%E7%94%BA987-1%20%E3%83%9F%E3%82%B5%E3%83%AF%E3%83%93%E3%83%AB1%E9%9A%8E" target="_blank" rel="noreferrer">GOOGLE MAPS <span>↗</span></a>
+            <a href="https://www.google.com/maps/search/?api=1&query=%E3%83%9D%E3%83%BC%E3%82%AB%E3%83%BC%E3%83%AB%E3%83%BC%E3%83%A0%20%E3%81%A1%E3%82%87%E3%82%93%E3%81%BE%E3%81%92&query_place_id=ChIJ0cF_OADJ9F8RCRn_DRdDsL8" target="_blank" rel="noreferrer">GOOGLE MAPS <span>↗</span></a>
             <a href="#today">TODAY'S GAME <span>↑</span></a>
             <a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">OFFICIAL X <span>↗</span></a>
           </div>
@@ -484,15 +524,16 @@
 
     <footer>
       <div class="footer-word">CHONMAGE</div>
-      <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><span>© 2026</span></div>
+      <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><a href="/king/">歴代KING</a><a href="/faq/">よくある質問</a><a href="/company/">運営者情報</a><span>© 2026</span></div>
+      <p class="site-credit">Designed &amp; Developed by <b>ANNA</b></p>
     </footer>
-    <script src="./timeline.js?v=20261007"></script>
-    <script src="./activity.js?v=20261007"></script>
+    <script src="./timeline.js?v=20261009week"></script>
+    <script src="./activity.js?v=20261013okibake"></script>
     <script src="./publish-core.js?v=20261006"></script>
     <script src="./news-core.js?v=20261003news"></script>
-    <script src="./news-view.js?v=20261006seo"></script>
-    <script src="./week-core.js?v=20261007"></script>
-    <script src="./script.js?v=20261007"></script>
-    <script defer src="./king.js?v=20261014v11"></script>
+    <script src="./news-view.js?v=20261014home"></script>
+    <script src="./week-core.js?v=20261010copy"></script>
+    <script src="./script.js?v=20261014badge"></script>
+    <script defer src="./king.js?v=20261014v15"></script>
   </body>
 </html>

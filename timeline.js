@@ -660,7 +660,9 @@
   function getHeroOverride(data, now) {
     const date = timelineState.dateMode === 'selected' ? timelineState.heroDate || data.date : japanClock(now).date;
     const hero = data.heroOverrides?.[date];
-    return hero ? { date, hero } : null;
+    if (hero) return { date, hero };
+    // 表示時間帯 from the week picture (script.js picks the card for the current minute).
+    return timelineState.dateMode !== 'selected' && data.heroWindow?.date === date ? data.heroWindow : null;
   }
 
   // Changes only when something visible changes (date check, phase, NOW / NEXT / past).

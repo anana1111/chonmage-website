@@ -109,6 +109,9 @@ function getJapanDate(now = new Date()) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+// 来店特典 banner and top bar: shown through their data-promo-until date (JST), gone from the next day.
+document.querySelectorAll('[data-promo-until]').forEach((el) => { el.hidden = getJapanDate() > el.dataset.promoUntil; });
+
 function dateValue(iso) {
   if (typeof iso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) throw new Error('Invalid date');
   const value = new Date(`${iso}T12:00:00+09:00`);
@@ -299,19 +302,26 @@ function applyStaleState(isStale, latestXUrl = officialXUrl, heroIsStale = isSta
 let liveNews = null;
 let newsTimer = null;
 let newsSignature = '';
+const HOME_NEWS_COUNT = 4;
 function renderNews(data, now = Date.now()) {
   const grid = document.querySelector('.news-grid');
   if (!grid || !window.ChonmageNews || !window.ChonmageNewsView) return;
   const cards = document.createDocumentFragment();
-  const items = window.ChonmageNews.visibleItems(data, now, 3);
+  // One large card (pinned item, else the latest) and three compact rows.
+  const items = window.ChonmageNews.visibleItems(data, now, HOME_NEWS_COUNT);
   const root = new URL('./', location.href);
-  items.forEach((item) => cards.append(window.ChonmageNewsView.card(item, root)));
+  if (items.length) cards.append(window.ChonmageNewsView.featured(items[0], root));
+  if (items.length > 1) {
+    const list = element('div', 'news-list');
+    items.slice(1).forEach((item) => list.append(window.ChonmageNewsView.row(item, root)));
+    cards.append(list);
+  }
   if (!items.length) cards.append(element('p', 'news-empty', '最近30日間のニュースはありません。'));
   grid.replaceChildren(cards);
 }
 function refreshNews() {
   if (!liveNews || !window.ChonmageNews) return;
-  const signature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+  const signature = window.ChonmageNews.visibleItems(liveNews, Date.now(), HOME_NEWS_COUNT).map((item) => item.id).join('|');
   if (signature !== newsSignature) { renderNews(liveNews); newsSignature = signature; }
   clearTimeout(newsTimer);
   newsTimer = setTimeout(refreshNews, window.ChonmageNews.nextRefreshDelay(liveNews));
@@ -325,13 +335,19 @@ async function fetchData(path) {
 
 let liveEvents = null;
 let liveWeek = null;
+let liveLastEntries = null;
 let liveSignature = '';
 
 // 予約公開: scheduled events and home cards stay hidden until their publishAt (JST).
 const visibleNow = (data) => window.ChonmagePublish ? window.ChonmagePublish.visibleSchedule(data) : data;
 // After midnight, before GitHub Actions has written the new day, today's row of the week
 // picture stands in so the page never waits for a job. A 25時CLOSE day stays until it closes.
+// 最終受付 from the time library (data/last-entry.json) where today's post gives none.
 function effectiveSchedule(source) {
+  const data = scheduleFromSources(source);
+  return window.ChonmageWeek?.withLastEntries ? window.ChonmageWeek.withLastEntries(data, liveLastEntries) : data;
+}
+function scheduleFromSources(source) {
   let data = visibleNow(source);
   const week = window.ChonmageWeek;
   if (!week || !liveWeek) return data;
@@ -343,7 +359,11 @@ function effectiveSchedule(source) {
   }
   // 本日終了 and 休業 say when the shop opens next.
   const next = isCurrentSchedule(data) ? week.nextOpening(liveWeek, data.date) : null;
-  return next ? { ...data, nextOpen: next } : data;
+  if (next) data = { ...data, nextOpen: next };
+  // 表示時間帯: the week's card for this time of day (a date's heroOverrides still wins).
+  const today = getJapanDate();
+  const card = !data.heroOverrides?.[today] && week.activeCard ? week.activeCard(liveWeek, today, week.japanMinute()) : null;
+  return card ? { ...data, heroWindow: { date: today, hero: card } } : data;
 }
 const signatureOf = (data) => (window.ChonmageSchedule?.scheduleSignature?.(effectiveSchedule(data)) || '') + (window.ChonmagePublish?.visibilityKey(data) || '') + getJapanDate();
 
@@ -364,24 +384,130 @@ async function loadEvents() {
   // Prevent old static times appearing as today's schedule while loading or on failure.
   applyStaleState(true);
   try {
-    const [events, week] = await Promise.all([
+    const [events, week, lastEntries] = await Promise.all([
       fetchData('./data/events.json'),
       fetchData('./data/week.json').catch(() => null),
+      fetchData('./data/last-entry.json').catch(() => null),
     ]);
     liveWeek = week;
+    liveLastEntries = lastEntries;
     liveEvents = validateEvents(events);
+    renderWeek(week);
     showEvents(liveEvents);
   } catch (error) {
     liveEvents = null;
+    // The week card does not depend on a valid events.json.
+    if (liveWeek) renderWeek(liveWeek);
     applyStaleState(true);
     console.warn('開催情報を読み込めません。公式Xをご確認ください。', error);
   }
 }
 
+// 「今週のスケジュール」: the week picture as a table, today marked. Hidden for an old week.
+let weekSignature = '';
+function renderWeek(week) {
+  const section = document.getElementById('week');
+  const core = window.ChonmageWeek;
+  if (!section || !core) return;
+  const today = getJapanDate();
+  // Today's own X post (events.json) wins over the week picture's row for today.
+  if (week && liveEvents && core.withDailyPost) week = core.withDailyPost(week, liveEvents);
+  const days = week ? core.weekDays(week, today) : [];
+  const signature = today + JSON.stringify(days) + JSON.stringify(week?.notes || null) + JSON.stringify(week?.promos || null) + JSON.stringify(liveLastEntries);
+  if (signature === weekSignature) return;
+  weekSignature = signature;
+  section.hidden = !days.length;
+  // 特典 (week.json promos): a badge on each promo day. The banner and top bar are in index.html.
+  const promos = (Array.isArray(week?.promos) ? week.promos : []).filter((promo) => promo && typeof promo.text === 'string' && promo.text.trim() && Array.isArray(promo.dates));
+  const list = section.querySelector('.week-list');
+  if (!list || !days.length) return;
+  const noon = (iso) => new Date(iso + 'T12:00:00+09:00');
+  const weekday = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', weekday: 'short' }).format(noon(iso)).toUpperCase();
+  const range = section.querySelector('.week-range');
+  if (range) range.textContent = days[0].date.slice(5).replace('-', '.') + ' – ' + days[days.length - 1].date.slice(5).replace('-', '.');
+  // The remaining days share the full width: 3 days left = 3 columns, 7 = 7.
+  list.style.setProperty('--week-days', String(days.length));
+  list.classList.toggle('is-dense', days.length >= 5);
+  list.replaceChildren(...days.map((day) => {
+    const open = /^\d{2}:\d{2}$/.test(day.open || '');
+    const row = element('li', 'week-day' + (day.date === today ? ' is-today' : '') + (open ? '' : ' is-closed'));
+    if (day.date === today) row.setAttribute('aria-current', 'date');
+    const head = element('div', 'week-day-head');
+    const date = element('p', 'week-date');
+    date.append(element('strong', '', String(Number(day.date.slice(8)))), element('span', '', weekday(day.date)));
+    if (day.date === today) date.append(element('em', '', 'TODAY'));
+    head.append(date, element('p', 'week-hours', open ? day.open + (day.close ? '–' + day.close : ' OPEN') : '休業'));
+    promos.filter((promo) => promo.dates.includes(day.date)).forEach((promo) => {
+      const badge = element('p', 'week-day-promo');
+      const gift = element('span', 'week-day-promo-gift', '🎁'); gift.setAttribute('aria-hidden', 'true');
+      // Split at the last space so a narrow column breaks as 「THE DAILY」/「参加無料券」, never inside a word.
+      const text = element('span', 'week-day-promo-text');
+      (promo.badge || '特典あり').split(/\s+(?=\S+$)/).forEach((part, index) => text.append(index ? ' ' : '', element('span', '', part)));
+      badge.append(gift, text);
+      head.append(badge);
+    });
+    row.append(head);
+    const games = element('ul', 'week-games');
+    if (open && day.ringGame) {
+      const ring = element('li', 'week-game is-ring');
+      ring.append(element('span', 'week-game-time', '終日'), element('span', 'week-game-title', 'NLHリングゲーム'));
+      games.append(ring);
+    }
+    // Each game shows time and name; ENTRY / RENTRY open with a tap.
+    (open && Array.isArray(day.events) ? day.events : []).forEach((event) => {
+      const item = element('li', 'week-game');
+      const head = [element('span', 'week-game-time', String(event.time || '')), element('span', 'week-game-title', String(event.title || ''))];
+      const lastEntry = event.lastEntry || (core.usualLastEntry ? core.usualLastEntry(event, day.open, liveLastEntries) : '');
+      const end = /^\d{2}:\d{2}$/.test(event.end || '') ? event.end : (core.usualEnd ? core.usualEnd(event, day.open, liveLastEntries) : '');
+      // 最終受付 and 終了予定 stay visible under the name; the prices open with a tap.
+      const times = [lastEntry && '最終受付 ' + lastEntry, end && '終了予定 ' + end].filter(Boolean);
+      if (times.length) { const box = element('span', 'week-game-times'); box.append(...times.map((value) => element('span', '', value))); head.push(box); }
+      const prices = [['ENTRY', event.entry], ['RENTRY', event.reentry], ['最終受付', lastEntry], ['終了予定', end]].filter(([, value]) => value);
+      if (!prices.length) { item.append(...head); games.append(item); return; }
+      const details = element('details', 'week-game-details');
+      const summary = element('summary');
+      summary.append(...head, element('span', 'week-game-toggle', event.entry || event.reentry ? '料金' : '詳細'));
+      const list = element('dl', 'week-game-entry');
+      prices.forEach(([label, value]) => { const row = element('div'); row.append(element('dt', '', label), element('dd', '', String(value))); list.append(row); });
+      details.append(summary, list);
+      item.append(details);
+      games.append(item);
+    });
+    if (games.children.length) row.append(games);
+    return row;
+  }));
+  // The ※ notes printed under the week picture (施設利用料 etc.).
+  const notes = section.querySelector('.week-notes');
+  if (notes) {
+    const rows = (Array.isArray(week.notes) ? week.notes : []).filter((note) => typeof note === 'string' && note.trim()).slice(0, 5);
+    notes.replaceChildren(...rows.map((note) => element('li', '', note.replace(/^※\s*/, ''))));
+    notes.hidden = !rows.length;
+  }
+  const link = section.querySelector('.week-source');
+  if (link && typeof week.sourceUrl === 'string' && /^https:\/\/x\.com\//.test(week.sourceUrl)) link.href = week.sourceUrl;
+}
+
 // NOW / NEXT / 本日終了 and the date check follow the clock while the page stays open.
 function refreshEvents() {
+  if (liveWeek) renderWeek(liveWeek);
   if (!liveEvents || signatureOf(liveEvents) === liveSignature) return;
   try { showEvents(liveEvents); } catch (error) { applyStaleState(true); console.warn('開催情報を更新できません。', error); }
+}
+
+// An open page reads events.json / week.json again now and then, so a schedule the shop
+// changed on X shows without reloading. A failed read keeps what is on screen.
+const RELOAD_MS = 5 * 60000;
+let lastDataLoad = Date.now();
+async function reloadEvents() {
+  if (!liveEvents || Date.now() - lastDataLoad < 60000) return;
+  lastDataLoad = Date.now();
+  try {
+    const [events, week, lastEntries] = await Promise.all([fetchData('./data/events.json'), fetchData('./data/week.json').catch(() => liveWeek), fetchData('./data/last-entry.json').catch(() => liveLastEntries)]);
+    liveEvents = validateEvents(events);
+    liveWeek = week;
+    liveLastEntries = lastEntries;
+    refreshEvents();
+  } catch (error) { console.warn('開催情報を再読み込みできません。', error); }
 }
 
 async function loadNews() {
@@ -389,7 +515,7 @@ async function loadNews() {
     liveNews = await fetchData('./data/news.json');
     if (!liveNews || !Array.isArray(liveNews.items)) throw new Error('Missing news items');
     renderNews(liveNews);
-    newsSignature = window.ChonmageNews.visibleItems(liveNews, Date.now(), 3).map((item) => item.id).join('|');
+    newsSignature = window.ChonmageNews.visibleItems(liveNews, Date.now(), HOME_NEWS_COUNT).map((item) => item.id).join('|');
     refreshNews();
   } catch (error) {
     const grid = document.querySelector('.news-grid');
@@ -397,6 +523,26 @@ async function loadNews() {
     console.warn('ニュースを読み込めません。', error);
   }
 }
+
+// 置きバケ: copy the shop's number (tapping the number itself calls).
+document.querySelectorAll('.okibake-copy').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const status = button.parentElement.querySelector('.okibake-copied');
+    const number = button.dataset.copy || '';
+    let ok = false;
+    try { await navigator.clipboard.writeText(number); ok = true; } catch {
+      // Older browsers: copy through a hidden text field.
+      const field = document.createElement('textarea');
+      field.value = number; field.setAttribute('readonly', ''); field.style.position = 'fixed'; field.style.opacity = '0';
+      document.body.append(field); field.select();
+      try { ok = document.execCommand('copy'); } catch {}
+      field.remove();
+    }
+    if (status) status.textContent = ok ? 'コピーしました' : '長押しでコピーしてください';
+    clearTimeout(button._copiedTimer);
+    button._copiedTimer = setTimeout(() => { if (status) status.textContent = ''; }, 2500);
+  });
+});
 
 // Drafts are accepted only by the opt-in preview document from its same-origin parent.
 const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === '1';
@@ -460,8 +606,9 @@ if (isPreviewMode) {
     activityTimer = setTimeout(() => { refreshEvents(); scheduleRefresh(); }, window.ChonmageActivity?.nextMinuteDelay() ?? 60000 - (Date.now() % 60000) + 20);
   };
   scheduleRefresh();
+  if (!window.ChonmageActivity?.testTime) setInterval(() => { if (!document.hidden) reloadEvents(); }, RELOAD_MS);
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { refreshEvents(); scheduleRefresh(); refreshNews(); }
+    if (!document.hidden) { refreshEvents(); scheduleRefresh(); refreshNews(); reloadEvents(); }
   });
   window.addEventListener('pageshow', refreshNews);
 }

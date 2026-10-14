@@ -5,3 +5,4 @@ exclude:
   - README.md
   - admin/README.md
   - data/README.md
+  - data/week-upload/README.md

@@ -4,7 +4,7 @@
   const frame = $('website-preview');
   const keys = ['chonmage-admin-events-draft', 'chonmage-admin-news-draft'];
   const clone = (value) => JSON.parse(JSON.stringify(value));
-  const VIEWS = { home: 'ホーム', schedule: '今日の予定', news: 'News', scheduled: '予約公開', settings: '設定' };
+  const VIEWS = { home: 'ホーム', schedule: '今日の予定', week: '週間スケジュール', news: 'News', scheduled: '予約公開', settings: '設定' };
   const TYPE_LABELS = { free: 'FREE ROLL', tournament: 'TOURNAMENT', special: 'SPECIAL', event: 'EVENT' };
   const newsCore = window.ChonmageNews;
   const publish = window.ChonmagePublish;
@@ -722,6 +722,12 @@
     view.append(data);
   }
 
+  // 週間スケジュール lives in week-admin.js with its own draft and week.json export.
+  function renderWeek(view) {
+    if (window.ChonmageWeekAdmin) window.ChonmageWeekAdmin.render(view, { notice });
+    else view.append(node('p', '週間スケジュールの画面を読み込めませんでした。再読み込みしてください。', 'error-text'));
+  }
+
   // ---------- drawer ----------
   function openDrawer(kind, index = null, focusPath) {
     state.drawer = { kind, index };
@@ -805,7 +811,7 @@
       const advanced = node('details', undefined, 'advanced'); advanced.open = Boolean(openDetails);
       advanced.append(node('summary', '詳細設定'));
       const inner = node('div', undefined, 'advanced-body');
-      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像なしのときの文字', 'text', { hint: '例：TODAY / SPECIAL / NEWS' })), field(`${base}.theme`, 'カードの色', 'select', { values: NEWS_THEMES }), field(`${base}.pinned`, '固定表示（30日間の制限は同じ）', 'checkbox'));
+      inner.append(grid(field(`${base}.category`, 'カテゴリー', 'text', { hint: '例：SCHEDULE / EVENT / RESULT' }), field(`${base}.visualLabel`, '画像なしのときの文字', 'text', { hint: '例：TODAY / SPECIAL / NEWS' })), field(`${base}.theme`, 'カードの色', 'select', { values: NEWS_THEMES }), field(`${base}.pinned`, '注目として固定（トップの大きいカードに表示・30日間の制限は同じ）', 'checkbox'));
       advanced.append(inner); body.append(advanced, publishControl(base, 'news'));
       const footer = node('div', undefined, 'drawer-footer');
       footer.append(button('本文プレビュー', () => openNewsDetailPreview(index)), button('コピー', () => duplicateNews(index), 'text-button'), button('削除', () => deleteItem('news.items', index, 'この News'), 'text-button danger'));
@@ -824,7 +830,7 @@
     [...controls.keys()].forEach((path) => { if (!$('drawer-body').contains(controls.get(path).input)) controls.delete(path); });
     Object.keys(VIEWS).forEach((name) => { $(`view-${name}`).replaceChildren(); $(`view-${name}`).hidden = name !== state.view; });
     validate();
-    ({ home: renderHome, schedule: renderSchedule, news: renderNews, scheduled: renderScheduled, settings: renderSettings })[state.view](view);
+    ({ home: renderHome, schedule: renderSchedule, week: renderWeek, news: renderNews, scheduled: renderScheduled, settings: renderSettings })[state.view](view);
     if (state.drawer) renderDrawer();
     validate(); savedState(); updateDataStatus();
   }
