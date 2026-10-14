@@ -160,11 +160,13 @@
     else count.append(node('small', '', 'あと'), node('b', '', String(days)), node('small', '', '日'));
     const when = node('span', 'home-king-when');
     when.append(node('span', '', '次の最強決定戦'), time(next.date, '', m + '月' + d + '日（' + week + '）' + (next.time ? ' ' + next.time : '')));
-    box.replaceChildren(count, when);
+    const info = node('span', 'home-king-info');
+    info.append(when);
     if (next.qualifiers) {
       const link = node('a', 'home-king-entrants', '出場者' + (next.qualifiers.tournament.length + next.qualifiers.ring.length) + '名を見る →');
-      link.href = pageUrl + '#king-next-title'; box.append(link);
+      link.href = pageUrl + '#king-next-title'; info.append(link);
     }
+    box.replaceChildren(count, info);
     box.hidden = false;
   }
 

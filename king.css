@@ -167,15 +167,17 @@
 .home-king-stats dd { margin: 0; font-size: clamp(1.15rem, 2.4vw, 1.5rem); font-weight: 900; line-height: 1.1; }
 .home-king-stats b { font-family: 'Archivo Black', sans-serif; font-size: 1.5em; color: var(--orange); margin: 0 .1em; }
 .home-king-stats small { font-size: .6em; margin-left: .1em; }
-.home-king-next { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.4rem; margin: 0; padding: 1.1rem 1.3rem; background: var(--ink); color: #fff; border-radius: 6px; }
+/* Countdown: the number on the left, date and entrants link on the right, split by a thin rule. */
+.home-king-next { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: stretch; margin: 0; background: var(--ink); color: #fff; border-radius: 6px; overflow: hidden; }
 .home-king-next[hidden] { display: none; }
-.home-king-days { display: flex; align-items: baseline; gap: .2rem; }
-.home-king-days b { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(3.6rem, 9vw, 4.6rem); line-height: 1; color: var(--orange); }
+.home-king-days { display: flex; align-items: baseline; justify-content: center; gap: .25rem; padding: 1.1rem clamp(1rem, 3vw, 1.5rem); border-right: 1px solid rgba(255, 255, 255, .18); align-self: center; }
+.home-king-days b { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(3.4rem, 9vw, 4.4rem); line-height: .9; color: var(--orange); }
 .home-king-days small { font-size: 1rem; font-weight: 900; }
-.home-king-days b.is-today { font-family: 'Noto Sans JP', sans-serif; font-size: clamp(2rem, 6vw, 2.6rem); font-weight: 900; }
-.home-king-when { display: flex; flex-direction: column; gap: .15rem; font-weight: 900; }
+.home-king-days b.is-today { font-family: 'Noto Sans JP', sans-serif; font-size: clamp(1.6rem, 5vw, 2.2rem); font-weight: 900; line-height: 1.2; }
+.home-king-info { display: flex; flex-direction: column; justify-content: center; gap: .35rem; padding: 1rem clamp(1rem, 3vw, 1.5rem); min-width: 0; }
+.home-king-when { display: flex; flex-direction: column; gap: .2rem; font-weight: 900; font-size: clamp(1rem, 2.6vw, 1.1rem); }
 .home-king-when span { font-size: .7rem; font-weight: 800; letter-spacing: .06em; opacity: .75; }
-.home-king-entrants { display: inline-flex; align-items: center; min-height: 44px; margin-left: auto; color: #fff; font-size: .8rem; font-weight: 800; }
+.home-king-entrants { align-self: flex-start; display: inline-flex; align-items: center; min-height: 36px; color: var(--orange); font-size: .82rem; font-weight: 800; }
 .home-king a:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 .home-king-empty { margin: 0; line-height: 1.9; color: var(--blue); }
 .home-king-empty a { color: inherit; font-weight: 800; }
