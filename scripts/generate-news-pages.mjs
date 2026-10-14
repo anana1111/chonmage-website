@@ -157,6 +157,7 @@ function sitemapXml(items) {
     { loc: SITE },
     { loc: SITE + 'news/' },
     { loc: SITE + 'company/' },
+    { loc: SITE + 'faq/' },
     ...items.map((item) => ({
       loc: SITE + 'news/' + safeSegment(item.id) + '/',
       lastmod: item.date,
@@ -212,7 +213,7 @@ export function generate(now = Date.now()) {
   const manifest = JSON.stringify({ ids }, null, 2) + '\n';
   if (writeIfChanged(MANIFEST_PATH, manifest)) changed = true;
 
-  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 3} URLs.`);
+  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 4} URLs.`);
   return { changed, count: visible.length };
 }
 
