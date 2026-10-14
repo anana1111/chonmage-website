@@ -96,6 +96,7 @@
     <link rel="stylesheet" href="./activity.css?v=20261012times" />
     <link rel="stylesheet" href="./news.css?v=20261014home" />
     <link rel="stylesheet" href="./story.css?v=20261006story3" />
+    <link rel="stylesheet" href="./king.css?v=20261014v15" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
@@ -278,6 +279,7 @@
       </a>
       <nav aria-label="メインナビゲーション">
         <a href="#today">TODAY</a>
+        <a href="#king">KING</a>
         <a href="#news">NEWS</a>
         <a href="#first">FIRST VISIT</a>
         <a href="#space">SPACE</a>
@@ -291,6 +293,7 @@
       </div>
       <nav class="mobile-nav" id="mobile-nav" aria-label="モバイルナビゲーション">
         <a href="#today">TODAY</a>
+        <a href="#king">KING</a>
         <a href="#news">NEWS</a>
         <a href="#first">FIRST VISIT</a>
         <a href="#space">SPACE</a>
@@ -380,6 +383,23 @@
 
         <!-- activity.js moves this line above 「今日このあと」 once today's games render. -->
         <p class="okibake reveal"><span>置きバケはお電話で受け付けています。</span><a href="tel:08014700011">080-1470-0011</a><button type="button" class="okibake-copy" data-copy="080-1470-0011">番号をコピー</button><span class="okibake-copied" role="status" aria-live="polite"></span></p>
+      </section>
+
+      <section class="home-king section-pad" id="king" aria-labelledby="home-king-heading">
+        <div class="section-kicker reveal"><span>CHONMAGE ONLY</span><span>毎月のタイトル戦</span></div>
+        <div class="home-king-layout">
+          <div class="home-king-intro">
+            <h2 id="home-king-heading" class="reveal">ちょんまげにしかない、<br />毎月のタイトル戦。</h2>
+            <p class="home-king-lead">各部門の月間ランキング上位8名だけが出場できる「ランキング最強決定戦」。</p>
+            <dl class="home-king-stats">
+              <div><dt>開催</dt><dd>毎月</dd></div>
+              <div><dt>出場（各部門）</dt><dd>上位<b>8</b>名</dd></div>
+              <div><dt>これまでの決定戦</dt><dd id="home-king-count">11<small>回</small></dd></div>
+            </dl>
+            <p class="home-king-next" id="home-king-next" hidden></p>
+          </div>
+          <div id="home-king" aria-live="polite"><p class="home-king-empty">月ごとのランキング最強決定戦を制したプレイヤーを、<a href="./king/">歴代KING</a>として記録しています。</p></div>
+        </div>
       </section>
 
       <section class="news section-pad" id="news" aria-labelledby="news-title">
@@ -504,7 +524,7 @@
 
     <footer>
       <div class="footer-word">CHONMAGE</div>
-      <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><a href="/faq/">よくある質問</a><a href="/company/">運営者情報</a><span>© 2026</span></div>
+      <div class="footer-row"><span>POKER ROOM · NIIGATA</span><a href="https://x.com/ChonmageNiigata" target="_blank" rel="noreferrer">X · @ChonmageNiigata ↗</a><span>NO CASH BETTING · NO CASH REDEMPTION</span><a href="/king/">歴代KING</a><a href="/faq/">よくある質問</a><a href="/company/">運営者情報</a><span>© 2026</span></div>
       <p class="site-credit">Designed &amp; Developed by <b>ANNA</b></p>
     </footer>
     <script src="./timeline.js?v=20261009week"></script>
@@ -514,5 +534,6 @@
     <script src="./news-view.js?v=20261014home"></script>
     <script src="./week-core.js?v=20261010copy"></script>
     <script src="./script.js?v=20261014badge"></script>
+    <script defer src="./king.js?v=20261014v15"></script>
   </body>
 </html>
