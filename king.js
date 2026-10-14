@@ -157,20 +157,21 @@
     const days = Math.round((Date.UTC(y, m - 1, d) - today) / 86400000);
     if (days < 0) return;
     const week = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-    const when = node('p', 'home-king-when');
-    const date = time(next.date, 'home-king-date', m + '.' + String(d).padStart(2, '0'));
-    when.append(date, node('span', 'home-king-week', week));
-    if (next.time) when.append(node('span', 'home-king-time', next.time));
+    // Left: the days left in a small apricot block. Right: what, when, and the entrants link.
     const left = node('p', 'home-king-left');
-    if (days === 0) left.append(node('b', '', '本日開催'));
-    else left.append('あと', node('b', '', String(days)), '日');
-    when.append(left);
-    box.replaceChildren(node('p', 'home-king-label', '次回の最強決定戦'), when);
+    if (days === 0) left.append(node('small', '', '本日'), node('b', 'is-today', '開催'));
+    else left.append(node('small', '', 'あと'), node('b', '', String(days)), node('small', '', '日'));
+    const info = node('div', 'home-king-info');
+    const when = node('p', 'home-king-when');
+    when.append(time(next.date, 'home-king-date', m + '.' + String(d).padStart(2, '0')), node('span', 'home-king-week', week));
+    if (next.time) when.append(node('span', 'home-king-time', next.time));
+    info.append(node('p', 'home-king-label', '次回の最強決定戦'), when);
     if (next.qualifiers) {
       const link = node('a', 'home-king-entrants', '出場者' + (next.qualifiers.tournament.length + next.qualifiers.ring.length) + '名を見る');
       link.href = pageUrl + '#king-next-title'; link.append(node('span', '', '→'));
-      box.append(link);
+      info.append(link);
     }
+    box.replaceChildren(left, info);
     box.hidden = false;
   }
 
