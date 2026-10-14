@@ -264,7 +264,8 @@
     box.append(head);
     const both = new Set(q.tournament.map((row) => row.name).filter((name) => q.ring.some((row) => row.name === name)));
     const lists = node('div', 'king-entrants-lists');
-    [['トーナメント部門', q.tournament], ['リングゲーム部門', q.ring]].forEach(([label, rows]) => {
+    // Ring-game points are chip counts, so they carry no "pt" unit.
+    [['トーナメント部門', q.tournament, 'pt'], ['リングゲーム部門', q.ring, '']].forEach(([label, rows, unit]) => {
       if (!rows.length) return;
       const column = node('div', 'king-entrants-col');
       column.append(node('h4', '', label));
@@ -274,7 +275,7 @@
         const who = node('span', 'king-entrant-name', row.name);
         if (both.has(row.name)) { who.append(node('b', 'king-entrant-both', 'W')); li.classList.add('is-both'); }
         li.append(who);
-        if (row.points !== null) li.append(node('span', 'king-entrant-pt', row.points.toLocaleString('ja-JP') + 'pt'));
+        if (row.points !== null) li.append(node('span', 'king-entrant-pt', row.points.toLocaleString('ja-JP') + unit));
         ol.append(li);
       });
       column.append(ol); lists.append(column);
