@@ -26,9 +26,7 @@ jobs:
           import json, os, urllib.request
           from twitter_cli.cli import _get_client
           from twitter_cli.serialization import tweets_to_data
-          ids = ['1988601356865995055', '1998389669487431926', '2015784192404275551', '2020831944284762201',
-                 '2041507153987641368', '2057077865443991823', '2071234288612442249', '2075930590160073038',
-                 '2091525465085505844', '2099121808758956055']
+          ids = ['2030978245156589886']
           out = '_originals/king-x'; os.makedirs(out + '/images', exist_ok=True)
           client = _get_client(quiet=True)
           found = []
@@ -53,7 +51,7 @@ jobs:
                           print('image failed', url, error)
               found.append(t)
               print(t.get('createdAtISO'), i, len(t['savedImages']), 'pictures', (t.get('text') or '')[:80].replace('\n', ' '))
-          json.dump(found, open(out + '/linked-posts.json', 'w'), ensure_ascii=False, indent=1)
+          json.dump(found, open(out + '/linked-posts-2.json', 'w'), ensure_ascii=False, indent=1)
           PY
       - name: Commit results to the preview branch
         run: |
