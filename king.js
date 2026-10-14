@@ -266,6 +266,24 @@
     });
   }
 
+  // A round ↓ button that takes the visitor to the bottom of the page; it hides once they are there.
+  function jumpButton() {
+    const button = node('button', 'king-jump');
+    button.type = 'button'; button.setAttribute('aria-label', 'ページの一番下へ');
+    button.append(node('span', '', '↓'));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    button.addEventListener('click', () => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: reduce ? 'auto' : 'smooth' });
+    });
+    const update = () => {
+      const left = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+      button.hidden = left < 160;
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    document.body.append(button); update();
+  }
+
   function render({ items, next }) {
     const fragment = document.createDocumentFragment();
     if (demo) fragment.append(node('p', 'king-preview-note', 'デモ表示：仮のKINGを含みます。'));
@@ -281,7 +299,8 @@
         const heading = node('h2', 'king-section-title', '歴代KING'); heading.id = 'king-history-title';
         section.append(heading);
         let year = '', grid = null;
-        items.slice(1).forEach((item) => {
+        // Oldest first, from the 初代 down to the most recent.
+        items.slice(1).reverse().forEach((item) => {
           if (item.month.slice(0, 4) !== year) {
             year = item.month.slice(0, 4);
             section.append(node('h3', 'king-year', year));
@@ -297,6 +316,7 @@
     fragment.append(nextKing(next));
     view.replaceChildren(fragment);
     foil(view);
+    jumpButton();
     view.setAttribute('aria-busy', 'false');
     // A shared link (/king/#2026-08) lands on that KING once the records are in the page.
     const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
