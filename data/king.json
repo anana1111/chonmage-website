@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-08",
+  "updatedAt": "2026-10-14",
   "next": {
     "date": "2026-10-25",
     "time": "18:00"
@@ -61,6 +61,16 @@
       "won": "2026-04-07",
       "photo": "images/king/2026-03.webp",
       "post": "https://x.com/Old_Chonmage/status/2041507153987641368",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
+    },
+    {
+      "month": "2026-02",
+      "name": "DaiSan",
+      "won": "2026-03-09",
+      "photo": "images/king/2026-02.webp",
+      "post": "https://x.com/Old_Chonmage/status/2030978245156589886",
       "prize": "",
       "entries": 0,
       "comment": ""
