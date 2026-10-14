@@ -146,7 +146,8 @@
     const quote = node('blockquote', 'king-comment'); quote.append(node('p', '', item.comment)); return quote;
   }
 
-  // Homepage: days left until the next final (Japan time), its date, and a way to the qualifiers.
+  // Homepage: the next final. "10.25 SUN 18:00", days left (Japan time) and the way to its entrants.
+  // From the day after the final the block stays hidden until data/king.json names the next one.
   function homeNext(next) {
     const box = document.getElementById('home-king-next');
     if (!box || !next.date) return;
@@ -155,32 +156,43 @@
     const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     const days = Math.round((Date.UTC(y, m - 1, d) - today) / 86400000);
     if (days < 0) return;
-    const week = '日月火水木金土'[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-    const count = node('span', 'home-king-days');
-    if (days === 0) count.append(node('b', 'is-today', '本日開催'));
-    else count.append(node('small', '', 'あと'), node('b', '', String(days)), node('small', '', '日'));
-    const when = node('span', 'home-king-when');
-    when.append(node('span', '', '次の最強決定戦'), time(next.date, '', m + '月' + d + '日（' + week + '）' + (next.time ? ' ' + next.time : '')));
-    const info = node('span', 'home-king-info');
-    info.append(when);
+    const week = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+    const when = node('p', 'home-king-when');
+    const date = time(next.date, 'home-king-date', m + '.' + String(d).padStart(2, '0'));
+    when.append(date, node('span', 'home-king-week', week));
+    if (next.time) when.append(node('span', 'home-king-time', next.time));
+    const left = node('p', 'home-king-left');
+    if (days === 0) left.append(node('b', '', '本日開催'));
+    else left.append('あと', node('b', '', String(days)), '日');
+    when.append(left);
+    box.replaceChildren(node('p', 'home-king-label', '次回の最強決定戦'), when);
     if (next.qualifiers) {
-      const link = node('a', 'home-king-entrants', '出場者' + (next.qualifiers.tournament.length + next.qualifiers.ring.length) + '名を見る →');
-      link.href = pageUrl + '#king-next-title'; info.append(link);
+      const link = node('a', 'home-king-entrants', '出場者' + (next.qualifiers.tournament.length + next.qualifiers.ring.length) + '名を見る');
+      link.href = pageUrl + '#king-next-title'; link.append(node('span', '', '→'));
+      box.append(link);
     }
-    box.replaceChildren(count, info);
     box.hidden = false;
   }
 
-  // Homepage: photo, name, which month, when, and the way to the whole history.
+  // Homepage: the latest KING. The winning photo (not the designed card) on top, then a warm white panel.
   function homeCard(item) {
     const card = node('article', 'home-king-card');
     card.setAttribute('aria-labelledby', 'home-king-name');
+    const figure = photo(item.photo ? Object.assign({}, item, { card: '' }) : item, 'home-king-photo', false);
+    figure.append(node('span', 'home-king-badge', '最新の王者'));
     const body = node('div', 'home-king-body');
+    const month = node('p', 'home-king-title');
+    month.append(crown('home-king-crown'), time(item.month, '', label(item)), node('span', '', ' KING'));
     const heading = name(item, 'h3', 'home-king-name'); heading.id = 'home-king-name';
+    const result = node('p', 'home-king-won');
+    if (item.won) result.append(time(item.won, '', dotted(item.won)));
+    const event = node('span', 'home-king-event', EVENT + ' ');
+    event.append(node('em', '', '優勝'));
+    result.append(event);
     const link = node('a', 'home-king-more', '歴代のKINGを見る'); link.href = pageUrl;
-    link.append(node('span', '', ' →'));
-    body.append(title(item, 'home-king-title'), heading, won(item, 'home-king-won'), link);
-    card.append(photo(item, 'home-king-photo', false), body);
+    link.append(node('span', '', '→'));
+    body.append(month, heading, result, link);
+    card.append(figure, body);
     return card;
   }
 
