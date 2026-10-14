@@ -90,3 +90,8 @@
   .news-row h3 { font-size: .95rem; }
   .news-more .all-news-link { flex: 1; justify-content: space-between; }
 }
+
+/* Subpage footer: shop line on the left, the site maker credit on the right (stacked on phones). */
+.news-page-end { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1.5rem; }
+.news-page-end .site-credit { opacity: .6; letter-spacing: .06em; }
+.news-page-end .site-credit b { letter-spacing: .14em; }

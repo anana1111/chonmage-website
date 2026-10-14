@@ -98,7 +98,7 @@ try {
         const hrefs = await page.locator('#news .news-feature a, #news .news-row a').evaluateAll((links) => links.map((link) => link.href));
         check(hrefs.length === 4, 'Each homepage NEWS has exactly one link');
         check(hrefs.every((url) => /\/news\/[A-Za-z0-9._-]+\/$/.test(new URL(url).pathname) && !url.includes('x.com')), 'Home cards link to their own NEWS page');
-        check(await page.locator('.all-news-link').getAttribute('href') === './news/', 'All NEWS uses relative directory');
+        check(await page.locator('#news .all-news-link').getAttribute('href') === './news/', 'All NEWS uses relative directory');
       }
       if (url === '/news/') check(await page.locator('.news-card').count() === validCount, 'Only current published NEWS rendered');
       if (url.includes('id=long')) {
@@ -178,7 +178,7 @@ try {
   }
   {
     const { page, context } = await open('/chonmage-website/');
-    await page.locator('.all-news-link').click(); await page.waitForURL('**/chonmage-website/news/');
+    await page.locator('#news .all-news-link').click(); await page.waitForURL('**/chonmage-website/news/');
     await page.locator('.news-card h3 a').first().click(); await page.waitForURL('**/news/?id=*');
     await page.locator('.news-backlinks a').first().click(); await page.waitForURL('**/chonmage-website/news/');
     await page.goBack(); check(page.url().includes('?id='), 'Browser Back restores detail');
