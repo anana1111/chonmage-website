@@ -166,7 +166,7 @@
 .home-king-kicker i { position: relative; flex: 1; height: 1px; background: var(--hk-line); }
 .home-king-kicker i::after { content: ''; position: absolute; right: 0; top: 50%; width: 9px; height: 9px; background: var(--hk-orange); transform: translate(0, -50%) rotate(45deg); }
 .home-king-head { display: grid; gap: .6rem; }
-.home-king h2 { margin: 0; font-size: clamp(1.9rem, 8.4vw, 3.25rem); font-weight: 900; line-height: 1.35; letter-spacing: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.home-king h2 { margin: 0; font-size: clamp(1.7rem, 7.5vw, 3.25rem); font-weight: 900; line-height: 1.35; letter-spacing: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .home-king-sub { margin: 0; font-size: .94rem; line-height: 1.7; color: var(--hk-muted); }
 .home-king-empty { margin: 0; line-height: 1.9; color: var(--hk-muted); }
 .home-king-empty a { color: inherit; font-weight: 700; }
