@@ -379,7 +379,7 @@
   }
 
   // The /king/ opening card. It waits for the page top and the first KING picture only (the rest load as
-  // the visitor scrolls), at most 2.5s. A fast load just fades out; otherwise the card flips to K♦ first.
+  // the visitor scrolls), at most 2.5s, then flips to K♦. Shown once per tab session.
   function openPage() {
     const root = document.documentElement;
     const loader = document.getElementById('king-loader');
@@ -389,8 +389,11 @@
     const ready = !first ? Promise.resolve()
       : first.complete ? Promise.resolve()
       : new Promise((done) => { first.addEventListener('load', done, { once: true }); first.addEventListener('error', done, { once: true }); });
-    Promise.race([ready, new Promise((done) => setTimeout(done, 2500))]).then(() => {
-      const quick = Date.now() - started < 450 || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try { sessionStorage.setItem('king-opened', '1'); } catch (error) { /* private mode: the card shows again next time */ }
+    // The card shows for at least 1.5s so the gold line and the flip are seen; later visits in the same tab skip it.
+    const shown = new Promise((done) => setTimeout(done, Math.max(0, 1500 - (Date.now() - started))));
+    Promise.all([Promise.race([ready, new Promise((done) => setTimeout(done, 2500))]), shown]).then(() => {
+      const quick = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const finish = () => {
         loader.classList.add('is-leaving');
         const latestCard = view.querySelector('.king-latest');
@@ -458,9 +461,9 @@
     jumpButton();
     view.setAttribute('aria-busy', 'false');
     openPage();
-    // A shared link (/king/#2026-08) lands on that KING once the records are in the page.
+    // A shared link (/king/#2026-08, or #king-next-title from the homepage) lands there once the records are in the page.
     const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
-    if (target && MONTH.test(target.id)) { target.classList.add('is-target'); target.scrollIntoView(); }
+    if (target) { if (MONTH.test(target.id)) target.classList.add('is-target'); target.scrollIntoView(); }
   }
 
   fetch(new URL('data/king.json', siteRoot).href, { cache: 'no-cache' })
