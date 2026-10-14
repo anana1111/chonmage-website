@@ -470,3 +470,7 @@
 /* Home header: the shop's character logo (white lines for the dark hero photo). */
 .brand--logo img { display: block; height: 68px; width: auto; filter: drop-shadow(0 1px 6px rgba(0, 0, 0, .35)); }
 @media (max-width: 900px) { .brand--logo img { height: 46px; } }
+
+/* Home FIRST VISIT: link to the FAQ page, a little larger than the NEWS list link. */
+.all-news-link.faq-link { font-size: clamp(.95rem, 1.4vw, 1.1rem); letter-spacing: .06em; }
+.all-news-link.faq-link span { font-size: 1.35rem; }
