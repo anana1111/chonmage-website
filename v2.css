@@ -476,3 +476,8 @@
 /* Home FIRST VISIT: link to the FAQ page, a little larger than the NEWS list link. */
 .all-news-link.faq-link { font-size: clamp(.95rem, 1.4vw, 1.1rem); letter-spacing: .06em; }
 .all-news-link.faq-link span { font-size: 1.35rem; }
+
+/* Site maker credit under the footer row: small and quiet, kept apart from the shop's own © line. */
+footer .site-credit { margin: 1.4rem 0 0; text-align: right; font-size: .64rem; letter-spacing: .08em; color: rgba(255, 255, 255, .42); }
+footer .site-credit b { font-weight: 700; letter-spacing: .16em; color: rgba(255, 255, 255, .78); }
+@media (max-width: 520px) { footer .site-credit { text-align: left; margin-top: 1.1rem; } }
