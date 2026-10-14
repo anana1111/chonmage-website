@@ -95,6 +95,20 @@
 .king-step-text span { font-size: .82rem; font-weight: 700; }
 .king-bonus { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .8rem; margin: .8rem 0 0; padding: .8rem 1rem; background: var(--ink); color: #fff; border-radius: 4px; font-weight: 700; line-height: 1.6; }
 .king-bonus b { padding: .2rem .6rem; border-radius: 99px; background: #ffd36b; color: var(--ink); font-size: .75rem; }
+.king-entrants { margin-top: 1.2rem; padding: 1rem; background: #fff3ea; border-radius: 4px; }
+.king-entrants-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .4rem 1rem; }
+.king-entrants-head h3 { margin: 0; font-size: 1rem; font-weight: 900; }
+.king-entrants-link { display: inline-flex; align-items: center; min-height: 44px; font-size: .8rem; font-weight: 800; color: var(--ink); }
+.king-entrants-lists { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin-top: .4rem; }
+.king-entrants-col h4 { margin: 0 0 .4rem; font-size: .78rem; font-weight: 800; letter-spacing: .06em; color: var(--blue); }
+.king-entrants-col ol { margin: 0; padding: 0; list-style: none; counter-reset: entrant; border-top: 1px solid rgba(23, 24, 22, .15); }
+.king-entrants-col li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) auto; align-items: center; gap: .5rem; padding: .45rem .2rem; border-bottom: 1px solid rgba(23, 24, 22, .15); counter-increment: entrant; }
+.king-entrants-col li::before { content: counter(entrant); font-family: 'Archivo Black', sans-serif; font-size: .9rem; color: var(--blue); }
+.king-entrant-name { display: flex; align-items: center; gap: .4rem; min-width: 0; font-weight: 800; overflow-wrap: anywhere; }
+.king-entrant-both { display: grid; place-items: center; flex: none; width: 1.3rem; height: 1.3rem; border-radius: 50%; background: var(--orange); color: var(--ink); font-size: .65rem; font-weight: 900; }
+.king-entrant-pt { font-size: .82rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.king-entrants-note { margin: .6rem 0 0; font-size: .78rem; font-weight: 700; }
+@media (min-width: 720px) { .king-entrants-lists { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .king-next-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; margin: 1.2rem 0 0; background: rgba(23, 24, 22, .25); border: 1px solid rgba(23, 24, 22, .25); border-radius: 4px; overflow: hidden; }
 .king-next-facts div { display: flex; gap: 1rem; align-items: baseline; padding: .7rem 1rem; background: #f7a07c; }
 .king-next-facts div.is-date { background: #fff3ea; }

@@ -37,6 +37,17 @@
   // Only real champions are published: rows marked "placeholder" are dropped, except with ?demo=1
   // (a preview of how a fuller wall looks).
   const demo = new URLSearchParams(location.search).has('demo');
+  // The players who earned a seat in the next final: the month's top 8 of each ranking.
+  function qualifiers(raw) {
+    if (!raw || !MONTH.test(text(raw.month))) return null;
+    const list = (rows) => (Array.isArray(rows) ? rows : [])
+      .filter((row) => row && text(row.name)).slice(0, 8)
+      .map((row) => ({ name: text(row.name), points: Number.isInteger(row.points) && row.points >= 0 ? row.points : null }));
+    const tournament = list(raw.tournament), ring = list(raw.ring);
+    if (!tournament.length && !ring.length) return null;
+    return { month: text(raw.month), post: POST.test(text(raw.post)) ? text(raw.post) : '', tournament, ring };
+  }
+
   function clean(data) {
     const rows = Array.isArray(data && data.items) ? data.items : [];
     const items = rows
@@ -50,7 +61,8 @@
     const raw = (data && data.next) || {};
     const next = {
       date: DAY.test(text(raw.date)) ? text(raw.date) : '', time: /^\d{1,2}:\d{2}$/.test(text(raw.time)) ? text(raw.time) : '',
-      ranking: LINK.test(text(raw.ranking)) ? text(raw.ranking) : ''
+      ranking: LINK.test(text(raw.ranking)) ? text(raw.ranking) : '',
+      qualifiers: qualifiers(raw.qualifiers)
     };
     const given = (data && data.rules) || {};
     const number = (value, fallback) => (Number.isInteger(value) && value >= 0 ? value : fallback);
@@ -213,6 +225,36 @@
   }
 
   // How to become the next KING, then where to go next.
+  // "出場者": both top-8 lists side by side; players in both get the 同時ランクイン mark.
+  function entrants(q) {
+    const box = node('div', 'king-entrants');
+    const [, , mm] = q.month.match(MONTH);
+    const head = node('div', 'king-entrants-head');
+    head.append(node('h3', '', Number(mm) + '月ランキング確定　出場者'));
+    if (q.post) { const link = node('a', 'king-entrants-link', 'Xの発表を見る ↗'); link.href = q.post; link.target = '_blank'; link.rel = 'noopener'; head.append(link); }
+    box.append(head);
+    const both = new Set(q.tournament.map((row) => row.name).filter((name) => q.ring.some((row) => row.name === name)));
+    const lists = node('div', 'king-entrants-lists');
+    [['トーナメント部門', q.tournament], ['リングゲーム部門', q.ring]].forEach(([label, rows]) => {
+      if (!rows.length) return;
+      const column = node('div', 'king-entrants-col');
+      column.append(node('h4', '', label));
+      const ol = node('ol');
+      rows.forEach((row) => {
+        const li = node('li');
+        const who = node('span', 'king-entrant-name', row.name);
+        if (both.has(row.name)) { who.append(node('b', 'king-entrant-both', 'W')); li.classList.add('is-both'); }
+        li.append(who);
+        if (row.points !== null) li.append(node('span', 'king-entrant-pt', row.points.toLocaleString('ja-JP') + 'pt'));
+        ol.append(li);
+      });
+      column.append(ol); lists.append(column);
+    });
+    box.append(lists);
+    if (both.size) box.append(node('p', 'king-entrants-note', 'W＝両部門にランクイン（' + Array.from(both).join('・') + '）'));
+    return box;
+  }
+
   // How to become the next KING: the qualifying rule, the two-stage final, and the house rules,
   // as on the shop's poster. Numbers come from data/king.json "rules".
   function nextKing(next, rules) {
@@ -241,6 +283,8 @@
       bonus.append(node('b', '', '同時ランクイン特典'), node('span', '', '両方の部門にランクインした方は、サテライトで' + rules.bonus.toLocaleString('ja-JP') + '点アドオン'));
       section.append(bonus);
     }
+
+    if (next.qualifiers) section.append(entrants(next.qualifiers));
 
     const facts = node('dl', 'king-next-facts');
     const fact = (label, value) => { const row = node('div'); row.append(node('dt', '', label), node('dd', '', value)); facts.append(row); };
