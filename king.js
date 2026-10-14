@@ -156,7 +156,7 @@
     if (days < 0) return;
     const week = '日月火水木金土'[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
     const count = node('span', 'home-king-days');
-    if (days === 0) count.append(node('b', '', '本日開催'));
+    if (days === 0) count.append(node('b', 'is-today', '本日開催'));
     else count.append(node('small', '', 'あと'), node('b', '', String(days)), node('small', '', '日'));
     const when = node('span', 'home-king-when');
     when.append(node('span', '', '次の最強決定戦'), time(next.date, '', m + '月' + d + '日（' + week + '）' + (next.time ? ' ' + next.time : '')));
@@ -166,26 +166,6 @@
       link.href = pageUrl + '#king-next-title'; box.append(link);
     }
     box.hidden = false;
-  }
-
-  // Homepage: the names of every KING from the 初代 on, as text only (no pictures to load).
-  // A player who won more than once appears once, with ×N.
-  function homeRoll(items) {
-    const list = document.getElementById('home-king-names');
-    const count = document.getElementById('home-king-count');
-    if (count) count.replaceChildren(String(items.length), node('small', '', '回'));
-    if (!list || !items.length) return;
-    const players = [];
-    items.slice().reverse().forEach((item) => {
-      const known = players.find((player) => player.name === item.name);
-      if (known) known.wins += 1; else players.push({ name: item.name, month: item.month, wins: 1 });
-    });
-    players.forEach((player) => {
-      const li = node('li');
-      const link = node('a', 'home-king-name-chip', player.name); link.href = pageUrl + '#' + player.month;
-      if (player.wins > 1) link.append(node('b', '', '×' + player.wins));
-      li.append(link); list.append(li);
-    });
   }
 
   // Homepage: photo, name, which month, when, and the way to the whole history.
@@ -453,7 +433,8 @@
       else {
         if (cleaned.items.length) home.replaceChildren(homeCard(cleaned.items[0]));
         homeNext(cleaned.next);
-        homeRoll(cleaned.items);
+        const total = document.getElementById('home-king-count');
+        if (total && cleaned.items.length) total.replaceChildren(String(cleaned.items.length), node('small', '', '回'));
         foil(document.getElementById('king') || home);
       }
     })
