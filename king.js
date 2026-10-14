@@ -168,19 +168,23 @@
     box.hidden = false;
   }
 
-  // Homepage: every KING from the 初代 on, as a row of cards that scrolls sideways.
-  function homeWall(items) {
-    const wall = document.getElementById('home-king-wall');
+  // Homepage: the names of every KING from the 初代 on, as text only (no pictures to load).
+  // A player who won more than once appears once, with ×N.
+  function homeRoll(items) {
+    const list = document.getElementById('home-king-names');
     const count = document.getElementById('home-king-count');
-    if (count) { count.replaceChildren(String(items.length), node('small', '', '回')); }
-    if (!wall || !items.length) return;
+    if (count) count.replaceChildren(String(items.length), node('small', '', '回'));
+    if (!list || !items.length) return;
+    const players = [];
     items.slice().reverse().forEach((item) => {
+      const known = players.find((player) => player.name === item.name);
+      if (known) known.wins += 1; else players.push({ name: item.name, month: item.month, wins: 1 });
+    });
+    players.forEach((player) => {
       const li = node('li');
-      const link = node('a', 'home-king-wall-item'); link.href = pageUrl + '#' + item.month;
-      const caption = node('span', 'home-king-wall-caption');
-      caption.append(node('small', '', label(item)), node('b', '', item.name));
-      link.append(photo(item, 'home-king-wall-photo', false), caption);
-      li.append(link); wall.append(li);
+      const link = node('a', 'home-king-name-chip', player.name); link.href = pageUrl + '#' + player.month;
+      if (player.wins > 1) link.append(node('b', '', '×' + player.wins));
+      li.append(link); list.append(li);
     });
   }
 
@@ -449,7 +453,7 @@
       else {
         if (cleaned.items.length) home.replaceChildren(homeCard(cleaned.items[0]));
         homeNext(cleaned.next);
-        homeWall(cleaned.items);
+        homeRoll(cleaned.items);
         foil(document.getElementById('king') || home);
       }
     })
