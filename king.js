@@ -108,6 +108,7 @@
       image.src = new URL(source, siteRoot).href;
       image.alt = label(item) + ' KING ' + item.name + '様';
       image.decoding = 'async'; image.loading = eager ? 'eager' : 'lazy';
+      if (eager) image.fetchPriority = 'high';
       figure.append(image);
     } else {
       figure.setAttribute('aria-hidden', 'true');
@@ -341,7 +342,7 @@
     const seen = 'IntersectionObserver' in window && new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        seen.unobserve(entry.target); setTimeout(() => sweep(entry.target), 250);
+        seen.unobserve(entry.target); afterOpening(() => setTimeout(() => sweep(entry.target), 250));
       });
     }, { threshold: 0.6 });
     figures.forEach((figure) => {
@@ -367,6 +368,39 @@
         card.style.removeProperty('--rx'); card.style.removeProperty('--ry');
       });
       figure.addEventListener('pointerup', (event) => { if (event.pointerType === 'touch') sweep(figure); });
+    });
+  }
+
+  // Runs fn now, or once the /king/ opening card has gone.
+  function afterOpening(fn) {
+    if (document.documentElement.classList.contains('is-king-loading')) document.addEventListener('king:opened', fn, { once: true });
+    else fn();
+  }
+
+  // The /king/ opening card. It waits for the page top and the first KING picture only (the rest load as
+  // the visitor scrolls), at most 2.5s. A fast load just fades out; otherwise the card flips to K♦ first.
+  function openPage() {
+    const root = document.documentElement;
+    const loader = document.getElementById('king-loader');
+    if (!loader || !root.classList.contains('is-king-loading')) return;
+    const started = window.kingT0 || Date.now();
+    const first = view.querySelector('.king-latest img');
+    const ready = !first ? Promise.resolve()
+      : first.complete ? Promise.resolve()
+      : new Promise((done) => { first.addEventListener('load', done, { once: true }); first.addEventListener('error', done, { once: true }); });
+    Promise.race([ready, new Promise((done) => setTimeout(done, 2500))]).then(() => {
+      const quick = Date.now() - started < 450 || matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const finish = () => {
+        loader.classList.add('is-leaving');
+        const latestCard = view.querySelector('.king-latest');
+        if (!quick && latestCard) latestCard.classList.add('is-arriving');
+        setTimeout(() => {
+          root.classList.remove('is-king-loading'); loader.remove();
+          document.dispatchEvent(new Event('king:opened'));
+        }, 450);
+      };
+      if (quick) finish();
+      else { loader.classList.add('is-flipped'); setTimeout(finish, 1000); }
     });
   }
 
@@ -422,6 +456,7 @@
     foil(view);
     jumpButton();
     view.setAttribute('aria-busy', 'false');
+    openPage();
     // A shared link (/king/#2026-08) lands on that KING once the records are in the page.
     const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
     if (target && MONTH.test(target.id)) { target.classList.add('is-target'); target.scrollIntoView(); }
@@ -445,5 +480,6 @@
       if (!view) return;
       view.replaceChildren(node('p', 'king-state', '記録を読み込めませんでした。時間をおいて再度お試しください。'));
       view.setAttribute('aria-busy', 'false');
+      openPage();
     });
 }());
