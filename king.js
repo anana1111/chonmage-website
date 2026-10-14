@@ -276,7 +276,8 @@
   function nextKing(next, rules) {
     const section = node('section', 'king-next');
     section.setAttribute('aria-labelledby', 'king-next-title');
-    const heading = node('h2', 'king-next-title', '次のKINGは、あなた。'); heading.id = 'king-next-title';
+    const heading = node('h2', 'king-next-title', '次にここに載るのは、'); heading.id = 'king-next-title';
+    heading.append(document.createElement('wbr'), 'あなたかも。');
     const lead = node('p', 'king-next-lead', '各部門の月間ランキング上位' + rules.top + '名に、翌月の' + EVENT + 'の出場権利が与えられます。');
     section.append(heading, lead);
 
