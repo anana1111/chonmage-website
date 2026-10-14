@@ -485,18 +485,19 @@ footer .site-credit b { font-weight: 700; letter-spacing: .16em; color: rgba(255
 @media (max-width: 520px) { footer .site-credit { text-align: left; margin-top: 1.1rem; } }
 
 /* 04 INSIDE CHONMAGE: light oat section */
-.space { background: #EAE5DB; color: #24231F; }
-.space .section-kicker { color: #706B61; border-top-color: #C9C1B5; }
-.space h2 { color: #24231F; }
-.space h2 span { color: #A65335; }
-.space-intro > p { color: #514D46; }
+.space { background: #EAE5DB; color: #242320; }
+.space .section-kicker { color: #77736D; border-top-color: #C9C1B5; }
+.space h2 { color: #242320; }
+.space h2 span { color: #B65B3D; }
+.space-intro > p { color: #45413B; }
 .space-intro.section-pad { padding-bottom: clamp(2.25rem, 5vw, 4.5rem); }
-.photo-card figcaption { color: #706B61; }
-.drag-hint { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; margin-top: 1.25rem; color: #706B61; font-size: .62rem; font-weight: 700; letter-spacing: .12em; }
+.photo-card figcaption { color: #77736D; }
+.space .photo-card img { border-radius: 8px; }
+.drag-hint { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; margin-top: 1.25rem; color: #77736D; font-size: .62rem; font-weight: 700; letter-spacing: .12em; }
 .drag-hint span { margin-left: 0; font-size: 1.1rem; line-height: 1; color: #F46B35; }
 .drag-hint-sp { display: none; }
 @media (max-width: 900px) {
-  .space { padding-bottom: 4.5rem; }
+  .space { padding-bottom: 3rem; }
   .space-intro > p { margin-top: 1.5rem; margin-bottom: 0; }
   .drag-hint { letter-spacing: .06em; font-size: .72rem; }
   .drag-hint-pc { display: none; }
