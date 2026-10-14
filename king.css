@@ -154,49 +154,78 @@
 }
 @media (min-width: 1000px) { .king-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
-/* Homepage block (#king): an award for one person, linking to the whole history */
-.home-king { background: var(--paper); }
-.home-king-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
-.home-king h2 { word-break: keep-all; margin: 0; font-size: clamp(1.8rem, 4.2vw, 3.2rem); font-weight: 900; line-height: 1.3; letter-spacing: -.01em; }
-.home-king-intro { display: flex; flex-direction: column; gap: 1.2rem; }
-.home-king-lead { margin: 0; max-width: 30rem; word-break: keep-all; overflow-wrap: anywhere; font-weight: 700; line-height: 1.9; color: var(--blue); }
-.home-king-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
-.home-king-stats div { display: flex; flex-direction: column; gap: .3rem; padding: .9rem .2rem; }
-.home-king-stats div + div { border-left: 1px solid var(--line); padding-left: 1rem; }
-.home-king-stats dt { font-size: .7rem; font-weight: 800; letter-spacing: .1em; color: var(--blue); }
-.home-king-stats dd { margin: 0; font-size: clamp(1.15rem, 2.4vw, 1.5rem); font-weight: 900; line-height: 1.1; }
-.home-king-stats b { font-family: 'Archivo Black', sans-serif; font-size: 1.5em; color: var(--orange); margin: 0 .1em; }
-.home-king-stats small { font-size: .6em; margin-left: .1em; }
-/* Countdown: the number on the left, date and entrants link on the right, split by a thin rule. */
-.home-king-next { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: stretch; margin: 0; background: var(--ink); color: #fff; border-radius: 6px; overflow: hidden; }
-.home-king-next[hidden] { display: none; }
-.home-king-days { display: flex; align-items: baseline; justify-content: center; gap: .25rem; padding: 1.1rem clamp(1rem, 3vw, 1.5rem); border-right: 1px solid rgba(255, 255, 255, .18); align-self: center; }
-.home-king-days b { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(3.4rem, 9vw, 4.4rem); line-height: .9; color: var(--orange); }
-.home-king-days small { font-size: 1rem; font-weight: 900; }
-.home-king-days b.is-today { font-family: 'Noto Sans JP', sans-serif; font-size: clamp(1.6rem, 5vw, 2.2rem); font-weight: 900; line-height: 1.2; }
-.home-king-info { display: flex; flex-direction: column; justify-content: center; gap: .35rem; padding: 1rem clamp(1rem, 3vw, 1.5rem); min-width: 0; }
-.home-king-when { display: flex; flex-direction: column; gap: .2rem; font-weight: 900; font-size: clamp(1rem, 2.6vw, 1.1rem); }
-.home-king-when span { font-size: .7rem; font-weight: 800; letter-spacing: .06em; opacity: .75; }
-.home-king-entrants { align-self: flex-start; display: inline-flex; align-items: center; min-height: 36px; color: var(--orange); font-size: .82rem; font-weight: 800; }
-.home-king a:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
-.home-king-empty { margin: 0; line-height: 1.9; color: var(--blue); }
-.home-king-empty a { color: inherit; font-weight: 800; }
-.home-king-card { display: grid; grid-template-columns: minmax(0, 1fr); background: var(--ink); color: #fff; border-radius: 6px; overflow: hidden; }
-.home-king-body { display: flex; flex-direction: column; align-items: flex-start; gap: .8rem; padding: clamp(1.4rem, 4vw, 2.6rem); min-width: 0; }
-.home-king-title { margin: 0; font-size: clamp(.95rem, 2vw, 1.1rem); font-weight: 800; color: var(--orange); }
-.home-king-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .35rem; margin: 0; font-size: clamp(2.6rem, 7vw, 4.4rem); font-weight: 900; line-height: 1.08; overflow-wrap: anywhere; }
-.home-king-name small { font-size: .38em; opacity: .75; }
-.home-king-won { display: flex; flex-direction: column; gap: .15rem; margin: 0; padding-top: .8rem; border-top: 1px solid rgba(255, 255, 255, .2); width: 100%; font-weight: 700; color: rgba(255, 255, 255, .78); }
-.home-king-won time { font-size: 1.05rem; font-weight: 800; color: #fff; }
-.home-king-more { display: inline-flex; align-items: center; min-height: 48px; margin-top: .4rem; padding: .75rem 1.3rem; border-radius: 99px; background: var(--orange); color: var(--ink); font-size: .88rem; font-weight: 800; text-decoration: none; }
-.home-king-more:hover { background: #fff; }
-@media (min-width: 640px) {
-  .home-king-card { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
-  .home-king-photo { aspect-ratio: auto; min-height: 100%; }
-  .home-king-body { justify-content: center; }
+/* Homepage block (#king): warm magazine layout. Champion photo and name first, then the next final, then the rules. */
+.home-king {
+  --hk-bg: #f4f1e8; --hk-panel: #fffdf7; --hk-ink: #24231f; --hk-muted: #706b61; --hk-orange: #f46b35;
+  --hk-orange-text: #b9471d; --hk-apricot: #fbeade; --hk-gold: #ad8950; --hk-line: #d8d3c9;
+  background: var(--hk-bg); color: var(--hk-ink); padding: clamp(3rem, 8vw, 6rem) var(--pad);
+  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
 }
-@media (min-width: 1000px) {
-  .home-king-layout { grid-template-columns: minmax(0, .7fr) minmax(0, 1.5fr); }
+.home-king-inner { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1.75rem, 4vw, 2.75rem); }
+.home-king-kicker { display: flex; align-items: center; gap: .75rem; font-size: .75rem; font-weight: 500; line-height: 1.4; letter-spacing: .12em; }
+.home-king-kicker i { position: relative; flex: 1; height: 1px; background: var(--hk-line); }
+.home-king-kicker i::after { content: ''; position: absolute; right: 0; top: 50%; width: 9px; height: 9px; background: var(--hk-orange); transform: translate(0, -50%) rotate(45deg); }
+.home-king-head { display: grid; gap: .6rem; }
+.home-king h2 { margin: 0; font-size: clamp(1.7rem, 7.5vw, 3.25rem); font-weight: 900; line-height: 1.35; letter-spacing: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.home-king-sub { margin: 0; font-size: .94rem; line-height: 1.7; color: var(--hk-muted); }
+.home-king-empty { margin: 0; line-height: 1.9; color: var(--hk-muted); }
+.home-king-empty a { color: inherit; font-weight: 700; }
+
+.home-king-card { display: grid; grid-template-columns: minmax(0, 1fr); background: var(--hk-panel); border-radius: 4px; overflow: hidden; }
+.home-king-photo { position: relative; aspect-ratio: 4 / 3; }
+.home-king-photo img { object-position: center 35%; }
+.home-king-badge { position: absolute; right: 12px; top: 12px; padding: .25rem .55rem; background: var(--hk-panel); font-size: .62rem; font-weight: 500; letter-spacing: .12em; line-height: 1.4; }
+.home-king-body { display: flex; flex-direction: column; align-items: flex-start; gap: .6rem; padding: 1.25rem; min-width: 0; }
+.home-king-title { display: flex; align-items: center; gap: .45rem; margin: 0; font-size: .81rem; font-weight: 500; line-height: 1.5; letter-spacing: .04em; color: var(--hk-muted); }
+.home-king-crown { width: .95rem; height: auto; color: var(--hk-gold); }
+.home-king-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .4rem; width: 100%; margin: 0; padding-bottom: .9rem; border-bottom: 1px solid var(--hk-line);
+  font-size: clamp(2.6rem, 15vw, 5rem); font-weight: 900; line-height: 1.15; overflow-wrap: anywhere; }
+.home-king-name small { font-size: 1.125rem; font-weight: 500; color: var(--hk-muted); }
+.home-king-won { display: grid; gap: 0; margin: 0; font-size: .875rem; font-weight: 500; line-height: 1.7; font-variant-numeric: tabular-nums; }
+.home-king-day { color: var(--hk-muted); }
+.home-king-event em { font-style: normal; font-weight: 800; color: var(--hk-orange-text); }
+.home-king-more { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; width: auto; min-height: 48px; margin-top: .5rem; padding: 0 1.75rem;
+  border-radius: 99px; background: var(--hk-orange); color: var(--hk-ink); font-size: .95rem; font-weight: 700; line-height: 1.4; text-decoration: none; transition: background-color .18s ease; }
+.home-king-more span, .home-king-entrants span { display: inline-block; transition: transform .18s ease; }
+.home-king-more:hover { background: #e85a22; }
+.home-king-more:hover span, .home-king-entrants:hover span { transform: translateX(3px); }
+.home-king a:focus-visible { outline: 3px solid var(--hk-ink); outline-offset: 3px; }
+
+.home-king-bottom { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.75rem; padding-top: .5rem; }
+.home-king-next { display: grid; gap: .35rem; min-width: 0; }
+.home-king-next[hidden] { display: none; }
+.home-king-label { margin: 0; font-size: .75rem; font-weight: 500; letter-spacing: .12em; color: var(--hk-muted); }
+.home-king-when { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem .9rem; margin: 0; font-variant-numeric: tabular-nums; }
+.home-king-date { font-family: 'Archivo Black', 'Noto Sans JP', sans-serif; font-size: clamp(2.25rem, 10vw, 2.5rem); line-height: 1.1; }
+.home-king-week { margin-left: -.5rem; font-size: 1.05rem; font-weight: 800; }
+.home-king-time { font-size: 1.5rem; font-weight: 800; }
+.home-king-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.1rem; margin-top: .3rem; }
+.home-king-left { display: inline-flex; align-items: baseline; gap: .15rem; margin: 0; padding: .2rem .7rem; border-radius: 6px; background: var(--hk-apricot);
+  color: var(--hk-orange-text); font-size: .85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.home-king-left b { margin: 0 .1rem; font-size: 1.6rem; font-weight: 900; line-height: 1.15; }
+.home-king-left b.is-today { margin: 0; font-size: 1rem; line-height: 1.6; }
+.home-king-entrants { display: inline-flex; align-items: center; gap: .6rem; min-height: 44px; color: var(--hk-ink); font-size: .88rem; font-weight: 700; text-decoration: none; }
+.home-king-entrants span { color: var(--hk-orange); }
+
+.home-king-facts { display: grid; gap: .9rem; }
+.home-king-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--hk-line); border-bottom: 1px solid var(--hk-line); text-align: center; }
+.home-king-stats div { display: flex; flex-direction: column; gap: .2rem; padding: .9rem .25rem; }
+.home-king-stats div + div { border-left: 1px solid var(--hk-line); }
+.home-king-stats dt { font-size: .75rem; line-height: 1.6; color: var(--hk-muted); }
+.home-king-stats dd { margin: 0; font-size: clamp(1.5rem, 6.5vw, 1.75rem); font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.home-king-stats b { color: var(--hk-orange); font-weight: 900; }
+.home-king-stats small { font-size: .55em; margin-left: .1em; }
+.home-king-note { margin: 0; text-align: center; font-size: .75rem; line-height: 1.6; color: var(--hk-muted); }
+
+@media (min-width: 900px) {
+  .home-king-card { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  .home-king-photo { aspect-ratio: auto; min-height: 100%; }
+  .home-king-body { justify-content: center; padding: 2.5rem; }
+  .home-king-name { font-size: clamp(4rem, 6vw, 5rem); }
+  .home-king-bottom { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem; align-items: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-king-more, .home-king-more span, .home-king-entrants span { transition: none; }
 }
 
 /* Opening card on /king/: a K♦ card back with a gold line drawing round it, flipped once the first KING is ready.
