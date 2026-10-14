@@ -88,8 +88,23 @@
 .king-record-link { display: inline-flex; align-items: center; min-height: 44px; font-size: .8rem; font-weight: 700; color: var(--ink); }
 .king-card .king-copy { margin-top: auto; padding: .45rem .9rem; font-size: .75rem; }
 
+.king-next-lead { margin: .8rem 0 0; max-width: 40rem; font-weight: 800; line-height: 1.8; }
+.king-steps li { align-items: flex-start; }
+.king-step-text { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.king-step-text strong { font-size: 1rem; }
+.king-step-text span { font-size: .82rem; font-weight: 700; }
+.king-bonus { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .8rem; margin: .8rem 0 0; padding: .8rem 1rem; background: var(--ink); color: #fff; border-radius: 4px; font-weight: 700; line-height: 1.6; }
+.king-bonus b { padding: .2rem .6rem; border-radius: 99px; background: #ffd36b; color: var(--ink); font-size: .75rem; }
+.king-next-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; margin: 1.2rem 0 0; background: rgba(23, 24, 22, .25); border: 1px solid rgba(23, 24, 22, .25); border-radius: 4px; overflow: hidden; }
+.king-next-facts div { display: flex; gap: 1rem; align-items: baseline; padding: .7rem 1rem; background: #f7a07c; }
+.king-next-facts div.is-date { background: #fff3ea; }
+.king-next-facts dt { flex: none; width: 6.5rem; font-size: .75rem; font-weight: 800; letter-spacing: .06em; }
+.king-next-facts dd { margin: 0; font-weight: 900; }
+.king-next-note { margin: .8rem 0 0; font-size: .8rem; font-weight: 700; }
+@media (min-width: 720px) { .king-next-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
 /* Jump to the bottom */
-.king-jump { position: fixed; right: calc(1rem + env(safe-area-inset-right, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 20; display: grid; place-items: center; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--orange); color: var(--ink); font: 900 1.4rem/1 'Noto Sans JP', sans-serif; box-shadow: 0 10px 24px -10px rgba(23, 24, 22, .6); cursor: pointer; transition: transform .2s ease, background .2s ease; }
+.king-jump { position: fixed; right: calc(1rem + env(safe-area-inset-right, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 20; display: grid; place-items: center; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--orange); color: var(--ink); font: 900 1.4rem/1 'Noto Sans JP', sans-serif; box-shadow: 0 0 0 2px #fff, 0 10px 24px -10px rgba(23, 24, 22, .6); cursor: pointer; transition: transform .2s ease, background .2s ease; }
 .king-jump:hover { background: var(--ink); color: #fff; transform: translateY(2px); }
 .king-jump:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
 
@@ -105,12 +120,10 @@
 
 /* How to become the next KING */
 .king-next { margin-top: clamp(3rem, 7vw, 5rem); padding: clamp(1.6rem, 5vw, 3rem); background: var(--orange); color: var(--ink); border-radius: 6px; }
-.king-next-title { margin: 0; font-size: clamp(1.9rem, 6vw, 3.2rem); font-weight: 900; line-height: 1.2; }
+.king-next-title { word-break: keep-all; margin: 0; font-size: clamp(1.9rem, 6vw, 3.2rem); font-weight: 900; line-height: 1.2; }
 .king-steps { list-style: none; margin: 1.4rem 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: .5rem; }
 .king-steps li { display: flex; align-items: center; gap: .8rem; padding: .8rem 1rem; background: rgba(255, 255, 255, .35); border-radius: 4px; font-weight: 800; }
 .king-step-num { display: grid; place-items: center; flex: none; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--ink); color: #fff; font-family: 'Archivo Black', sans-serif; font-size: .8rem; }
-.king-next-date { display: flex; flex-wrap: wrap; gap: .2rem 1rem; margin: 1.2rem 0 0; font-weight: 800; }
-.king-next-date span { font-size: .8rem; }
 .king-next-actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.4rem; }
 .king-next-button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: .75rem 1.3rem; border: 1.5px solid var(--ink); border-radius: 99px; color: var(--ink); font-size: .88rem; font-weight: 800; text-decoration: none; }
 .king-next-button.is-primary { background: var(--ink); color: #fff; }

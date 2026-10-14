@@ -52,7 +52,13 @@
       date: DAY.test(text(raw.date)) ? text(raw.date) : '', time: /^\d{1,2}:\d{2}$/.test(text(raw.time)) ? text(raw.time) : '',
       ranking: LINK.test(text(raw.ranking)) ? text(raw.ranking) : ''
     };
-    return { items, next };
+    const given = (data && data.rules) || {};
+    const number = (value, fallback) => (Number.isInteger(value) && value >= 0 ? value : fallback);
+    const rules = {
+      top: number(given.top, 8), stack: number(given.stack, 30000), bonus: number(given.bonus, 0), fee: number(given.fee, 0),
+      feeNote: text(given.feeNote), late: /^\d{1,2}:\d{2}$/.test(text(given.late)) ? text(given.late) : '', note: text(given.note)
+    };
+    return { items, next, rules };
   }
 
   const monthTitle = (month) => { const [, y, m] = month.match(MONTH); return y + '年' + Number(m) + '月度'; };
@@ -197,22 +203,50 @@
   }
 
   // How to become the next KING, then where to go next.
-  function nextKing(next) {
+  // How to become the next KING: the qualifying rule, the two-stage final, and the house rules,
+  // as on the shop's poster. Numbers come from data/king.json "rules".
+  function nextKing(next, rules) {
     const section = node('section', 'king-next');
     section.setAttribute('aria-labelledby', 'king-next-title');
     const heading = node('h2', 'king-next-title', '次のKINGは、あなた。'); heading.id = 'king-next-title';
+    const lead = node('p', 'king-next-lead', '各部門の月間ランキング上位' + rules.top + '名に、翌月の' + EVENT + 'の出場権利が与えられます。');
+    section.append(heading, lead);
+
     const steps = node('ol', 'king-steps');
-    ['月間ランキングに挑戦', '出場資格を獲得', '王者決定戦へ'].forEach((step, index) => {
-      const li = node('li'); li.append(node('span', 'king-step-num', String(index + 1)), node('span', '', step)); steps.append(li);
-    });
-    section.append(heading, steps);
+    const step = (title, body) => {
+      const li = node('li');
+      const text = node('div', 'king-step-text');
+      text.append(node('strong', '', title));
+      body.forEach((line) => text.append(node('span', '', line)));
+      li.append(node('span', 'king-step-num', String(steps.children.length + 1)), text);
+      steps.append(li);
+    };
+    step('出場権利を獲得', ['トーナメント部門 上位' + rules.top + '名', 'リングゲーム部門 上位' + rules.top + '名']);
+    step('サテライト形式トーナメント', ['出場者の中から上位4名のみが勝ち残り']);
+    step('ヘッズアップトーナメント', ['勝ち残った4名で対戦', '開始時にスタックは' + rules.stack.toLocaleString('ja-JP') + '点にリセット']);
+    section.append(steps);
+
+    if (rules.bonus) {
+      const bonus = node('p', 'king-bonus');
+      bonus.append(node('b', '', '同時ランクイン特典'), node('span', '', '両方の部門にランクインした方は、サテライトで' + rules.bonus.toLocaleString('ja-JP') + '点アドオン'));
+      section.append(bonus);
+    }
+
+    const facts = node('dl', 'king-next-facts');
+    const fact = (label, value) => { const row = node('div'); row.append(node('dt', '', label), node('dd', '', value)); facts.append(row); };
     if (next.date) {
       const [y, m, d] = next.date.split('-').map(Number);
       const week = '日月火水木金土'[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-      const line = node('p', 'king-next-date');
-      line.append(node('span', '', '次回の' + EVENT), time(next.date, '', m + '月' + d + '日（' + week + '）' + (next.time ? ' ' + next.time : '')));
-      section.append(line);
+      const row = node('div', 'is-date'); const value = node('dd');
+      value.append(time(next.date, '', m + '月' + d + '日（' + week + '）'));
+      row.append(node('dt', '', '次回開催'), value); facts.append(row);
     }
+    if (next.time) fact('START', next.time + (rules.late ? '（レイトレジスト ' + rules.late + '）' : ''));
+    fact('初期スタック', rules.stack.toLocaleString('ja-JP') + '点');
+    if (rules.fee) fact('施設利用料', rules.fee.toLocaleString('ja-JP') + '円' + (rules.feeNote ? '（' + rules.feeNote + '）' : ''));
+    section.append(facts);
+    if (rules.note) section.append(node('p', 'king-next-note', rules.note));
+
     const actions = node('div', 'king-next-actions');
     if (next.ranking) {
       const rankingLink = node('a', 'king-next-button is-primary', 'ランキングを見る'); rankingLink.href = next.ranking;
@@ -224,6 +258,7 @@
     section.append(actions);
     return section;
   }
+
 
   // Champion cards behave like a real foil card: they tilt toward the pointer with a moving shine,
   // and on touch screens the foil sweeps once as each card scrolls into view (tap to sweep again).
@@ -284,7 +319,7 @@
     document.body.append(button); update();
   }
 
-  function render({ items, next }) {
+  function render({ items, next, rules }) {
     const fragment = document.createDocumentFragment();
     if (demo) fragment.append(node('p', 'king-preview-note', 'デモ表示：仮のKINGを含みます。'));
     if (!items.length) {
@@ -313,7 +348,7 @@
       const top = ranking(items, counts);
       if (top) fragment.append(top);
     }
-    fragment.append(nextKing(next));
+    fragment.append(nextKing(next, rules));
     view.replaceChildren(fragment);
     foil(view);
     jumpButton();
