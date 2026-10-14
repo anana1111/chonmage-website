@@ -183,7 +183,7 @@
 .home-king-name small { font-size: 1.125rem; font-weight: 500; color: var(--hk-muted); }
 .home-king-won { display: flex; flex-wrap: wrap; gap: .15rem 1rem; margin: 0; font-size: .875rem; font-weight: 500; line-height: 1.7; font-variant-numeric: tabular-nums; }
 .home-king-event em { font-style: normal; font-weight: 800; color: var(--hk-orange-text); }
-.home-king-more { display: inline-flex; align-items: center; justify-content: space-between; gap: 1rem; width: 85%; max-width: 22rem; min-height: 48px; margin-top: .5rem; padding: 0 1.5rem;
+.home-king-more { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; width: 85%; max-width: 22rem; min-height: 48px; margin-top: .5rem; padding: 0 1.5rem;
   border-radius: 99px; background: var(--hk-orange); color: var(--hk-ink); font-size: .95rem; font-weight: 700; line-height: 1.4; text-decoration: none; transition: background-color .18s ease; }
 .home-king-more span, .home-king-entrants span { display: inline-block; transition: transform .18s ease; }
 .home-king-more:hover { background: #e85a22; }
