@@ -145,14 +145,43 @@
     const quote = node('blockquote', 'king-comment'); quote.append(node('p', '', item.comment)); return quote;
   }
 
-  // Homepage: the date of the next final under the section's lead, e.g. "次回 10月25日（日）18:00".
+  // Homepage: days left until the next final (Japan time), its date, and a way to the qualifiers.
   function homeNext(next) {
-    const line = document.getElementById('home-king-next');
-    if (!line || !next.date) return;
+    const box = document.getElementById('home-king-next');
+    if (!box || !next.date) return;
     const [y, m, d] = next.date.split('-').map(Number);
+    const now = new Date(Date.now() + 9 * 3600 * 1000);
+    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const days = Math.round((Date.UTC(y, m - 1, d) - today) / 86400000);
+    if (days < 0) return;
     const week = '日月火水木金土'[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-    line.replaceChildren(node('span', '', '次回の最強決定戦'), time(next.date, '', m + '月' + d + '日（' + week + '）' + (next.time ? ' ' + next.time : '')));
-    line.hidden = false;
+    const count = node('span', 'home-king-days');
+    if (days === 0) count.append(node('b', '', '本日開催'));
+    else count.append(node('small', '', 'あと'), node('b', '', String(days)), node('small', '', '日'));
+    const when = node('span', 'home-king-when');
+    when.append(node('span', '', '次の最強決定戦'), time(next.date, '', m + '月' + d + '日（' + week + '）' + (next.time ? ' ' + next.time : '')));
+    box.replaceChildren(count, when);
+    if (next.qualifiers) {
+      const link = node('a', 'home-king-entrants', '出場者' + (next.qualifiers.tournament.length + next.qualifiers.ring.length) + '名を見る →');
+      link.href = pageUrl + '#king-next-title'; box.append(link);
+    }
+    box.hidden = false;
+  }
+
+  // Homepage: every KING from the 初代 on, as a row of cards that scrolls sideways.
+  function homeWall(items) {
+    const wall = document.getElementById('home-king-wall');
+    const count = document.getElementById('home-king-count');
+    if (count) { count.replaceChildren(String(items.length), node('small', '', '回')); }
+    if (!wall || !items.length) return;
+    items.slice().reverse().forEach((item) => {
+      const li = node('li');
+      const link = node('a', 'home-king-wall-item'); link.href = pageUrl + '#' + item.month;
+      const caption = node('span', 'home-king-wall-caption');
+      caption.append(node('small', '', label(item)), node('b', '', item.name));
+      link.append(photo(item, 'home-king-wall-photo', false), caption);
+      li.append(link); wall.append(li);
+    });
   }
 
   // Homepage: photo, name, which month, when, and the way to the whole history.
@@ -418,8 +447,10 @@
       const cleaned = clean(data);
       if (view) render(cleaned);
       else {
-        if (cleaned.items.length) { home.replaceChildren(homeCard(cleaned.items[0])); foil(home); }
+        if (cleaned.items.length) home.replaceChildren(homeCard(cleaned.items[0]));
         homeNext(cleaned.next);
+        homeWall(cleaned.items);
+        foil(document.getElementById('king') || home);
       }
     })
     .catch(() => {

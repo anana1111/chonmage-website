@@ -86,7 +86,7 @@
     <link rel="stylesheet" href="./activity.css?v=20261004" />
     <link rel="stylesheet" href="./news.css?v=20261003news" />
     <link rel="stylesheet" href="./story.css?v=20261006story3" />
-    <link rel="stylesheet" href="./king.css?v=20261014v8" />
+    <link rel="stylesheet" href="./king.css?v=20261014v9" />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20261006chip" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
@@ -346,6 +346,25 @@
         </div>
       </section>
 
+      <section class="home-king section-pad" id="king" aria-labelledby="home-king-heading">
+        <div class="section-kicker reveal"><span>CHONMAGE ONLY</span><span>毎月のタイトル戦</span></div>
+        <div class="home-king-layout">
+          <div class="home-king-intro">
+            <h2 id="home-king-heading" class="reveal">ちょんまげにしかない、<br />毎月のタイトル戦。</h2>
+            <p class="home-king-lead">トーナメント部門とリングゲーム部門、それぞれの月間ランキング上位8名だけが出場できる「ランキング最強決定戦」。勝ち抜いた1人が、その月のKINGとして名前を刻みます。</p>
+            <dl class="home-king-stats">
+              <div><dt>開催</dt><dd>毎月</dd></div>
+              <div><dt>出場（各部門）</dt><dd>上位<b>8</b>名</dd></div>
+              <div><dt>これまでの決定戦</dt><dd id="home-king-count">11<small>回</small></dd></div>
+            </dl>
+            <p class="home-king-next" id="home-king-next" hidden></p>
+          </div>
+          <div id="home-king" aria-live="polite"><p class="home-king-empty">月ごとのランキング最強決定戦を制したプレイヤーを、<a href="./king/">歴代KING</a>として記録しています。</p></div>
+        </div>
+        <div class="home-king-wall-head"><h3>歴代KING</h3><a href="./king/">すべて見る →</a></div>
+        <ol class="home-king-wall" id="home-king-wall" aria-label="歴代KING"></ol>
+      </section>
+
       <section class="news section-pad" id="news" aria-labelledby="news-title">
         <div class="section-kicker reveal"><span>02</span><span>NEWS FROM CHONMAGE</span></div>
         <div class="news-heading">
@@ -353,18 +372,6 @@
           <a class="all-news-link reveal" href="./news/">NEWS一覧を見る <span aria-hidden="true">→</span></a>
         </div>
         <div class="news-grid" aria-live="polite"><p class="news-empty">最近のニュースは NEWS一覧でご確認ください。</p></div>
-      </section>
-
-      <section class="home-king section-pad" id="king" aria-labelledby="home-king-heading">
-        <div class="section-kicker reveal"><span>LATEST KING</span><span>最新のKING</span></div>
-        <div class="home-king-layout">
-          <div class="home-king-intro">
-            <h2 id="home-king-heading" class="reveal">ちょんまげに、<br />その名を刻む。</h2>
-            <p class="home-king-lead">毎月、トーナメント部門とリングゲーム部門のランキング上位8名だけが出場できる「ランキング最強決定戦」。その頂点に立った人を、KINGとして記録しています。</p>
-            <p class="home-king-next" id="home-king-next" hidden></p>
-          </div>
-          <div id="home-king" aria-live="polite"><p class="home-king-empty">月ごとのランキング最強決定戦を制したプレイヤーを、<a href="./king/">歴代KING</a>として記録しています。</p></div>
-        </div>
       </section>
 
       <section class="ticker" aria-label="店舗の特徴">
@@ -488,6 +495,6 @@
     <script src="./news-view.js?v=20261006seo"></script>
     <script src="./week-core.js?v=20261007"></script>
     <script src="./script.js?v=20261007"></script>
-    <script defer src="./king.js?v=20261014v8"></script>
+    <script defer src="./king.js?v=20261014v9"></script>
   </body>
 </html>
