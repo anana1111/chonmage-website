@@ -146,7 +146,7 @@ ${sourceButton}
     </article>
     <nav class="news-backlinks" aria-label="ニュースのナビゲーション"><a class="news-button" href="../">NEWS一覧へ戻る</a><a class="news-button" href="../../">HOMEへ戻る</a></nav>
   </main>
-  <div class="news-page-end"><span>POKER ROOM CHONMAGE · NIIGATA · <a href="/faq/">よくある質問</a> · <a href="/company/">運営者情報</a></span><span class="site-credit">Designed &amp; Developed by <b>ANNA</b></span></div>
+  <div class="news-page-end"><span>POKER ROOM CHONMAGE · NIIGATA · <a href="/beginner/">はじめての方へ</a> · <a href="/faq/">よくある質問</a> · <a href="/company/">運営者情報</a></span><span class="site-credit">Designed &amp; Developed by <b>ANNA</b></span></div>
 </body>
 </html>
 `;
@@ -198,6 +198,7 @@ function sitemapXml(items) {
     { loc: SITE + 'news/' },
     { loc: SITE + 'company/' },
     { loc: SITE + 'faq/' },
+    { loc: SITE + 'beginner/' },
     { loc: SITE + 'king/' },
     ...items.map((item) => ({
       loc: SITE + 'news/' + safeSegment(item.id) + '/',
@@ -256,7 +257,7 @@ export function generate(now = Date.now()) {
   const manifest = JSON.stringify({ ids }, null, 2) + '\n';
   if (writeIfChanged(MANIFEST_PATH, manifest)) changed = true;
 
-  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 5} URLs.`);
+  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 6} URLs.`);
   return { changed, count: visible.length };
 }
 
