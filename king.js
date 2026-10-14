@@ -157,21 +157,21 @@
     const days = Math.round((Date.UTC(y, m - 1, d) - today) / 86400000);
     if (days < 0) return;
     const week = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
-    // Left: the days left in a small apricot block. Right: what, when, and the entrants link.
-    const left = node('p', 'home-king-left');
-    if (days === 0) left.append(node('small', '', '本日'), node('b', 'is-today', '開催'));
-    else left.append(node('small', '', 'あと'), node('b', '', String(days)), node('small', '', '日'));
-    const info = node('div', 'home-king-info');
+    // Date and time lead; the days left sit underneath as a small tag next to the entrants link.
     const when = node('p', 'home-king-when');
     when.append(time(next.date, 'home-king-date', m + '.' + String(d).padStart(2, '0')), node('span', 'home-king-week', week));
     if (next.time) when.append(node('span', 'home-king-time', next.time));
-    info.append(node('p', 'home-king-label', '次回の最強決定戦'), when);
+    const left = node('p', 'home-king-left');
+    if (days === 0) left.append(node('b', 'is-today', '本日開催'));
+    else left.append('あと', node('b', '', String(days)), '日');
+    const meta = node('div', 'home-king-meta');
+    meta.append(left);
     if (next.qualifiers) {
       const link = node('a', 'home-king-entrants', '出場者' + (next.qualifiers.tournament.length + next.qualifiers.ring.length) + '名を見る');
       link.href = pageUrl + '#king-next-title'; link.append(node('span', '', '→'));
-      info.append(link);
+      meta.append(link);
     }
-    box.replaceChildren(left, info);
+    box.replaceChildren(node('p', 'home-king-label', '次回の最強決定戦'), when, meta);
     box.hidden = false;
   }
 
@@ -186,7 +186,7 @@
     month.append(crown('home-king-crown'), time(item.month, '', label(item)), node('span', '', ' KING'));
     const heading = name(item, 'h3', 'home-king-name'); heading.id = 'home-king-name';
     const result = node('p', 'home-king-won');
-    if (item.won) result.append(time(item.won, '', dotted(item.won)));
+    if (item.won) result.append(time(item.won, 'home-king-day', dotted(item.won)));
     const event = node('span', 'home-king-event', EVENT + ' ');
     event.append(node('em', '', '優勝'));
     result.append(event);
