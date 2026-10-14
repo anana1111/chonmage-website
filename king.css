@@ -154,6 +154,83 @@
 }
 @media (min-width: 1000px) { .king-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
+/* /king/ light palette (same family as the homepage block): cream page, warm-white content,
+   orange only for the main actions and small marks, gold only for crowns. */
+.king-page {
+  --k-bg: #f4f1e8; --k-panel: #fffdf7; --k-ink: #24231f; --k-muted: #706b61; --k-orange: #f46b35;
+  --k-orange-text: #b9471d; --k-apricot: #fbeade; --k-gold: #ad8950; --k-line: #d8d3c9; --k-sand: #eee9df;
+  background: var(--k-bg); color: var(--k-ink);
+}
+.king-page .king-kicker { color: var(--k-orange-text); }
+.king-page .king-title { color: var(--k-ink); }
+.king-page .king-lead, .king-page .king-state { color: var(--k-muted); }
+.king-page .news-button { border-color: var(--k-line); color: var(--k-ink); background: transparent; }
+.king-page .news-page-end { color: var(--k-muted); border-top-color: var(--k-line); }
+.king-page .news-button:hover { border-color: var(--k-ink); background: transparent; color: var(--k-ink); }
+.king-page a:focus-visible, .king-page button:focus-visible, .king-page summary:focus-visible { outline-color: var(--k-ink); }
+
+/* Latest KING: warm white, big charcoal name, gold crown */
+.king-page .king-latest { background: var(--k-panel); color: var(--k-ink); border: 1px solid var(--k-line); }
+.king-page .king-latest-label { color: var(--k-orange-text); }
+.king-page .king-latest-crown { color: var(--k-gold); }
+.king-page .king-latest-title { color: var(--k-muted); font-weight: 500; }
+.king-page .king-latest-name small { color: var(--k-muted); opacity: 1; font-weight: 500; }
+.king-page .king-latest-won { color: var(--k-muted); border-top-color: var(--k-line); font-weight: 500; }
+.king-page .king-latest-won time { color: var(--k-ink); }
+.king-page .king-latest .king-facts { background: var(--k-line); border-color: var(--k-line); }
+.king-page .king-latest .king-facts div { background: var(--k-panel); }
+.king-page .king-facts dt, .king-page .king-latest .king-facts dt { color: var(--k-muted); }
+.king-page .king-badge { background: var(--k-apricot); color: var(--k-orange-text); }
+.king-page .king-comment { border-left-color: var(--k-gold); }
+.king-page .king-copy, .king-page .king-action { border: 1px solid var(--k-line); background: transparent; color: var(--k-ink); }
+.king-page .king-copy:hover, .king-page .king-action:hover,
+.king-page .king-latest .king-copy:hover, .king-page .king-latest .king-action:hover { border-color: var(--k-ink); background: transparent; color: var(--k-ink); }
+
+/* History and most crowns */
+.king-page .king-section-title { border-top-color: var(--k-line); }
+.king-page .king-year { color: var(--k-muted); }
+.king-page .king-card { background: var(--k-panel); border-color: var(--k-line); }
+.king-page .king-card-title, .king-page .king-card-won, .king-page .king-record summary { color: var(--k-muted); }
+.king-page .king-card-won time, .king-page .king-record-link { color: var(--k-ink); }
+.king-page .king-card.is-target, .king-page .king-latest.is-target { box-shadow: 0 0 0 3px var(--k-orange); }
+.king-page .king-ranking-list { background: var(--k-panel); border: 1px solid var(--k-line); border-radius: 6px; padding: 0 1rem; }
+.king-page .king-ranking-row { border-bottom-color: var(--k-line); }
+.king-page .king-ranking-row:last-child { border-bottom: 0; }
+.king-page .king-ranking-row::before { color: var(--k-muted); }
+.king-page .king-ranking-crowns { color: var(--k-gold); }
+
+/* How to become the next KING: sand panel, warm-white cards, orange only on the main button */
+.king-page .king-next { background: var(--k-sand); color: var(--k-ink); }
+.king-page .king-next-lead { font-weight: 500; color: var(--k-ink); }
+.king-page .king-steps li { background: var(--k-panel); border: 1px solid var(--k-line); }
+.king-page .king-steps li + li::before { color: var(--k-muted); }
+.king-page .king-step-num { background: var(--k-apricot); color: var(--k-orange-text); }
+.king-page .king-step-text strong { color: var(--k-ink); }
+.king-page .king-step-text span { color: var(--k-muted); font-weight: 500; }
+.king-page .king-bonus { background: var(--k-apricot); color: var(--k-ink); font-weight: 500; }
+.king-page .king-bonus b { padding: 0; background: none; color: var(--k-orange-text); font-size: .8rem; font-weight: 800; }
+.king-page .king-bonus strong { font-weight: 900; }
+.king-page .king-entrants { background: var(--k-panel); border: 1px solid var(--k-line); }
+.king-page .king-entrants-col h4 { color: var(--k-ink); }
+.king-page .king-entrants-col ol, .king-page .king-entrants-col li { border-color: var(--k-line); }
+.king-page .king-entrants-col li::before { color: var(--k-muted); }
+.king-page .king-entrant-pt { text-align: right; }
+.king-page .king-entrant-both { background: var(--k-apricot); color: var(--k-orange-text); }
+.king-page .king-entrants-note { color: var(--k-muted); font-weight: 500; }
+.king-page .king-next-facts { background: var(--k-line); border-color: var(--k-line); }
+.king-page .king-next-facts div, .king-page .king-next-facts div.is-date { background: var(--k-panel); }
+.king-page .king-next-facts dt { color: var(--k-muted); font-weight: 500; }
+.king-page .king-next-note { color: var(--k-muted); font-weight: 500; }
+.king-page .king-next-button { border: 1px solid var(--k-line); background: transparent; color: var(--k-ink); }
+.king-page .king-next-button.is-primary { border-color: var(--k-orange); background: var(--k-orange); color: var(--k-ink); }
+.king-page .king-next-button:hover { border-color: var(--k-ink); background: transparent; color: var(--k-ink); }
+.king-page .king-next-button.is-primary:hover { border-color: #e85a22; background: #e85a22; }
+
+/* The ↓ button: small and quiet so it does not sit on top of the lists */
+.king-page .king-jump { width: 40px; height: 40px; background: rgba(255, 253, 247, .92); color: var(--k-muted); font-size: 1.05rem;
+  box-shadow: 0 0 0 1px var(--k-line), 0 6px 14px -10px rgba(36, 35, 31, .5); }
+.king-page .king-jump:hover { background: var(--k-panel); color: var(--k-ink); }
+
 /* Homepage block (#king): warm magazine layout. Champion photo and name first, then the next final, then the rules. */
 .home-king {
   --hk-bg: #f4f1e8; --hk-panel: #fffdf7; --hk-ink: #24231f; --hk-muted: #706b61; --hk-orange: #f46b35;

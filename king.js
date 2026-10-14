@@ -310,7 +310,9 @@
 
     if (rules.bonus) {
       const bonus = node('p', 'king-bonus');
-      bonus.append(node('b', '', '同時ランクイン特典'), node('span', '', '両方の部門にランクインした方は、サテライトで' + rules.bonus.toLocaleString('ja-JP') + '点アドオン'));
+      const text = node('span', '', '両方の部門にランクインした方は、サテライトで');
+      text.append(node('strong', '', rules.bonus.toLocaleString('ja-JP') + '点'), 'アドオン');
+      bonus.append(node('b', '', '同時ランクイン特典'), text);
       section.append(bonus);
     }
 
