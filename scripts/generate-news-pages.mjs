@@ -146,7 +146,7 @@ ${sourceButton}
     </article>
     <nav class="news-backlinks" aria-label="ニュースのナビゲーション"><a class="news-button" href="../">NEWS一覧へ戻る</a><a class="news-button" href="../../">HOMEへ戻る</a></nav>
   </main>
-  <div class="news-page-end">POKER ROOM CHONMAGE · NIIGATA</div>
+  <div class="news-page-end">POKER ROOM CHONMAGE · NIIGATA · <a href="/company/">運営者情報</a></div>
 </body>
 </html>
 `;
@@ -156,6 +156,7 @@ function sitemapXml(items) {
   const urls = [
     { loc: SITE },
     { loc: SITE + 'news/' },
+    { loc: SITE + 'company/' },
     ...items.map((item) => ({
       loc: SITE + 'news/' + safeSegment(item.id) + '/',
       lastmod: item.date,
@@ -211,7 +212,7 @@ export function generate(now = Date.now()) {
   const manifest = JSON.stringify({ ids }, null, 2) + '\n';
   if (writeIfChanged(MANIFEST_PATH, manifest)) changed = true;
 
-  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 2} URLs.`);
+  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 3} URLs.`);
   return { changed, count: visible.length };
 }
 
