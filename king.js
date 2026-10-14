@@ -1,4 +1,4 @@
-// KING: the champions of the monthly ranking final (ランキング王者決定戦), from data/king.json.
+// KING: the champions of the monthly ranking final (ランキング最強決定戦), from data/king.json.
 // /king/ fills #king-view (latest KING, every past KING by year, most crowns, how to take part);
 // the homepage fills #home-king with the latest KING only. Every KING has a shareable #YYYY-MM link.
 (function () {
@@ -14,7 +14,7 @@
   const POST = /^https:\/\/(?:x|twitter)\.com\/(?:ChonmageNiigata|Old_Chonmage)\/status\/\d+\/?$/;
   const LINK = /^https:\/\/[^\s"<>]+$/;
   const CROWN = 'M4 38 0 8l17 13L32 0l15 21L64 8l-4 30zM4 40h56v4H4z';
-  const EVENT = 'ランキング王者決定戦';
+  const EVENT = 'ランキング最強決定戦';
 
   const node = (tag, className, text) => {
     const result = document.createElement(tag);
@@ -78,7 +78,7 @@
     result.append(node('span', '', item.name), node('small', '', '様'));
     return result;
   }
-  // "ランキング王者決定戦 · 2026.09.13 優勝"
+  // "ランキング最強決定戦 · 2026.09.13 優勝"
   function won(item, className) {
     const result = node('p', className);
     result.append(node('span', '', EVENT));
@@ -131,6 +131,16 @@
   function comment(item) {
     if (!item.comment) return null;
     const quote = node('blockquote', 'king-comment'); quote.append(node('p', '', item.comment)); return quote;
+  }
+
+  // Homepage: the date of the next final under the section's lead, e.g. "次回 10月25日（日）18:00".
+  function homeNext(next) {
+    const line = document.getElementById('home-king-next');
+    if (!line || !next.date) return;
+    const [y, m, d] = next.date.split('-').map(Number);
+    const week = '日月火水木金土'[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+    line.replaceChildren(node('span', '', '次回の最強決定戦'), time(next.date, '', m + '月' + d + '日（' + week + '）' + (next.time ? ' ' + next.time : '')));
+    line.hidden = false;
   }
 
   // Homepage: photo, name, which month, when, and the way to the whole history.
@@ -363,7 +373,10 @@
     .then((data) => {
       const cleaned = clean(data);
       if (view) render(cleaned);
-      else if (cleaned.items.length) { home.replaceChildren(homeCard(cleaned.items[0])); foil(home); }
+      else {
+        if (cleaned.items.length) { home.replaceChildren(homeCard(cleaned.items[0])); foil(home); }
+        homeNext(cleaned.next);
+      }
     })
     .catch(() => {
       // The homepage keeps its static link to /king/.
