@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import '../news-core.js';
+import { pageDate as schedulePageDate } from './generate-schedule-page.mjs';
 
 const core = globalThis.ChonmageNews;
 const ROOT = process.cwd();
@@ -196,6 +197,7 @@ function sitemapXml(items) {
   const urls = [
     { loc: SITE },
     { loc: SITE + 'news/' },
+    { loc: SITE + 'schedule/', lastmod: schedulePageDate() },
     { loc: SITE + 'company/' },
     { loc: SITE + 'faq/' },
     { loc: SITE + 'beginner/' },
@@ -266,7 +268,7 @@ export function generate(now = Date.now()) {
   const manifest = JSON.stringify({ ids }, null, 2) + '\n';
   if (writeIfChanged(MANIFEST_PATH, manifest)) changed = true;
 
-  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 15} URLs.`);
+  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 16} URLs.`);
   return { changed, count: visible.length };
 }
 

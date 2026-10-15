@@ -58,6 +58,9 @@ jobs:
       - name: Test NEWS rules and snapshot merge
         run: node scripts/test-news.mjs
 
+      - name: Test the static schedule page
+        run: node scripts/test-schedule-page.mjs
+
       # Reads the shop's posts as a separate small X account (repository secrets X_AUTH_TOKEN and
       # X_CT0) with twitter-cli, pinned. Without the secrets, or on failure, the logged-out sources run.
       - name: Read official X posts with the logged-in account
@@ -110,8 +113,10 @@ jobs:
       - name: Validate final public schedule
         run: node scripts/validate-events.mjs data/events.json data/news.json
 
-      - name: Generate crawlable NEWS pages and sitemap
-        run: node scripts/generate-news-pages.mjs
+      - name: Generate crawlable NEWS pages, schedule page and sitemap
+        run: |
+          node scripts/generate-schedule-page.mjs || echo "::warning::schedule/ was not regenerated; keeping the previous page."
+          node scripts/generate-news-pages.mjs
 
       - name: Commit only real data changes
         if: github.ref == 'refs/heads/main'
@@ -139,9 +144,11 @@ jobs:
             # A photo problem must never block the schedule update, so it only warns.
             node scripts/news-images.mjs data/news.json || echo "::warning::NEWS photos were not copied; the X links stay."
             node scripts/validate-events.mjs data/events.json data/news.json
+            # A schedule-page problem never blocks the update; the last good page stays.
+            node scripts/generate-schedule-page.mjs || echo "::warning::schedule/ was not regenerated; keeping the previous page."
             node scripts/generate-news-pages.mjs
             git add data/events.auto.json data/events.json data/news.json data/week.json data/last-entry.json
-            git add -A data/news-pages.generated.json news sitemap.xml
+            git add -A data/news-pages.generated.json news schedule sitemap.xml
             if [ -d images/news ]; then git add images/news; fi
             if git diff --cached --quiet; then
               echo "No schedule, NEWS or SEO page changes."
