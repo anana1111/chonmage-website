@@ -24,6 +24,7 @@ python3 -m http.server 8000
 | --- | --- |
 | `index.html` | 页面内容和结构 |
 | `styles.css` / `v2.css` / `timeline.css` | 基础样式 / v2 页面样式 / TODAY 时间轴与 Hero 状态样式 |
+| `home.css` | 首页唯一加载的样式表，由 `node scripts/build-home-css.mjs` 按顺序合并 `styles.css`、`v2.css`、`timeline.css`、`activity.css`、`news.css`、`story.css`、`king.css` 生成。不要直接改它：改源文件后重新运行脚本（会同时更新 `index.html` 里的 `?v=`）。其他页面仍直接引用源文件 |
 | `timeline.js` | TODAY 时间轴、NOW / NEXT / 本日終了 判定、Hero 的日期与营业状态 |
 | `script.js` | 菜单、滚动动效、读取并校验 `data/*.json`、日期过期判断、预览模式 |
 | `news/` / `news-core.js` / `news-view.js` / `news.css` | 站内 NEWS 列表和详情、统一 30 天规则、共享渲染与样式 |

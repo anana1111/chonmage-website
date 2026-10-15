@@ -1,0 +1,69 @@
+name: Keep home.css in sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'styles.css'
+      - 'v2.css'
+      - 'timeline.css'
+      - 'activity.css'
+      - 'news.css'
+      - 'story.css'
+      - 'king.css'
+      - 'home.css'
+      - 'index.html'
+      - 'scripts/build-home-css.mjs'
+      - '.github/workflows/home-css.yml'
+  pull_request:
+    paths:
+      - '*.css'
+      - 'index.html'
+      - 'scripts/build-home-css.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: home-css-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  home-css:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check home.css (pull requests)
+        if: github.event_name == 'pull_request'
+        run: node scripts/build-home-css.mjs --check
+      - name: Rebuild home.css if a source file changed without it (main)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+            node scripts/build-home-css.mjs
+            node scripts/build-home-css.mjs --check
+            git add -- home.css index.html
+            if git diff --cached --quiet; then
+              echo "home.css is already up to date."
+              exit 0
+            fi
+            git commit --quiet -m "Rebuild home.css from the homepage stylesheets"
+            if git push origin HEAD:main; then
+              echo "::warning::home.css was rebuilt by this workflow. Bot commits do not start a Pages build; push any change (or rerun Pages) so the homepage gets it."
+              exit 0
+            fi
+            echo "main moved during rebuild; retrying ($attempt/3)."
+            sleep $((attempt * 3))
+          done
+          echo "::error::home.css rebuild commit failed after three retries."
+          exit 1
