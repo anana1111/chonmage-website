@@ -1108,6 +1108,23 @@ body[data-activity-state="closed-day"] .activity-hero { min-height: 280px; }
 }
 .story-lead > span { display: block; }
 
+/* Scroll glow: script.js splits the lead into characters (only when motion is allowed) and lights
+   them up in reading order as the paragraph scrolls into view. Without JS the text stays as above. */
+.story-lead.is-glow .glow-ch {
+  color: rgba(79, 80, 75, .22);
+  transition: color .45s cubic-bezier(.22, 1, .36, 1);
+}
+.story-lead.is-glow .glow-ch.on { color: #171816; }
+.story-lead .glow-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  user-select: none;
+}
+
 /* ---------- Timeline ---------- */
 .story-timeline {
   align-self: end;
