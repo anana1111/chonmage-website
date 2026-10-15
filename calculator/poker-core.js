@@ -145,9 +145,37 @@
     return { current: cur, groups: groups, total: total, unseen: unseen, next: next, byRiver: byRiver, cardsToCome: 5 - board.length };
   }
 
+
+  // Final hand category with royal flush split out: 0 high card ... 8 straight flush, 9 royal flush.
+  function category10(score) { var c = category(score); return c === 8 && topRank(score) === 12 ? 9 : c; }
+
+  // Exact counts of the final (river) hand category over every way the rest of the board can come.
+  // hole must have 2 cards; board 1..5 cards. Returns { counts: [10], total }.
+  function finalCounts(hole, board) {
+    var known = hole.concat(board), deck = remainingDeck(known), need = 5 - board.length;
+    var counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], total = 0, cur = known.slice(), n = deck.length;
+    function rec(start, left) {
+      if (left === 0) { counts[category10(evaluate(cur))]++; total++; return; }
+      for (var i = start; i <= n - left; i++) { cur.push(deck[i]); rec(i + 1, left - 1); cur.pop(); }
+    }
+    rec(0, need);
+    return { counts: counts, total: total };
+  }
+
+  // Key into the precomputed starting-hand table, e.g. "AKs", "A10o", "77".
+  function startingKey(hole) {
+    var a = hole[0] >> 2, b = hole[1] >> 2, hi = Math.max(a, b), lo = Math.min(a, b);
+    if (a === b) return RANKS[a] + RANKS[a];
+    return RANKS[hi] + RANKS[lo] + ((hole[0] & 3) === (hole[1] & 3) ? 's' : 'o');
+  }
+
+  // Exact 7-card odds before any card is seen (counts out of C(52,7) = 133784560).
+  var BASE_COUNTS = [23294460, 58627800, 31433400, 6461620, 6180020, 4047644, 3473184, 224848, 37260, 4324];
+
   var api = {
     RANKS: RANKS, SUITS: SUITS, evaluate: evaluate, category: category, topRank: topRank,
-    secondRank: secondRank, bestFive: bestFive, equityRunner: equityRunner, outs: outs, straightHigh: straightHigh
+    secondRank: secondRank, bestFive: bestFive, category10: category10, finalCounts: finalCounts,
+    startingKey: startingKey, BASE_COUNTS: BASE_COUNTS, BASE_TOTAL: 133784560, equityRunner: equityRunner, outs: outs, straightHigh: straightHigh
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PokerCore = api;
