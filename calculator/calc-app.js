@@ -107,6 +107,17 @@
   state.active = 5;
   var isExample = true;
 
+  // Deep link from the starting hand chart: #AKs, #A10o, #77 fills the hole cards (spades/hearts) with an empty board.
+  var deep = (location.hash || '').match(/^#(10|[2-9AKQJ])(10|[2-9AKQJ])([so]?)$/);
+  if (deep) {
+    var r1 = RANKS.indexOf(deep[1]), r2 = RANKS.indexOf(deep[2]);
+    var pairOk = r1 === r2 && !deep[3], twoOk = r1 !== r2 && deep[3];
+    if (pairOk || twoOk) {
+      state.cards = [card(r1, 0), card(r2, deep[3] === 's' ? 0 : 1), null, null, null, null, null];
+      state.active = 2; state.suit = 0; isExample = false;
+    }
+  }
+
   var slotBtns = [], slotTags = [];
   for (var i = 0; i < 7; i++) {
     var w = document.createElement('div'); w.className = 'slot-wrap';
