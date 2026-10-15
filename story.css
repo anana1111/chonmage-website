@@ -513,3 +513,6 @@ a.story-step-row:focus-visible {
   .story-step-arrow,
   .story-card-link::after { transition: none; }
 }
+
+/* Price section: inline links match the dark text on the orange background */
+.price-copy a{color:inherit;font-weight:800;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.22em}
