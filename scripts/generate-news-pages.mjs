@@ -200,6 +200,7 @@ function sitemapXml(items) {
     { loc: SITE + 'faq/' },
     { loc: SITE + 'beginner/' },
     { loc: SITE + 'rules/' },
+    { loc: SITE + 'calculator/' },
     { loc: SITE + 'glossary/' },
     { loc: SITE + 'en/' },
     { loc: SITE + 'king/' },
@@ -260,7 +261,7 @@ export function generate(now = Date.now()) {
   const manifest = JSON.stringify({ ids }, null, 2) + '\n';
   if (writeIfChanged(MANIFEST_PATH, manifest)) changed = true;
 
-  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 9} URLs.`);
+  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 10} URLs.`);
   return { changed, count: visible.length };
 }
 
