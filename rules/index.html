@@ -173,7 +173,7 @@
       </table>
       <p>全員の出した額がそろったら、その段階は終わりです。次のコミュニティカードが開かれます。</p>
 
-      <h2>役の強さ（強い順）</h2>
+      <h2 id="hand-rankings">役の強さ（強い順）</h2>
       <ol class="hand-ladder">
         <li><span class="hr-num">1</span><div class="hr-info"><strong>ロイヤルフラッシュ</strong><small>Royal Flush</small><p>同じマークのA・K・Q・J・10。いちばん強い役です。</p><p class="hr-prob">出る確率 <b>0.003%</b><span class="visually-hidden">。例：A♠ K♠ Q♠ J♠ 10♠</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>A</b><i>♠</i></span><span class="pc"><b>K</b><i>♠</i></span><span class="pc"><b>Q</b><i>♠</i></span><span class="pc"><b>J</b><i>♠</i></span><span class="pc"><b>10</b><i>♠</i></span></span></li>
         <li><span class="hr-num">2</span><div class="hr-info"><strong>ストレートフラッシュ</strong><small>Straight Flush</small><p>同じマークで数字が5つ連続</p><p class="hr-prob">出る確率 <b>0.03%</b><span class="visually-hidden">。例：9♥ 8♥ 7♥ 6♥ 5♥</span></p></div><span class="hand" aria-hidden="true"><span class="pc red"><b>9</b><i>♥</i></span><span class="pc red"><b>8</b><i>♥</i></span><span class="pc red"><b>7</b><i>♥</i></span><span class="pc red"><b>6</b><i>♥</i></span><span class="pc red"><b>5</b><i>♥</i></span></span></li>
@@ -187,6 +187,7 @@
         <li><span class="hr-num">10</span><div class="hr-info"><strong>ハイカード</strong><small>High Card</small><p>上のどれにも当てはまらないもの。いちばん高いカードで比べます。</p><p class="hr-prob">出る確率 <b>17.4%</b><span class="visually-hidden">。例：A♣ Q♦ 9♠ 6♥ 3♣</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>A</b><i>♣</i></span><span class="pc red dim"><b>Q</b><i>♦</i></span><span class="pc dim"><b>9</b><i>♠</i></span><span class="pc red dim"><b>6</b><i>♥</i></span><span class="pc dim"><b>3</b><i>♣</i></span></span></li>
       </ol>
       <p class="hr-legend">薄く表示しているカードは、役に関係しないカードです。確率は、7枚のカードからその役ができるおおよその割合です。</p>
+      <p class="note">自分の手札でいまどの役になっているか、勝つ確率はどのくらいかは、<a href="../calculator/">ポーカー勝率計算・役判定ツール</a>でカードを選ぶだけで調べられます。</p>
       <div class="rank-strip" aria-label="数字の強さ：A、K、Q、J、10、9、8、7、6、5、4、3、2の順"><span>A</span><span>K</span><span>Q</span><span>J</span><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span></div>
       <p>数字の強さは A がいちばん強く、K、Q、J、10、9…2 の順です。マーク（♠♥♦♣）に強さの違いはありません。ストレートでは、A を 1 として使う「5・4・3・2・A」も認められます。</p>
 
