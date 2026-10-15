@@ -88,6 +88,7 @@ node scripts/test-news.mjs              # NEWS 日期边界、兼容、抓取、
 node scripts/test-news-browser.mjs [截图目录] # NEWS 页面和后台的浏览器验收
 node scripts/test-week-browser.mjs [截图目录] # 今週のスケジュール、营业卡片表示时间段、后台週間スケジュール
 node scripts/test-schedule.mjs          # 数据校验、合并、抓取模拟（Actions 也会运行）
+node scripts/test-schedule-page.mjs     # /schedule/ 静态日程页：7 天范围、费用说明、坏数据时保留上一版（Actions 也会运行）
 node scripts/validate-events.mjs data/events.json data/events.auto.json data/news.json
 node scripts/test-browser.mjs [截图目录]  # 浏览器测试（需要本地安装 Playwright；Actions 不运行）
 ```

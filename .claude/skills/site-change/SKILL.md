@@ -47,6 +47,7 @@ git checkout -b claude/<主题> origin/main
 | --- | --- |
 | `home.css` | `scripts/build-home-css.mjs` |
 | `news/x-*/index.html`、`sitemap.xml` | `scripts/generate-news-pages.mjs` |
+| `schedule/index.html` | `scripts/generate-schedule-page.mjs`（数据来自 `data/week.json`、`data/events.json`，每天由 Actions 重新生成） |
 | `data/events.json` | `scripts/merge-events.mjs`（手动修改写进 `data/events.manual.json`） |
 
 ## 3. 检查
