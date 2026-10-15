@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js), GA4 G-LW40HNQ1PL; exclude local, preview and test visits. -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW40HNQ1PL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    if (!(location.hostname === 'chonmagepoker.com' || location.hostname.endsWith('.chonmagepoker.com')) || /[?&](preview|now)=/.test(location.search)) window['ga-disable-G-LW40HNQ1PL'] = true;
+    gtag('js', new Date());
+    gtag('config', 'G-LW40HNQ1PL');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#273870" />
+  <title>Poker Odds Calculator & Hand Checker | Texas Hold'em Outs and Win Chance | POKER ROOM CHONMAGE</title>
+  <meta name="description" content="Free Texas Hold'em odds calculator. Pick the number of players, your two hole cards and the board to see your current hand, your chance to win, your outs, and how likely each hand is by the river, street by street. No sign-up, works on your phone." />
+  <link rel="canonical" href="https://chonmagepoker.com/en/calculator/" />
+  <link rel="alternate" hreflang="ja" href="https://chonmagepoker.com/calculator/" />
+  <link rel="alternate" hreflang="en" href="https://chonmagepoker.com/en/calculator/" />
+  <link rel="alternate" hreflang="zh-Hans" href="https://chonmagepoker.com/zh/calculator/" />
+  <link rel="alternate" hreflang="x-default" href="https://chonmagepoker.com/calculator/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="POKER ROOM CHONMAGE" />
+  <meta property="og:title" content="Poker Odds Calculator & Hand Checker | CHONMAGE" />
+  <meta property="og:description" content="Pick the players, your cards and the board: see your hand, win chance and outs instantly. Free." />
+  <meta property="og:url" content="https://chonmagepoker.com/en/calculator/" />
+  <meta property="og:image" content="https://chonmagepoker.com/images/og-image.jpg?v=2" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="ja_JP" />
+  <meta property="og:locale:alternate" content="zh_CN" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@ChonmageNiigata" />
+  <link rel="preload" href="../../fonts/archivo-black-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" /></noscript>
+  <link rel="stylesheet" href="../../styles.css?v=20261006perf" />
+  <link rel="stylesheet" href="../../v2.css?v=20261006logo2" />
+  <link rel="stylesheet" href="../../news.css?v=20261014credit" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=20261006chip" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20261006chip" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
+  <link rel="shortcut icon" href="/favicon.ico?v=20261006chip" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261006chip" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://chonmagepoker.com/en/calculator/#app",
+      "name": "Poker Odds Calculator & Hand Checker",
+      "url": "https://chonmagepoker.com/en/calculator/",
+      "description": "A free Texas Hold'em tool that works out your hand, win chance and outs from the players, hole cards and board.",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Any",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "JPY"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "POKER ROOM CHONMAGE",
+        "url": "https://chonmagepoker.com/"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://chonmagepoker.com/en/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Poker Odds Calculator & Hand Checker",
+          "item": "https://chonmagepoker.com/en/calculator/"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <link rel="stylesheet" href="../../calculator/calc.css?v=20261015i18n" />
+</head>
+<body class="news-page calc-page">
+  <a class="news-skip" href="#guide-content">Skip to content</a>
+  <header class="news-page-header">
+    <a class="brand brand--logo" href="../../en/" aria-label="CHONMAGE home"><img src="../../images/logo-dark.webp" width="333" height="136" alt="POKER ROOM CHONMAGE" /></a>
+    <a class="news-button" href="../../calculator/" lang="ja">日本語</a>
+  </header>
+  <main id="guide-content" tabindex="-1">
+    <div class="cp">
+      <div class="cp-intro">
+        <nav class="langs" aria-label="Language"><a href="../../calculator/" lang="ja" hreflang="ja">日本語</a><a href="./" aria-current="page" lang="en">English</a><a href="../../zh/calculator/" lang="zh-Hans" hreflang="zh-Hans">中文</a></nav>
+        <p class="cp-kicker">POKER ODDS &amp; HAND CALCULATOR</p>
+        <h1><span>Poker Odds Calculator</span><span> &amp; Hand Checker</span></h1>
+        <p class="cp-lead">Pick the players, your two cards and the board. That is all.</p>
+        <p class="cp-hint">Tap a suit, then a rank.</p>
+      </div>
+
+      <div class="cp-tool">
+        <section class="calc" aria-label="Calculator">
+          <div class="calc-row">
+            <div class="players-label"><span class="calc-label">Players left</span><small>including you</small></div>
+            <div class="stepper">
+              <button type="button" id="players-minus" aria-label="Fewer players">−</button>
+              <output id="players-out" aria-live="polite">6</output>
+              <button type="button" id="players-plus" aria-label="More players">＋</button>
+            </div>
+          </div>
+          <p class="players-hint">If someone folds, lower the number of players.</p>
+          <div class="slots">
+            <div class="slot-group"><span class="calc-label">Your hand</span><div class="cards" id="hole-slots"></div></div>
+            <div class="slot-group"><span class="calc-label">Board</span><div class="cards" id="board-slots"></div></div>
+          </div>
+          <div class="result" aria-live="polite">
+            <div class="result-top"><span class="result-label" id="hand-label">Your hand now</span><span class="badge" id="example-badge">Example</span></div>
+            <p class="hand-name" id="hand-name">―</p>
+            <p class="summary" id="summary">Choose your two hole cards.</p>
+          </div>
+          <div class="versus" aria-live="polite">
+            <p class="vs-title" id="vs-title">Your chance to win with 6 players</p>
+            <strong id="eq-num">―</strong>
+            <p class="vs-cap" id="vs-cap">Against 5 opponents to showdown (includes your share of split pots)</p>
+          </div>
+          <div class="suits" role="group" aria-label="Suits">
+            <button type="button" class="k suit" id="suit-0" data-suit="0" aria-label="Spades">♠</button>
+            <button type="button" class="k suit red" id="suit-1" data-suit="1" aria-label="Hearts">♥</button>
+            <button type="button" class="k suit red" id="suit-2" data-suit="2" aria-label="Diamonds">♦</button>
+            <button type="button" class="k suit" id="suit-3" data-suit="3" aria-label="Clubs">♣</button>
+          </div>
+          <div class="keys" id="keys" role="group" aria-label="Ranks"></div>
+          <p class="calc-foot">Tap a card to change it</p>
+        </section>
+
+        <div class="panels">
+          <section class="panel" id="panel-odds">
+            <h2>Chance of each hand by the river</h2>
+            <p class="panel-sub" id="odds-note">Odds for your own hand only (opponents not counted)</p>
+            <div class="odds-wrap" id="odds-wrap"><table class="odds" id="odds-table"></table></div>
+            <p class="panel-note">A column is added each time cards are dealt.</p>
+          </section>
+
+          <section class="panel" id="panel-eq">
+            <div class="panel-head"><h2 id="wtl-title">Play 100 times against 5 opponents</h2><span class="badge" id="eq-badge">Example</span></div>
+            <div class="wtl" aria-hidden="true"><span class="w" id="bar-w"></span><span class="t" id="bar-t"></span><span class="l" id="bar-l"></span></div>
+            <div class="wtl-legend">
+              <div><span><i style="background:var(--orange)"></i>Win</span><b id="pct-w">―</b></div>
+              <div><span><i style="background:var(--mustard)"></i>Tie</span><b id="pct-t">―</b></div>
+              <div><span><i style="background:var(--stone)"></i>Lose</span><b id="pct-l">―</b></div>
+            </div>
+            <p class="panel-note" id="sim-note">A tie means two players have hands of the same strength and split the pot.</p>
+          </section>
+
+          <section class="panel" id="panel-outs">
+            <div class="panel-head"><h2>Outs</h2><span class="panel-side" id="outs-note"></span></div>
+            <div id="outs-body" style="display:grid;gap:12px"><p class="muted">With 3 or 4 board cards, this shows the cards that would improve your hand (your outs).</p></div>
+            <p class="panel-note">Cards that improve your hand</p>
+          </section>
+        </div>
+      </div>
+
+      <div class="guide-wrap">
+        <section class="guide-card">
+          <h2>How to use it</h2>
+          <ol class="steps">
+            <li><div><strong>Choose the number of players</strong><p>Count the players still in the hand, including you. When someone folds, lower the number.</p></div></li>
+            <li><div><strong>Enter cards: suit, then rank</strong><p>Enter your two hole cards, then the board (community cards).</p></div></li>
+            <li><div><strong>Hand and odds update automatically</strong><p>Your hand and your chance to win are worked out from the cards you enter.</p></div></li>
+          </ol>
+          <p class="tip"><b>⌫</b> removes the last card, <b>AC</b> clears all. The cards shown when the page opens are an example.</p>
+
+          <div class="acc">
+            <details>
+              <summary>How to read the hand odds table</summary>
+              <div class="acc-body">
+                <p>The table shows the chance that your seven cards end up as each hand by the river. Columns run from before the deal, to your two hole cards, the flop (3 board cards) and the turn (4 board cards), and the numbers change as each card is dealt. ▲ means the chance went up, ▼ that it went down.</p>
+                <p>The "Before deal" column is the chance of each hand from seven random cards (hidden on phones). The hole card, flop and turn columns are exact: they count every way the remaining cards can come. Hands you can no longer make drop out of the table.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How the win chance is worked out</summary>
+              <div class="acc-body">
+                <p>The calculator deals your opponents' cards and the rest of the board at random tens of thousands of times and counts how often you would win if nobody folded (a Monte Carlo simulation). Everything runs on your own phone or computer; nothing is sent anywhere.</p>
+                <p>Players means the players still in the hand. If three of six players fold, set it to 3 and the odds are worked out again against the two opponents left. You cannot see the folded cards, so treating them like undealt cards does not change the result.</p>
+                <p>The big win chance includes your share of split pots, so it can be a little higher than the "Win" count in "Play 100 times".</p>
+                <p class="note">In a real game players fold along the way, so the win chance is a guide for the case where everyone stays to showdown. The more players, the lower the chance for the same hand.</p>
+              </div>
+            </details>
+            <details open>
+              <summary>What are outs?</summary>
+              <div class="acc-body">
+                <p>Outs are the unseen cards that would improve your hand. With A♥ K♥ and a board of Q♥ 7♥ 2♣, any of the nine hearts left gives you a flush, so you have 9 outs to a flush.</p>
+                <p>This tool counts outs separately for each hand they make. Cards that would give everyone the same hand from the board alone (such as pairing the board) are not counted.</p>
+                <div class="rule42">
+                  <h3>Handy shortcut: the rule of 4 and 2</h3>
+                  <dl><div class="r"><dt>Flop</dt><dd><span>outs <b>× 4</b></span><span>approx. % by the river</span></dd></div><div class="r"><dt>Turn</dt><dd><span>outs <b>× 2</b></span><span>approx. % on the next card</span></dd></div></dl>
+                  <p style="margin:0;font-size:.88rem">With 9 outs, that is about 36% on the flop and about 18% on the turn.</p>
+                </div>
+              </div>
+            </details>
+            <details>
+              <summary>Hand rankings</summary>
+              <div class="acc-body">
+                <p>The full list of hands and how to compare equal hands is in our <a href="../../rules/#hand-rankings" lang="ja">rules guide</a> (in Japanese).</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section class="cp-cta">
+          <h2>Rather than calculate,<br />why not come and play?</h2>
+          <div class="cp-cta-row">
+            <p>At <strong>POKER ROOM CHONMAGE</strong> in Furumachi, Niigata, staff teach the rules in a free beginner lesson. International guests welcome.</p>
+            <a class="btn btn-fill" href="../">Visit us <span aria-hidden="true">→</span></a>
+          </div>
+          <small>An amusement poker room: no cash betting and no cash redemption.</small>
+        </section>
+
+        <nav class="bottom-nav" aria-label="Page navigation">
+          <a class="btn btn-line" href="../../rules/" lang="ja">Rules (Japanese)</a><a class="btn btn-line" href="../">CHONMAGE in English</a>
+        </nav>
+      </div>
+    </div>
+  </main>
+  <div class="news-page-end"><span>POKER ROOM CHONMAGE · NIIGATA · NO CASH BETTING · NO CASH REDEMPTION</span><span class="site-credit">Designed &amp; Developed by <b>ANNA</b></span></div>
+
+  <script src="../../calculator/poker-core.js?v=20261015i18n"></script>
+  <script src="../../calculator/preflop-odds.js?v=20261015i18n"></script>
+  <script src="../../calculator/calc-app.js?v=20261015i18n"></script>
+</body>
+</html>
