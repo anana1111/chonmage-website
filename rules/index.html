@@ -50,7 +50,7 @@
         "description": "はじめての方向けに、テキサスホールデムの一局の流れ、アクション、役の強さと比べ方を解説します。",
         "inLanguage": "ja",
         "datePublished": "2026-10-14",
-        "dateModified": "2026-10-14",
+        "dateModified": "2026-10-15",
         "image": ["https://chonmagepoker.com/images/og-image.jpg?v=2"],
         "author": { "@type": "Organization", "name": "ポーカールーム ちょんまげ", "url": "https://chonmagepoker.com/" },
         "publisher": { "@type": "Organization", "name": "ポーカールーム ちょんまげ", "url": "https://chonmagepoker.com/" }
@@ -88,6 +88,47 @@
     .guide th { width: 40%; font-weight: 700; }
     .guide .cards { white-space: nowrap; letter-spacing: .04em; }
     .guide .note { padding: .9rem 1rem; border-left: 3px solid var(--blue); background: rgba(39, 56, 112, .05); }
+    .guide .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .guide .hand { display: flex; gap: 4px; flex: none; }
+    .guide .pc { width: clamp(36px, 9vw, 44px); aspect-ratio: 5 / 7; display: flex; flex-direction: column; justify-content: space-between; padding: 3px 4px; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 5px; line-height: 1; box-shadow: 0 1px 0 rgba(23, 24, 22, .08); }
+    .guide .pc.red { color: #c8322a; }
+    .guide .pc.dim { opacity: .32; }
+    .guide .pc b { font-size: clamp(.8rem, 3vw, .95rem); letter-spacing: -.03em; }
+    .guide .pc i { font-style: normal; font-size: clamp(1rem, 4vw, 1.25rem); align-self: flex-end; }
+    .guide .hand-ladder { list-style: none; padding: 0; margin: 1rem 0 0; border-top: 1px solid var(--line); }
+    .guide .hand-ladder li { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr) auto; gap: 1rem; align-items: center; padding: .9rem 0; border-bottom: 1px solid var(--line); }
+    .guide .hr-num { font-family: "Archivo Black", "Noto Sans JP", sans-serif; font-size: 1.3rem; color: var(--blue); text-align: center; }
+    .guide .hr-info { min-width: 0; }
+    .guide .hr-info strong { font-size: 1.05rem; margin-right: .5rem; }
+    .guide .hr-info small { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; opacity: .55; }
+    .guide .hr-info p { margin: .1rem 0 0; font-size: .9rem; line-height: 1.6; }
+    .guide .hr-info p.hr-prob { font-size: .78rem; opacity: .7; font-variant-numeric: tabular-nums; }
+    .guide .hand-ladder li:first-child { background: linear-gradient(90deg, rgba(39, 56, 112, .07), transparent 70%); }
+    .guide .hr-legend { font-size: .8rem; opacity: .7; margin: .6rem 0 1.4rem; }
+    .guide .rank-strip { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .guide .rank-strip span { min-width: 2rem; height: 2.1rem; padding: 0 .35rem; display: grid; place-items: center; font-weight: 800; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+    .guide .rank-strip span:first-child { background: var(--blue); border-color: var(--blue); color: #fff; }
+    @media (max-width: 560px) {
+      .guide .hand-ladder li { grid-template-columns: 2rem minmax(0, 1fr); row-gap: .6rem; }
+      .guide .hand-ladder .hand { grid-column: 2; }
+    }
+    .guide .hand-quiz { border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem; background: rgba(255, 255, 255, .55); display: grid; gap: 1rem; }
+    .guide .hq-head { display: flex; justify-content: space-between; font-size: .8rem; font-weight: 700; letter-spacing: .06em; opacity: .7; font-variant-numeric: tabular-nums; }
+    .guide .hq-hands { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    .guide .hq-hand { border: 1px solid var(--line); border-radius: 10px; padding: .8rem; display: grid; gap: .5rem; justify-items: start; background: var(--paper); }
+    .guide .hq-hand > span:first-child { font-family: "Archivo Black", sans-serif; color: var(--blue); font-size: 1.1rem; line-height: 1; }
+    .guide .hq-hand em { font-style: normal; font-size: .8rem; opacity: .75; min-height: 1.3em; }
+    .guide .hq-hand.win { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+    @media (max-width: 560px) { .guide .hq-hands { grid-template-columns: 1fr; } }
+    .guide .hq-choices { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .guide .hq-choices button, .guide .hq-next { flex: 1 1 6rem; font: 700 .9rem/1 "Noto Sans JP", sans-serif; padding: .85rem 1rem; border-radius: 99px; border: 1px solid var(--blue); background: transparent; color: var(--blue); cursor: pointer; }
+    .guide .hq-choices button:disabled { cursor: default; opacity: .45; }
+    .guide .hq-choices button.picked { opacity: 1; background: var(--blue); color: #fff; }
+    @media (hover: hover) and (pointer: fine) { .guide .hq-choices button:hover:not(:disabled), .guide .hq-next:hover { background: var(--blue); color: #fff; } }
+    .guide .hand-quiz button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+    .guide .hq-feedback { margin: 0; padding: .8rem 1rem; border-left: 3px solid var(--blue); background: rgba(39, 56, 112, .05); font-size: .92rem; }
+    .guide .hq-feedback strong.ng { color: #c8322a; }
+    .guide .hq-next { flex: none; background: var(--blue); color: #fff; justify-self: start; }
   </style>
 </head>
 <body class="news-page">
@@ -133,18 +174,20 @@
       <p>全員の出した額がそろったら、その段階は終わりです。次のコミュニティカードが開かれます。</p>
 
       <h2>役の強さ（強い順）</h2>
-      <table>
-        <tr><th scope="row">1. ロイヤルフラッシュ</th><td>同じマークのA・K・Q・J・10<br /><span class="cards">例：A♠ K♠ Q♠ J♠ 10♠</span></td></tr>
-        <tr><th scope="row">2. ストレートフラッシュ</th><td>同じマークで数字が5つ連続<br /><span class="cards">例：9♥ 8♥ 7♥ 6♥ 5♥</span></td></tr>
-        <tr><th scope="row">3. フォーカード</th><td>同じ数字が4枚<br /><span class="cards">例：Q♠ Q♥ Q♦ Q♣ 7♠</span></td></tr>
-        <tr><th scope="row">4. フルハウス</th><td>同じ数字3枚＋同じ数字2枚<br /><span class="cards">例：8♠ 8♥ 8♦ K♣ K♠</span></td></tr>
-        <tr><th scope="row">5. フラッシュ</th><td>同じマークが5枚（数字はばらばらでよい）<br /><span class="cards">例：A♦ J♦ 9♦ 6♦ 2♦</span></td></tr>
-        <tr><th scope="row">6. ストレート</th><td>数字が5つ連続（マークはばらばらでよい）<br /><span class="cards">例：10♣ 9♦ 8♠ 7♥ 6♣</span></td></tr>
-        <tr><th scope="row">7. スリーカード</th><td>同じ数字が3枚<br /><span class="cards">例：5♠ 5♥ 5♣ K♦ 2♠</span></td></tr>
-        <tr><th scope="row">8. ツーペア</th><td>同じ数字2枚の組が2つ<br /><span class="cards">例：J♠ J♦ 4♥ 4♣ A♠</span></td></tr>
-        <tr><th scope="row">9. ワンペア</th><td>同じ数字が2枚<br /><span class="cards">例：10♥ 10♠ K♣ 7♦ 3♠</span></td></tr>
-        <tr><th scope="row">10. ハイカード</th><td>上のどれにも当てはまらないもの。いちばん高いカードで比べます。<br /><span class="cards">例：A♣ Q♦ 9♠ 6♥ 3♣</span></td></tr>
-      </table>
+      <ol class="hand-ladder">
+        <li><span class="hr-num">1</span><div class="hr-info"><strong>ロイヤルフラッシュ</strong><small>Royal Flush</small><p>同じマークのA・K・Q・J・10。いちばん強い役です。</p><p class="hr-prob">出る確率 <b>0.003%</b><span class="visually-hidden">。例：A♠ K♠ Q♠ J♠ 10♠</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>A</b><i>♠</i></span><span class="pc"><b>K</b><i>♠</i></span><span class="pc"><b>Q</b><i>♠</i></span><span class="pc"><b>J</b><i>♠</i></span><span class="pc"><b>10</b><i>♠</i></span></span></li>
+        <li><span class="hr-num">2</span><div class="hr-info"><strong>ストレートフラッシュ</strong><small>Straight Flush</small><p>同じマークで数字が5つ連続</p><p class="hr-prob">出る確率 <b>0.03%</b><span class="visually-hidden">。例：9♥ 8♥ 7♥ 6♥ 5♥</span></p></div><span class="hand" aria-hidden="true"><span class="pc red"><b>9</b><i>♥</i></span><span class="pc red"><b>8</b><i>♥</i></span><span class="pc red"><b>7</b><i>♥</i></span><span class="pc red"><b>6</b><i>♥</i></span><span class="pc red"><b>5</b><i>♥</i></span></span></li>
+        <li><span class="hr-num">3</span><div class="hr-info"><strong>フォーカード</strong><small>Four of a Kind</small><p>同じ数字が4枚</p><p class="hr-prob">出る確率 <b>0.17%</b><span class="visually-hidden">。例：Q♠ Q♥ Q♦ Q♣ 7♠</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>Q</b><i>♠</i></span><span class="pc red"><b>Q</b><i>♥</i></span><span class="pc red"><b>Q</b><i>♦</i></span><span class="pc"><b>Q</b><i>♣</i></span><span class="pc dim"><b>7</b><i>♠</i></span></span></li>
+        <li><span class="hr-num">4</span><div class="hr-info"><strong>フルハウス</strong><small>Full House</small><p>同じ数字3枚＋同じ数字2枚</p><p class="hr-prob">出る確率 <b>2.6%</b><span class="visually-hidden">。例：8♠ 8♥ 8♦ K♣ K♠</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>8</b><i>♠</i></span><span class="pc red"><b>8</b><i>♥</i></span><span class="pc red"><b>8</b><i>♦</i></span><span class="pc"><b>K</b><i>♣</i></span><span class="pc"><b>K</b><i>♠</i></span></span></li>
+        <li><span class="hr-num">5</span><div class="hr-info"><strong>フラッシュ</strong><small>Flush</small><p>同じマークが5枚（数字はばらばらでよい）</p><p class="hr-prob">出る確率 <b>3.0%</b><span class="visually-hidden">。例：A♦ J♦ 9♦ 6♦ 2♦</span></p></div><span class="hand" aria-hidden="true"><span class="pc red"><b>A</b><i>♦</i></span><span class="pc red"><b>J</b><i>♦</i></span><span class="pc red"><b>9</b><i>♦</i></span><span class="pc red"><b>6</b><i>♦</i></span><span class="pc red"><b>2</b><i>♦</i></span></span></li>
+        <li><span class="hr-num">6</span><div class="hr-info"><strong>ストレート</strong><small>Straight</small><p>数字が5つ連続（マークはばらばらでよい）</p><p class="hr-prob">出る確率 <b>4.6%</b><span class="visually-hidden">。例：10♣ 9♦ 8♠ 7♥ 6♣</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>10</b><i>♣</i></span><span class="pc red"><b>9</b><i>♦</i></span><span class="pc"><b>8</b><i>♠</i></span><span class="pc red"><b>7</b><i>♥</i></span><span class="pc"><b>6</b><i>♣</i></span></span></li>
+        <li><span class="hr-num">7</span><div class="hr-info"><strong>スリーカード</strong><small>Three of a Kind</small><p>同じ数字が3枚</p><p class="hr-prob">出る確率 <b>4.8%</b><span class="visually-hidden">。例：5♠ 5♥ 5♣ K♦ 2♠</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>5</b><i>♠</i></span><span class="pc red"><b>5</b><i>♥</i></span><span class="pc"><b>5</b><i>♣</i></span><span class="pc red dim"><b>K</b><i>♦</i></span><span class="pc dim"><b>2</b><i>♠</i></span></span></li>
+        <li><span class="hr-num">8</span><div class="hr-info"><strong>ツーペア</strong><small>Two Pair</small><p>同じ数字2枚の組が2つ</p><p class="hr-prob">出る確率 <b>23.5%</b><span class="visually-hidden">。例：J♠ J♦ 4♥ 4♣ A♠</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>J</b><i>♠</i></span><span class="pc red"><b>J</b><i>♦</i></span><span class="pc red"><b>4</b><i>♥</i></span><span class="pc"><b>4</b><i>♣</i></span><span class="pc dim"><b>A</b><i>♠</i></span></span></li>
+        <li><span class="hr-num">9</span><div class="hr-info"><strong>ワンペア</strong><small>One Pair</small><p>同じ数字が2枚</p><p class="hr-prob">出る確率 <b>43.8%</b><span class="visually-hidden">。例：10♥ 10♠ K♣ 7♦ 3♠</span></p></div><span class="hand" aria-hidden="true"><span class="pc red"><b>10</b><i>♥</i></span><span class="pc"><b>10</b><i>♠</i></span><span class="pc dim"><b>K</b><i>♣</i></span><span class="pc red dim"><b>7</b><i>♦</i></span><span class="pc dim"><b>3</b><i>♠</i></span></span></li>
+        <li><span class="hr-num">10</span><div class="hr-info"><strong>ハイカード</strong><small>High Card</small><p>上のどれにも当てはまらないもの。いちばん高いカードで比べます。</p><p class="hr-prob">出る確率 <b>17.4%</b><span class="visually-hidden">。例：A♣ Q♦ 9♠ 6♥ 3♣</span></p></div><span class="hand" aria-hidden="true"><span class="pc"><b>A</b><i>♣</i></span><span class="pc red dim"><b>Q</b><i>♦</i></span><span class="pc dim"><b>9</b><i>♠</i></span><span class="pc red dim"><b>6</b><i>♥</i></span><span class="pc dim"><b>3</b><i>♣</i></span></span></li>
+      </ol>
+      <p class="hr-legend">薄く表示しているカードは、役に関係しないカードです。確率は、7枚のカードからその役ができるおおよその割合です。</p>
+      <div class="rank-strip" aria-label="数字の強さ：A、K、Q、J、10、9、8、7、6、5、4、3、2の順"><span>A</span><span>K</span><span>Q</span><span>J</span><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span></div>
       <p>数字の強さは A がいちばん強く、K、Q、J、10、9…2 の順です。マーク（♠♥♦♣）に強さの違いはありません。ストレートでは、A を 1 として使う「5・4・3・2・A」も認められます。</p>
 
       <h2>同じ役どうしの比べ方</h2>
@@ -152,6 +195,10 @@
       <p>役の数字も同じなら、役に使っていない残りのカード（キッカー）を大きい順に比べます。たとえば2人とも A のワンペアなら、残り3枚のうちいちばん高いカードが強いほうの勝ちです。</p>
       <p>使う5枚がまったく同じ強さのときは引き分け（スプリット）で、ポットを分け合います。コミュニティカード5枚だけで最強の役ができていて、誰のハンドもそれを上回れない場合などに起こります。</p>
       <p class="note">ポイント：役は「7枚の中からいちばん強い5枚」で決まります。ハンドの2枚を必ず使う必要はなく、1枚だけ使っても、1枚も使わなくてもかまいません。</p>
+
+      <h2>クイズ：どっちが強い？</h2>
+      <p>AとB、勝つのはどちらでしょう。答えを選ぶと解説が出ます。</p>
+      <div class="hand-quiz" id="hand-quiz"><noscript><p>クイズを遊ぶには JavaScript を有効にしてください。</p></noscript></div>
 
       <p>ことばの意味がわからなくなったら、<a href="../glossary/">ポーカー用語集</a>もどうぞ。</p>
 
@@ -174,5 +221,64 @@
     <nav class="news-backlinks" aria-label="ページのナビゲーション"><a class="news-button" href="../beginner/">はじめての方へ</a><a class="news-button" href="../">HOMEへ戻る</a></nav>
   </main>
   <div class="news-page-end"><span>POKER ROOM CHONMAGE · NIIGATA · <a href="/beginner/">はじめての方へ</a> · <a href="/glossary/">用語集</a> · <a href="/faq/">よくある質問</a> · <a href="/company/">運営者情報</a> · <a href="/en/" lang="en">English</a></span><span class="site-credit">Designed &amp; Developed by <b>ANNA</b></span></div>
+  <script>
+  (function () {
+    var box = document.getElementById('hand-quiz');
+    if (!box) return;
+    var NAMES = ['ロイヤルフラッシュ','ストレートフラッシュ','フォーカード','フルハウス','フラッシュ','ストレート','スリーカード','ツーペア','ワンペア','ハイカード'];
+    var Q = [
+      { a: ['A♦ J♦ 8♦ 6♦ 2♦', 4], b: ['10♣ 9♦ 8♠ 7♥ 6♣', 5], ans: 'a', why: 'フラッシュはストレートより強い役です。' },
+      { a: ['8♠ 8♥ 8♦ ~K♣ ~4♠', 6], b: ['Q♠ Q♥ 6♦ 6♣ ~A♠', 7], ans: 'a', why: 'スリーカードはツーペアより強い役です。' },
+      { a: ['A♠ A♥ 3♦ 3♣ ~7♠', 7], b: ['K♠ K♦ Q♥ Q♣ ~J♠', 7], ans: 'a', why: 'ツーペアどうしは、大きいほうのペアから比べます。AのペアはKのペアより強いので A の勝ち。' },
+      { a: ['9♠ 9♥ ~K♦ ~7♣ ~2♠', 8], b: ['9♦ 9♣ ~A♥ ~5♠ ~3♦', 8], ans: 'b', why: 'どちらも9のワンペア。残りのカード（キッカー）で比べると、A が K より強いので B の勝ち。' },
+      { a: ['5♠ 4♥ 3♦ 2♣ A♠', 5], b: ['6♥ 5♣ 4♠ 3♥ 2♦', 5], ans: 'b', why: '5・4・3・2・A はいちばん弱いストレート。6までつながっている B のほうが強くなります。' },
+      { a: ['A♠ Q♠ 9♠ 6♠ 3♠', 4], b: ['A♥ Q♥ 9♥ 6♥ 3♥', 4], ans: 'tie', why: 'マークに強さの違いはないので、数字がすべて同じなら引き分け（スプリット）です。' },
+      { a: ['Q♠ Q♥ Q♦ 7♣ 7♠', 3], b: ['K♦ J♦ 9♦ 4♦ 2♦', 4], ans: 'a', why: 'フルハウスはフラッシュより強い役です。' },
+      { a: ['2♣ 2♦ 2♥ 2♠ ~3♣', 2], b: ['A♠ A♥ A♦ K♣ K♠', 3], ans: 'a', why: '数字が小さくても、フォーカードはフルハウスより強い役です。' }
+    ];
+    var i = 0, score = 0;
+    function hand(str) {
+      return '<span class="hand">' + str.split(' ').map(function (c) {
+        var dim = c.charAt(0) === '~'; if (dim) c = c.slice(1);
+        var suit = c.slice(-1), rank = c.slice(0, -1);
+        var red = suit === '♥' || suit === '♦';
+        return '<span class="pc' + (red ? ' red' : '') + (dim ? ' dim' : '') + '" role="img" aria-label="' + rank + suit + '"><b>' + rank + '</b><i>' + suit + '</i></span>';
+      }).join('') + '</span>';
+    }
+    function render() {
+      if (i >= Q.length) {
+        box.innerHTML = '<p class="hq-feedback"><strong>全' + Q.length + '問終了！</strong> 正解 ' + score + ' / ' + Q.length + '</p><button type="button" class="hq-next" id="hq-again">もう一度</button>';
+        document.getElementById('hq-again').onclick = function () { i = 0; score = 0; render(); };
+        return;
+      }
+      var q = Q[i];
+      box.innerHTML =
+        '<div class="hq-head"><span>問題 ' + (i + 1) + ' / ' + Q.length + '</span><span id="hq-score">正解 ' + score + '</span></div>' +
+        '<div class="hq-hands"><div class="hq-hand" id="hq-a"><span>A</span>' + hand(q.a[0]) + '<em></em></div>' +
+        '<div class="hq-hand" id="hq-b"><span>B</span>' + hand(q.b[0]) + '<em></em></div></div>' +
+        '<div class="hq-choices"><button type="button" id="hq-pick-a" data-c="a">A の勝ち</button><button type="button" id="hq-pick-b" data-c="b">B の勝ち</button><button type="button" id="hq-pick-tie" data-c="tie">引き分け</button></div>' +
+        '<div id="hq-fb" aria-live="polite"></div>';
+      Array.prototype.forEach.call(box.querySelectorAll('.hq-choices button'), function (btn) {
+        btn.onclick = function () { answer(btn.dataset.c); };
+      });
+    }
+    function answer(c) {
+      var q = Q[i], ok = c === q.ans;
+      if (ok) score++;
+      Array.prototype.forEach.call(box.querySelectorAll('.hq-choices button'), function (btn) {
+        btn.disabled = true; if (btn.dataset.c === c) btn.classList.add('picked');
+      });
+      document.querySelector('#hq-a em').textContent = NAMES[q.a[1]];
+      document.querySelector('#hq-b em').textContent = NAMES[q.b[1]];
+      if (q.ans !== 'b') document.getElementById('hq-a').classList.add('win');
+      if (q.ans !== 'a') document.getElementById('hq-b').classList.add('win');
+      document.getElementById('hq-score').textContent = '正解 ' + score;
+      document.getElementById('hq-fb').innerHTML = '<p class="hq-feedback"><strong class="' + (ok ? '' : 'ng') + '">' + (ok ? '正解！' : '残念！') + '</strong> ' + q.why + '</p>' +
+        '<p style="margin:.8rem 0 0"><button type="button" class="hq-next" id="hq-next">' + (i + 1 < Q.length ? '次の問題' : '結果を見る') + '</button></p>';
+      document.getElementById('hq-next').onclick = function () { i++; render(); };
+    }
+    render();
+  })();
+  </script>
 </body>
 </html>
