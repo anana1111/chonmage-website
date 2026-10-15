@@ -17,6 +17,8 @@ const ODDS = loadWindow('calculator/preflop-odds.js').PREFLOP_ODDS;
 const R = P.RANKS;
 const SITE = 'https://chonmagepoker.com/';
 const VER = '20261015sh';
+// The site's GA4 tag, copied from the calculator page so generated pages ship with it (see AGENTS.md).
+const GA = (() => { const h = fs.readFileSync(path.join(ROOT, 'calculator/index.html'), 'utf8'); const a = h.indexOf('  <!-- Google tag'); return h.slice(a, h.indexOf('  <meta charset', a)); })();
 
 // ---------- data ----------
 const KEYS = Object.keys(EQ);
@@ -66,7 +68,7 @@ const T = {
     kicker: 'STARTING HAND ODDS', h1: ['スターティングハンド', '勝率・確率表'],
     lead: `ポーカー（テキサスホールデム）で最初に配られる2枚の手札は、全部で169種類。どの手札がどれくらい強いのかを、正確な確率と解説でまとめました。`,
     oppLabel: '相手の人数', oppUnit: (n) => n + '人',
-    legend: ['右上：同じマーク（s）', '左下：違うマーク（o）', '斜めの列：ペア'], scaleLow: '弱い', scaleHigh: '強い',
+    legend: ['右上：同じマーク（s）', '左下：違うマーク（o）', '斜めの列：ペア', 'T＝10'], scaleLow: '弱い', scaleHigh: '強い',
     tapHint: 'マスを押すと、そのハンドの詳しい確率と解説が出ます。',
     rankOf: (r) => `1人相手の勝率 169種中 ${r}位`, combosOf: (n) => `組み合わせ ${n}通り`,
     eqHead: '相手の人数ごとの勝率', vsN: (n) => `相手${n}人`,
@@ -131,7 +133,7 @@ const T = {
     kicker: 'STARTING HAND ODDS', h1: ['Starting Hand ', 'Odds Chart'],
     lead: "Texas Hold'em has 169 different starting hands. Here is how strong each one really is, with exact odds and short notes.",
     oppLabel: 'Opponents', oppUnit: (n) => String(n),
-    legend: ['Top right: suited (s)', 'Bottom left: offsuit (o)', 'Diagonal: pairs'], scaleLow: 'weaker', scaleHigh: 'stronger',
+    legend: ['Top right: suited (s)', 'Bottom left: offsuit (o)', 'Diagonal: pairs', 'T = 10'], scaleLow: 'weaker', scaleHigh: 'stronger',
     tapHint: 'Tap a square to see that hand\'s odds and notes.',
     rankOf: (r) => `Heads-up rank ${r} of 169`, combosOf: (n) => `${n} combinations`,
     eqHead: 'Win chance by number of opponents', vsN: (n) => `${n} opp.`,
@@ -196,7 +198,7 @@ const T = {
     kicker: 'STARTING HAND ODDS', h1: ['德州扑克', '起手牌胜率表'],
     lead: '德州扑克一开始发到的两张手牌，一共有169种。每一种到底有多强？这里用精确的概率和解说告诉你。',
     oppLabel: '对手人数', oppUnit: (n) => n + '人',
-    legend: ['右上：同花色（s）', '左下：不同花色（o）', '对角线：对子'], scaleLow: '弱', scaleHigh: '强',
+    legend: ['右上：同花色（s）', '左下：不同花色（o）', '对角线：对子', 'T＝10'], scaleLow: '弱', scaleHigh: '强',
     tapHint: '点一下格子，就能看到这手牌的详细概率和解说。',
     rankOf: (r) => `单挑胜率 169种中第${r}名`, combosOf: (n) => `共${n}种组合`,
     eqHead: '按对手人数的胜率', vsN: (n) => `对手${n}人`,
@@ -280,7 +282,7 @@ function build(code) {
   const pos = heatFor(0);
   const cells = GRID.map((k) => {
     const p = pos[k];
-    return `<button type="button" class="sh-cell${p > 0.62 ? ' dark' : ''}" id="cell-${k}" data-k="${k}" style="background:${heat(p)}" aria-pressed="${k === 'AA' ? 'true' : 'false'}" aria-label="${k} ${pct(EQ[k][0])}"><b>${k}</b><span>${Math.round(EQ[k][0] * 100)}</span></button>`;
+    return `<button type="button" class="sh-cell${p > 0.62 ? ' dark' : ''}" id="cell-${k}" data-k="${k}" style="background:${heat(p)}" aria-pressed="${k === 'AA' ? 'true' : 'false'}" aria-label="${k} ${pct(EQ[k][0])}"><b>${k.replace(/10/g, 'T')}</b><span>${Math.round(EQ[k][0] * 100)}</span></button>`;
   }).join('');
   const oppBtns = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => `<button type="button" id="opp-${n}" data-n="${n}" aria-pressed="${n === 1}">${t.oppUnit(n)}</button>`).join('');
   const tiers = TIERS.map(([a, b], i) => `<div class="sh-tier"><h3>${t.tiers[i][0]} <small>${t.tiers[i][1]}</small></h3><p>${t.tiers[i][2]}</p><p class="hands">${rank1.slice(a - 1, b).join(' ')}</p></div>`).join('\n          ');
@@ -309,7 +311,7 @@ function build(code) {
   const html = `<!doctype html>
 <html lang="${t.lang}">
 <head>
-  <meta charset="UTF-8" />
+${GA}  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#273870" />
   <title>${esc(t.title)}</title>
@@ -471,7 +473,7 @@ ${rows}
         return '<div class="sh-bar' + (i === opp ? ' cur' : '') + '"><span>' + S.vsN[i] + '</span><span class="track"><span class="fill" style="width:' + (v * 100) + '%;display:block"></span></span><b>' + pct(v) + '</b></div>';
       }).join('');
       var m = OD.hands[k], html = '';
-      for (var c = 9; c >= 0; c--) html += '<tr><th scope="row">' + S.cat[c] + '</th><td>' + small(m[c] / OD.total) + '</td></tr>';
+      for (var c = 9; c >= 0; c--) if (m[c] > 0) html += '<tr><th scope="row">' + S.cat[c] + '</th><td>' + small(m[c] / OD.total) + '</td></tr>';
       document.getElementById('d-made').innerHTML = html;
       document.getElementById('d-calc').setAttribute('href', '${t.calc}#' + k);
     }

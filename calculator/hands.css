@@ -6,9 +6,9 @@
 .sh-opp button:focus-visible, .sh-cell:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 
 .sh-grid-wrap { overflow-x: auto; }
-.sh-grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; min-width: 300px; }
+.sh-grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
 .sh-cell { aspect-ratio: 1; border: 0; border-radius: 4px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; font-family: "Noto Sans JP", sans-serif; color: var(--ink); line-height: 1; min-width: 0; }
-.sh-cell b { font-size: clamp(.5rem, 2.3vw, .82rem); font-weight: 900; letter-spacing: -.04em; }
+.sh-cell b { font-size: clamp(.48rem, 2.25vw, .82rem); font-weight: 900; letter-spacing: -.04em; }
 .sh-cell span { font-size: clamp(.45rem, 1.9vw, .66rem); font-variant-numeric: tabular-nums; opacity: .85; }
 .sh-cell.dark { color: #fff; }
 .sh-cell[aria-pressed="true"] { outline: 3px solid var(--ink); outline-offset: -1px; position: relative; z-index: 1; }
