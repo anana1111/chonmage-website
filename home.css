@@ -1551,6 +1551,9 @@ a.story-step-row:focus-visible {
   .story-step-arrow,
   .story-card-link::after { transition: none; }
 }
+
+/* Price section: inline links match the dark text on the orange background */
+.price-copy a{color:inherit;font-weight:800;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.22em}
 /* ---- king.css ---- */
 /* KING: /king/ (歴代KING) and the homepage "最新のKING" block. Site tokens from styles.css.
    The person is the subject: photo and name first, the KING wording second. */
