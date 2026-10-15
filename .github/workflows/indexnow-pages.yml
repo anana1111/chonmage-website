@@ -1,0 +1,62 @@
+name: Notify IndexNow of edited pages
+
+# The daily NEWS job only notices pages whose sitemap entry changes, and the fixed pages
+# (home, /faq/, /beginner/, /en/ …) have no lastmod. This job covers pages edited by hand:
+# after a push to main it sends the public pages that the push changed, once they are live.
+# Bot commits made with GITHUB_TOKEN do not start this workflow, so nothing is sent twice.
+# Google does not use IndexNow; it reads sitemap.xml. A failure only warns.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.html'
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'HTML files to send, separated by spaces (e.g. index.html faq/index.html)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow-pages
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: List the changed pages
+        id: changed
+        shell: bash
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          FILES: ${{ inputs.files }}
+        run: |
+          set -uo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            printf '%s\n' $FILES > "$RUNNER_TEMP/pages.txt"
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+              || ! git fetch --quiet --depth=1 origin "$BEFORE"; then
+            echo "::warning::Could not read the previous commit; skipping."
+            : > "$RUNNER_TEMP/pages.txt"
+          else
+            git diff --name-only "$BEFORE" "$AFTER" -- '*.html' > "$RUNNER_TEMP/pages.txt"
+          fi
+          cat "$RUNNER_TEMP/pages.txt"
+      - name: Notify IndexNow search engines
+        continue-on-error: true
+        shell: bash
+        run: |
+          mapfile -t files < "$RUNNER_TEMP/pages.txt"
+          if [ ${#files[@]} -eq 0 ]; then echo "No pages changed."; exit 0; fi
+          node scripts/indexnow.mjs --pages "${files[@]}"
