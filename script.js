@@ -97,6 +97,54 @@ if ('IntersectionObserver' in window && !window.matchMedia?.('(prefers-reduced-m
   });
 }
 
+// OUR STORY lead: characters light up in reading order as the paragraph scrolls through the screen.
+// Skipped for reduced motion, so those visitors (and no-JS visitors) see the plain paragraph.
+(function storyLeadGlow() {
+  const lead = document.querySelector('.story-lead');
+  if (!lead || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  const chars = [];
+  lead.querySelectorAll(':scope > span').forEach((line) => {
+    const sr = document.createElement('span');
+    sr.className = 'glow-sr';
+    sr.textContent = line.textContent;
+    const visual = document.createElement('span');
+    visual.setAttribute('aria-hidden', 'true');
+    // Keep <wbr> line-break hints; wrap every other character.
+    line.childNodes.forEach((node) => {
+      if (node.nodeType !== Node.TEXT_NODE) { visual.append(node.cloneNode(true)); return; }
+      for (const ch of node.textContent) {
+        const span = document.createElement('span');
+        span.className = 'glow-ch';
+        span.textContent = ch;
+        visual.append(span);
+        chars.push(span);
+      }
+    });
+    line.replaceChildren(sr, visual);
+  });
+  lead.classList.add('is-glow');
+
+  let lit = -1;
+  let queued = false;
+  function update() {
+    queued = false;
+    const vh = window.innerHeight || 1;
+    const top = lead.getBoundingClientRect().top;
+    // Starts when the paragraph top reaches 85% of the screen height, fully lit at 45%.
+    const progress = Math.min(1, Math.max(0, (vh * 0.85 - top) / (vh * 0.4)));
+    const count = Math.round(progress * chars.length);
+    if (count === lit) return;
+    lit = count;
+    chars.forEach((ch, i) => ch.classList.toggle('on', i < count));
+  }
+  function schedule() {
+    if (!queued) { queued = true; requestAnimationFrame(update); }
+  }
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule);
+  update();
+})();
+
 // JSON content enhances the static HTML; an unknown date is never advertised as today.
 const officialXUrl = 'https://x.com/ChonmageNiigata';
 const todaySection = document.getElementById('today');
