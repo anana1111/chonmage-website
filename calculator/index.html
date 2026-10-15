@@ -94,7 +94,10 @@
     .calc { background: var(--card); border: 1px solid var(--edge); border-radius: 18px; padding: 16px; display: grid; gap: 14px; box-shadow: 0 10px 30px -22px rgba(120, 70, 30, .35); }
     .calc-row { display: flex; align-items: center; gap: 14px; }
     .calc-label { font-size: .92rem; font-weight: 800; }
-    .stepper { display: inline-flex; align-items: center; background: var(--cream); border: 1px solid var(--edge); border-radius: 12px; padding: 3px; }
+    .players-label { display: grid; gap: 1px; }
+    .players-label small { font-size: .74rem; color: var(--muted); font-weight: 700; }
+    .players-hint { margin: -6px 0 0; font-size: .8rem; color: var(--muted); }
+    .stepper { margin-left: auto; display: inline-flex; align-items: center; background: var(--cream); border: 1px solid var(--edge); border-radius: 12px; padding: 3px; }
     .stepper button { width: 44px; height: 44px; border: 0; background: transparent; font: 700 1.3rem/1 "Noto Sans JP", sans-serif; color: var(--ink); border-radius: 9px; cursor: pointer; }
     .stepper button:disabled { opacity: .3; cursor: default; }
     .stepper output { min-width: 3.2em; text-align: center; font: 900 1.25rem/1 "Noto Sans JP", sans-serif; font-variant-numeric: tabular-nums; }
@@ -116,15 +119,14 @@
     .result { background: var(--peach); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; }
     .result-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .result-label { font-size: .86rem; font-weight: 700; color: var(--muted); }
-    .badge { font-size: .74rem; font-weight: 800; color: var(--orange-ink); border: 1.5px solid var(--orange); border-radius: 99px; padding: 2px 10px; background: #fff; }
+    .badge { white-space: nowrap; flex-shrink: 0; font-size: .74rem; font-weight: 800; color: var(--orange-ink); border: 1.5px solid var(--orange); border-radius: 99px; padding: 2px 10px; background: #fff; }
     .hand-name { margin: 0; font-size: clamp(1.45rem, 6vw, 1.8rem); font-weight: 900; line-height: 1.25; }
-    .result-bottom { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
-    .eq small { display: block; font-size: .82rem; font-weight: 800; color: var(--orange-ink); }
-    .eq strong { display: block; font: 900 clamp(2.8rem, 13vw, 3.6rem)/1 "Noto Sans JP", sans-serif; color: var(--orange); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-    .eq strong span { font-size: .5em; margin-left: 2px; }
-    .eq em { display: block; font-style: normal; font-size: .7rem; color: var(--muted); margin-top: 4px; }
-    .summary { margin: 0; font-size: .92rem; line-height: 1.65; padding-left: 14px; border-left: 1px solid #efcdb5; }
-
+    .summary { margin: 0; font-size: .92rem; line-height: 1.65; }
+    .versus { border: 2px solid #f5c3a3; background: var(--peach-2); border-radius: 14px; padding: 12px 16px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px; align-items: center; }
+    .vs-title { grid-column: 1 / -1; margin: 0; font-size: .95rem; font-weight: 900; }
+    .versus strong { font: 900 clamp(2.8rem, 13vw, 3.6rem)/1 "Noto Sans JP", sans-serif; color: var(--orange); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .versus strong span { font-size: .5em; margin-left: 2px; }
+    .vs-cap { margin: 0; font-size: .82rem; color: var(--muted); line-height: 1.55; }
     .suits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
     .k { height: 56px; border-radius: 12px; border: 1.5px solid var(--edge); background: #fff; color: var(--ink); font: 800 1.35rem/1 "Noto Sans JP", sans-serif; cursor: pointer; touch-action: manipulation; transition: transform .12s ease, background .12s ease; }
@@ -146,6 +148,7 @@
     .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .panel h2 { margin: 0; font-size: 1.45rem; font-weight: 900; line-height: 1.3; color: var(--ink); }
     .panel-sub { margin: -6px 0 0; font-size: .92rem; color: var(--muted); }
+    #wtl-title { font-size: 1.25rem; }
     .panel-note { margin: 0; font-size: .82rem; color: var(--muted); }
     .panel-side { font-size: .86rem; color: var(--muted); font-weight: 700; white-space: nowrap; }
 
@@ -177,7 +180,7 @@
     .wtl-legend div + div { border-left: 1px solid var(--edge); }
     .wtl-legend span { font-size: .84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
     .wtl-legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
-    .wtl-legend b { font-size: 1.15rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .wtl-legend b { font-size: 1.3rem; font-weight: 900; font-variant-numeric: tabular-nums; }
 
     .outs-group { background: var(--peach); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
     .outs-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -251,13 +254,14 @@
       <div class="cp-tool">
         <section class="calc" aria-label="計算機">
           <div class="calc-row">
-            <span class="calc-label">人数</span>
+            <div class="players-label"><span class="calc-label">残っている人数</span><small>自分を含む</small></div>
             <div class="stepper">
               <button type="button" id="players-minus" aria-label="人数を減らす">−</button>
               <output id="players-out" aria-live="polite">6人</output>
               <button type="button" id="players-plus" aria-label="人数を増やす">＋</button>
             </div>
           </div>
+          <p class="players-hint">途中で降りた人がいたら、人数を減らしてください</p>
           <div class="slots">
             <div class="slot-group"><span class="calc-label">手札</span><div class="cards" id="hole-slots"></div></div>
             <div class="slot-group"><span class="calc-label">場のカード</span><div class="cards" id="board-slots"></div></div>
@@ -265,10 +269,12 @@
           <div class="result" aria-live="polite">
             <div class="result-top"><span class="result-label" id="hand-label">いまの役</span><span class="badge" id="example-badge">表示例</span></div>
             <p class="hand-name" id="hand-name">―</p>
-            <div class="result-bottom">
-              <div class="eq"><small>勝率</small><strong id="eq-num">―</strong><em>引き分けの取り分を含む</em></div>
-              <p class="summary" id="summary">手札を2枚選んでください。</p>
-            </div>
+            <p class="summary" id="summary">手札を2枚選んでください。</p>
+          </div>
+          <div class="versus" aria-live="polite">
+            <p class="vs-title" id="vs-title">6人で勝負したら、あなたが勝つ確率</p>
+            <strong id="eq-num">―</strong>
+            <p class="vs-cap" id="vs-cap">相手5人と最後まで勝負した場合（引き分けの取り分を含む）</p>
           </div>
           <div class="suits" role="group" aria-label="マーク">
             <button type="button" class="k suit" id="suit-0" data-suit="0" aria-label="スペード">♠</button>
@@ -283,20 +289,20 @@
         <div class="panels">
           <section class="panel" id="panel-odds">
             <h2>役ができる確率（リバーまで）</h2>
-            <p class="panel-sub" id="odds-note">いまのカードから最後に何の役になるか</p>
+            <p class="panel-sub" id="odds-note">あなたの役だけの確率（相手は関係なし）</p>
             <div class="odds-wrap" id="odds-wrap"><table class="odds" id="odds-table"></table></div>
             <p class="panel-note">カードが開くたびに右に列が増えます。</p>
           </section>
 
           <section class="panel" id="panel-eq">
-            <div class="panel-head"><h2>勝ち・引き分け・負け</h2><span class="badge" id="eq-badge">表示例</span></div>
+            <div class="panel-head"><h2 id="wtl-title">100回勝負したら？</h2><span class="badge" id="eq-badge">表示例</span></div>
             <div class="wtl" aria-hidden="true"><span class="w" id="bar-w"></span><span class="t" id="bar-t"></span><span class="l" id="bar-l"></span></div>
             <div class="wtl-legend">
               <div><span><i style="background:var(--orange)"></i>勝ち</span><b id="pct-w">―</b></div>
               <div><span><i style="background:var(--mustard)"></i>引き分け</span><b id="pct-t">―</b></div>
               <div><span><i style="background:var(--stone)"></i>負け</span><b id="pct-l">―</b></div>
             </div>
-            <p class="panel-note" id="sim-note">相手の手札をランダムに配って計算しています。</p>
+            <p class="panel-note" id="sim-note">引き分けは、同じ強さの役でポットを分け合うことです。</p>
           </section>
 
           <section class="panel" id="panel-outs">
@@ -311,7 +317,7 @@
         <section class="guide-card">
           <h2>使い方</h2>
           <ol class="steps">
-            <li><div><strong>人数を選ぶ</strong><p>自分を含めた人数を選びます。</p></div></li>
+            <li><div><strong>人数を選ぶ</strong><p>いま残っている人数（自分を含む）を選びます。途中で降りた人がいたら減らします。</p></div></li>
             <li><div><strong>マーク → 数字でカードを入力</strong><p>手札2枚と、場のカード（コミュニティカード）を選びます。</p></div></li>
             <li><div><strong>役と勝率を自動計算</strong><p>選んだカードから、役の判定と勝率が自動で計算されます。</p></div></li>
           </ol>
@@ -329,7 +335,8 @@
               <summary>勝率の計算方法</summary>
               <div class="acc-body">
                 <p>相手の手札とまだ開いていない場のカードを、残りのカードからランダムに何万回も配り、全員が最後まで降りなかったとしたら何回勝つかを数えています（モンテカルロ法）。計算はすべてお使いのスマホやパソコンの中で行われ、データはどこにも送られません。</p>
-                <p>大きく表示している「勝率」には、引き分けのときにポットを分け合う取り分も含めています。そのため「勝ち・引き分け・負け」の「勝ち」より少し高くなることがあります。</p>
+                <p>人数は「いま残っている人数」です。途中で3人が降りて3人だけになったら、人数を3人に減らすと、残っている2人の相手との勝負で計算し直します。降りた人のカードは見えないので、まだ配られていないカードと同じ扱いで問題ありません。</p>
+                <p>大きく表示している「勝つ確率」には、引き分けのときにポットを分け合う取り分も含めています。そのため「100回勝負したら？」の「勝ち」より少し高くなることがあります。</p>
                 <p class="note">実際のゲームでは途中で降りる人がいるので、勝率は「全員が最後まで残った場合」の目安です。人数が多いほど、同じ手札でも勝率は下がります。</p>
               </div>
             </details>
@@ -497,12 +504,15 @@
     function compute() {
       var my = ++job, h = hole(), bd = board();
       highlight = null;
-      var nameEl = document.getElementById('hand-name'), labelEl = document.getElementById('hand-label'), sumEl = document.getElementById('summary'), eqEl = document.getElementById('eq-num'), simNote = document.getElementById('sim-note');
+      var nameEl = document.getElementById('hand-name'), labelEl = document.getElementById('hand-label'), sumEl = document.getElementById('summary'), eqEl = document.getElementById('eq-num');
       labelEl.textContent = isExample ? '例：いまの役' : 'いまの役';
+      var opp = state.players - 1;
+      document.getElementById('vs-title').textContent = state.players + '人で勝負したら、あなたが勝つ確率';
+      document.getElementById('vs-cap').textContent = '相手' + opp + '人と最後まで勝負した場合（引き分けの取り分を含む）';
+      document.getElementById('wtl-title').textContent = '相手' + opp + '人と100回勝負したら？';
       renderOdds(h, bd);
       if (h.length < 2) {
         nameEl.textContent = '―'; eqEl.textContent = '―';
-        simNote.textContent = '相手の手札をランダムに配って計算しています。';
         sumEl.textContent = h.length === 0 ? '手札を2枚選んでください。' : 'もう1枚、手札を選んでください。';
         setBars(null); renderOuts(h, bd); render(); return;
       }
@@ -515,13 +525,13 @@
       }
       render();
       renderOuts(h, bd);
-      var who = state.players === 2 ? '相手1人' : '相手' + (state.players - 1) + '人';
-      sumEl.textContent = outsSentence || (who + 'と最後まで勝負したときの勝率です。');
+      var bd5 = bd.length;
+      sumEl.textContent = outsSentence || (bd5 === 5 ? '役が確定しました。' : bd5 >= 3 ? '次のカードで役が良くなるカードはありません。' : '場のカードを入れると、役とアウツがわかります。');
 
       var runner = P.equityRunner(h, bd, state.players);
       var target = Math.round(Math.min(60000, 120000 / state.players));
       var done = 0, chunk = Math.max(800, Math.round(target / 12));
-      eqEl.textContent = '…'; simNote.textContent = '計算中…';
+      eqEl.textContent = '…';
       (function loop() {
         if (my !== job) return;
         runner.step(chunk); done += chunk;
@@ -529,7 +539,6 @@
         eqEl.innerHTML = Math.round(r.equity * 100) + '<span>%</span>';
         setBars(r);
         if (done < target) { setTimeout(loop, 0); return; }
-        simNote.textContent = who + 'の手札をランダムに' + r.n.toLocaleString('ja-JP') + '回配って計算しました。';
       })();
     }
 
@@ -601,16 +610,24 @@
         html += '</tr>';
       }
       document.getElementById('odds-table').innerHTML = html + '</tbody>';
-      document.getElementById('odds-note').textContent = h.length < 2 ? 'ランダムな7枚から役ができる確率' : (bd.length === 5 ? '役が確定しました' : 'いまのカードから最後に何の役になるか');
+      document.getElementById('odds-note').textContent = h.length < 2 ? 'ランダムな7枚から役ができる確率（相手は関係なし）' : (bd.length === 5 ? '役が確定しました' : 'あなたの役だけの確率（相手は関係なし）');
       var wrap = document.getElementById('odds-wrap'); wrap.scrollLeft = wrap.scrollWidth;
     }
 
+    // win / tie / lose as counts out of 100 (largest remainder so they add up to 100)
+    function per100(r) {
+      var raw = [r.win * 100, r.tie * 100, r.lose * 100], fl = raw.map(Math.floor), left = 100 - fl[0] - fl[1] - fl[2];
+      raw.map(function (v, i) { return [v - fl[i], i]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, left).forEach(function (x) { fl[x[1]]++; });
+      return fl;
+    }
     function setBars(r) {
-      [['bar-w', 'pct-w', 'win'], ['bar-t', 'pct-t', 'tie'], ['bar-l', 'pct-l', 'lose']].forEach(function (x) {
+      var n = r ? per100(r) : null;
+      [['bar-w', 'pct-w', 'win'], ['bar-t', 'pct-t', 'tie'], ['bar-l', 'pct-l', 'lose']].forEach(function (x, i) {
         document.getElementById(x[0]).style.width = r ? (r[x[2]] * 100) + '%' : '0';
-        document.getElementById(x[1]).textContent = r ? pct(r[x[2]]) : '―';
+        document.getElementById(x[1]).textContent = !r ? '―' : (n[i] === 0 && r[x[2]] > 0 ? '1回未満' : n[i] + '回');
       });
     }
+
 
     render(); compute();
   })();
