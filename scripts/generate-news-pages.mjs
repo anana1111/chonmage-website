@@ -203,6 +203,9 @@ function sitemapXml(items) {
     { loc: SITE + 'calculator/' },
     { loc: SITE + 'en/calculator/' },
     { loc: SITE + 'zh/calculator/' },
+    { loc: SITE + 'calculator/starting-hands/' },
+    { loc: SITE + 'en/calculator/starting-hands/' },
+    { loc: SITE + 'zh/calculator/starting-hands/' },
     { loc: SITE + 'glossary/' },
     { loc: SITE + 'en/' },
     { loc: SITE + 'king/' },
@@ -263,7 +266,7 @@ export function generate(now = Date.now()) {
   const manifest = JSON.stringify({ ids }, null, 2) + '\n';
   if (writeIfChanged(MANIFEST_PATH, manifest)) changed = true;
 
-  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 12} URLs.`);
+  console.log(`Generated ${visible.length} crawlable NEWS pages; sitemap has ${visible.length + 15} URLs.`);
   return { changed, count: visible.length };
 }
 
