@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <!-- Google tag (gtag.js), GA4 G-LW40HNQ1PL; exclude local, preview and test visits. -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-LW40HNQ1PL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    if (!(location.hostname === 'chonmagepoker.com' || location.hostname.endsWith('.chonmagepoker.com')) || /[?&](preview|now)=/.test(location.search)) window['ga-disable-G-LW40HNQ1PL'] = true;
+    gtag('js', new Date());
+    gtag('config', 'G-LW40HNQ1PL');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#273870" />
+  <title>德州扑克胜率计算器・牌型判定工具｜自动计算 outs｜POKER ROOM CHONMAGE（新潟）</title>
+  <meta name="description" content="免费的德州扑克胜率计算器。选择人数、两张手牌和公共牌，立刻知道现在的牌型、你赢的概率、outs，以及每条街到河牌为止凑成各牌型的概率。无需注册，手机打开就能用。" />
+  <link rel="canonical" href="https://chonmagepoker.com/zh/calculator/" />
+  <link rel="alternate" hreflang="ja" href="https://chonmagepoker.com/calculator/" />
+  <link rel="alternate" hreflang="en" href="https://chonmagepoker.com/en/calculator/" />
+  <link rel="alternate" hreflang="zh-Hans" href="https://chonmagepoker.com/zh/calculator/" />
+  <link rel="alternate" hreflang="x-default" href="https://chonmagepoker.com/calculator/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="POKER ROOM CHONMAGE" />
+  <meta property="og:title" content="德州扑克胜率计算器・牌型判定工具｜CHONMAGE" />
+  <meta property="og:description" content="选人数、手牌和公共牌，马上知道牌型、胜率和 outs。免费使用。" />
+  <meta property="og:url" content="https://chonmagepoker.com/zh/calculator/" />
+  <meta property="og:image" content="https://chonmagepoker.com/images/og-image.jpg?v=2" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:locale:alternate" content="ja_JP" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@ChonmageNiigata" />
+  <link rel="preload" href="../../fonts/archivo-black-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400..900&amp;display=swap" /></noscript>
+  <link rel="stylesheet" href="../../styles.css?v=20261006perf" />
+  <link rel="stylesheet" href="../../v2.css?v=20261006logo2" />
+  <link rel="stylesheet" href="../../news.css?v=20261014credit" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=20261006chip" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20261006chip" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261006chip" />
+  <link rel="shortcut icon" href="/favicon.ico?v=20261006chip" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261006chip" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://chonmagepoker.com/zh/calculator/#app",
+      "name": "德州扑克胜率计算器・牌型判定工具",
+      "url": "https://chonmagepoker.com/zh/calculator/",
+      "description": "根据人数、手牌和公共牌，计算德州扑克牌型、胜率和 outs 的免费工具。",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Any",
+      "inLanguage": "zh-Hans",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "JPY"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "POKER ROOM CHONMAGE",
+        "url": "https://chonmagepoker.com/"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "首页",
+          "item": "https://chonmagepoker.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "德州扑克胜率计算器・牌型判定工具",
+          "item": "https://chonmagepoker.com/zh/calculator/"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+  <link rel="stylesheet" href="../../calculator/calc.css?v=20261015i18n" />
+</head>
+<body class="news-page calc-page">
+  <a class="news-skip" href="#guide-content">跳到正文</a>
+  <header class="news-page-header">
+    <a class="brand brand--logo" href="../../" aria-label="CHONMAGE 首页"><img src="../../images/logo-dark.webp" width="333" height="136" alt="POKER ROOM CHONMAGE" /></a>
+    <a class="news-button" href="../../calculator/" lang="ja">日本語</a>
+  </header>
+  <main id="guide-content" tabindex="-1">
+    <div class="cp">
+      <div class="cp-intro">
+        <nav class="langs" aria-label="Language"><a href="../../calculator/" lang="ja" hreflang="ja">日本語</a><a href="../../en/calculator/" lang="en" hreflang="en">English</a><a href="./" aria-current="page" lang="zh-Hans">中文</a></nav>
+        <p class="cp-kicker">POKER ODDS &amp; HAND CALCULATOR</p>
+        <h1><span>德州扑克胜率计算器・</span><span>牌型判定工具</span></h1>
+        <p class="cp-lead">选人数、两张手牌和公共牌就行。</p>
+        <p class="cp-hint">先选花色，再按点数。</p>
+      </div>
+
+      <div class="cp-tool">
+        <section class="calc" aria-label="计算器">
+          <div class="calc-row">
+            <div class="players-label"><span class="calc-label">剩余人数</span><small>包括自己</small></div>
+            <div class="stepper">
+              <button type="button" id="players-minus" aria-label="减少人数">−</button>
+              <output id="players-out" aria-live="polite">6人</output>
+              <button type="button" id="players-plus" aria-label="增加人数">＋</button>
+            </div>
+          </div>
+          <p class="players-hint">有人弃牌的话，请减少人数</p>
+          <div class="slots">
+            <div class="slot-group"><span class="calc-label">手牌</span><div class="cards" id="hole-slots"></div></div>
+            <div class="slot-group"><span class="calc-label">公共牌</span><div class="cards" id="board-slots"></div></div>
+          </div>
+          <div class="result" aria-live="polite">
+            <div class="result-top"><span class="result-label" id="hand-label">现在的牌型</span><span class="badge" id="example-badge">示例</span></div>
+            <p class="hand-name" id="hand-name">―</p>
+            <p class="summary" id="summary">请选择两张手牌。</p>
+          </div>
+          <div class="versus" aria-live="polite">
+            <p class="vs-title" id="vs-title">6人对局时，你赢的概率</p>
+            <strong id="eq-num">―</strong>
+            <p class="vs-cap" id="vs-cap">和5位对手打到最后的情况（包含平分底池的部分）</p>
+          </div>
+          <div class="suits" role="group" aria-label="花色">
+            <button type="button" class="k suit" id="suit-0" data-suit="0" aria-label="黑桃">♠</button>
+            <button type="button" class="k suit red" id="suit-1" data-suit="1" aria-label="红心">♥</button>
+            <button type="button" class="k suit red" id="suit-2" data-suit="2" aria-label="方块">♦</button>
+            <button type="button" class="k suit" id="suit-3" data-suit="3" aria-label="梅花">♣</button>
+          </div>
+          <div class="keys" id="keys" role="group" aria-label="点数"></div>
+          <p class="calc-foot">点一下牌位可以重新选择</p>
+        </section>
+
+        <div class="panels">
+          <section class="panel" id="panel-odds">
+            <h2>凑成各牌型的概率（到河牌为止）</h2>
+            <p class="panel-sub" id="odds-note">只算你自己的牌型（与对手无关）</p>
+            <div class="odds-wrap" id="odds-wrap"><table class="odds" id="odds-table"></table></div>
+            <p class="panel-note">每翻开一条街，右边就多一列。</p>
+          </section>
+
+          <section class="panel" id="panel-eq">
+            <div class="panel-head"><h2 id="wtl-title">和5位对手打100局的话？</h2><span class="badge" id="eq-badge">示例</span></div>
+            <div class="wtl" aria-hidden="true"><span class="w" id="bar-w"></span><span class="t" id="bar-t"></span><span class="l" id="bar-l"></span></div>
+            <div class="wtl-legend">
+              <div><span><i style="background:var(--orange)"></i>赢</span><b id="pct-w">―</b></div>
+              <div><span><i style="background:var(--mustard)"></i>平</span><b id="pct-t">―</b></div>
+              <div><span><i style="background:var(--stone)"></i>输</span><b id="pct-l">―</b></div>
+            </div>
+            <p class="panel-note" id="sim-note">平局是指牌型大小一样，平分底池。</p>
+          </section>
+
+          <section class="panel" id="panel-outs">
+            <div class="panel-head"><h2>Outs（补牌）</h2><span class="panel-side" id="outs-note"></span></div>
+            <div id="outs-body" style="display:grid;gap:12px"><p class="muted">公共牌有3张或4张时，这里会显示能让你变强的牌（outs）。</p></div>
+            <p class="panel-note">显示能让你牌型变强的牌</p>
+          </section>
+        </div>
+      </div>
+
+      <div class="guide-wrap">
+        <section class="guide-card">
+          <h2>使用方法</h2>
+          <ol class="steps">
+            <li><div><strong>选择人数</strong><p>选择现在还在牌局里的人数（包括自己）。有人弃牌就减少人数。</p></div></li>
+            <li><div><strong>花色 → 点数，输入牌</strong><p>先输入两张手牌，再输入公共牌。</p></div></li>
+            <li><div><strong>自动计算牌型和胜率</strong><p>根据输入的牌，自动判断牌型并计算胜率。</p></div></li>
+          </ol>
+          <p class="tip"><b>⌫</b> 删除一张，<b>AC</b> 全部清除。打开页面时显示的牌是使用示例。</p>
+
+          <div class="acc">
+            <details>
+              <summary>凑成各牌型的概率表怎么看</summary>
+              <div class="acc-body">
+                <p>这张表是你的7张牌到河牌为止最后凑成各牌型的概率。从左到右依次是发牌前、拿到两张手牌时、翻牌（3张公共牌）、转牌（4张公共牌），每翻开一张牌数字都会变化。▲表示比前一列上升，▼表示下降。</p>
+                <p>「发牌前」一列是随机7张牌凑成各牌型的概率（手机上省略）。手牌、翻牌、转牌这几列，是把剩下的牌所有可能的出法全部算一遍得到的精确值。已经不可能凑成的牌型会从表中消失。</p>
+              </div>
+            </details>
+            <details>
+              <summary>胜率是怎么算的</summary>
+              <div class="acc-body">
+                <p>程序从剩下的牌里随机给对手发手牌、补齐公共牌，重复几万次，统计"如果所有人都不弃牌打到最后"你能赢多少次（蒙特卡洛模拟）。所有计算都在你的手机或电脑上完成，数据不会传到任何地方。</p>
+                <p>人数指的是"现在还在牌局里的人数"。比如6人桌有3人弃牌，只要把人数改成3，就会按你和剩下2位对手重新计算。弃掉的牌你看不到，所以把它们当作还没发出的牌处理，不影响结果。</p>
+                <p>大字显示的胜率包含了平局时平分底池的那一部分，所以会比「打100局」里"赢"的次数稍高一点。</p>
+                <p class="note">实际对局中途会有人弃牌，所以胜率是"所有人都打到最后"情况下的参考值。人数越多，同样的手牌胜率越低。</p>
+              </div>
+            </details>
+            <details open>
+              <summary>什么是 outs（补牌）</summary>
+              <div class="acc-body">
+                <p>Outs 是还没出现的牌里，能让你的牌型变强的那些牌。比如手牌是 A♥ K♥，公共牌是 Q♥ 7♥ 2♣，剩下的9张红心来任何一张都能成同花，所以"同花的 outs 是9张"。</p>
+                <p>这个工具按"会变成什么牌型"分别计算 outs。只靠公共牌、所有人都能用上的牌（比如公共牌自己成对）不算作 outs。</p>
+                <div class="rule42">
+                  <h3>记住很方便的「4和2法则」</h3>
+                  <dl><div class="r"><dt>翻牌</dt><dd><span>outs <b>× 4</b></span><span>到河牌为止的大约 %</span></dd></div><div class="r"><dt>转牌</dt><dd><span>outs <b>× 2</b></span><span>下一张的大约 %</span></dd></div></dl>
+                  <p style="margin:0;font-size:.88rem">如果有9张 outs，翻牌时约36%，转牌时约18%。</p>
+                </div>
+              </div>
+            </details>
+            <details>
+              <summary>牌型大小</summary>
+              <div class="acc-body">
+                <p>全部牌型和同牌型的比较方法，请看<a href="../../rules/#hand-rankings" lang="ja">规则说明</a>（日文）。</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section class="cp-cta">
+          <h2>与其计算，<br />不如来实际玩一玩？</h2>
+          <div class="cp-cta-row">
+            <p>新潟・古町的扑克室 <strong>POKER ROOM CHONMAGE（ちょんまげ）</strong>，有店员免费讲解规则的新手课程，欢迎外国客人。</p>
+            <a class="btn btn-fill" href="../../en/">店铺介绍（英文） <span aria-hidden="true">→</span></a>
+          </div>
+          <small>本店为娱乐性扑克店，不进行任何金钱赌博，也不能兑换现金。</small>
+        </section>
+
+        <nav class="bottom-nav" aria-label="Page navigation">
+          <a class="btn btn-line" href="../../rules/" lang="ja">规则说明（日文）</a><a class="btn btn-line" href="../../" lang="ja">日文首页</a>
+        </nav>
+      </div>
+    </div>
+  </main>
+  <div class="news-page-end"><span>POKER ROOM CHONMAGE · NIIGATA · NO CASH BETTING · NO CASH REDEMPTION</span><span class="site-credit">Designed &amp; Developed by <b>ANNA</b></span></div>
+
+  <script src="../../calculator/poker-core.js?v=20261015i18n"></script>
+  <script src="../../calculator/preflop-odds.js?v=20261015i18n"></script>
+  <script src="../../calculator/calc-app.js?v=20261015i18n"></script>
+</body>
+</html>
