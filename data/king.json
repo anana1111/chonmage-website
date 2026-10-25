@@ -1,80 +1,8 @@
 {
-  "updatedAt": "2026-10-14",
+  "updatedAt": "2026-10-25",
   "next": {
-    "date": "2026-10-25",
-    "time": "18:00",
-    "qualifiers": {
-      "month": "2026-09",
-      "post": "https://x.com/ChonmageNiigata/status/2105311722768900403",
-      "tournament": [
-        {
-          "name": "ラ",
-          "points": 7342
-        },
-        {
-          "name": "いたみ",
-          "points": 4083
-        },
-        {
-          "name": "y2",
-          "points": 3635
-        },
-        {
-          "name": "スガワラ",
-          "points": 2805
-        },
-        {
-          "name": "とも",
-          "points": 2244
-        },
-        {
-          "name": "カイ",
-          "points": 2067
-        },
-        {
-          "name": "ANNA",
-          "points": 1780
-        },
-        {
-          "name": "じゅん",
-          "points": 1699
-        }
-      ],
-      "ring": [
-        {
-          "name": "DaiSan",
-          "points": 12000
-        },
-        {
-          "name": "いたみ",
-          "points": 8550
-        },
-        {
-          "name": "ささがわ",
-          "points": 5840
-        },
-        {
-          "name": "フェイク",
-          "points": 5290
-        },
-        {
-          "name": "otani",
-          "points": 5225
-        },
-        {
-          "name": "じゅん",
-          "points": 4855
-        },
-        {
-          "name": "とも",
-          "points": 4685
-        },
-        {
-          "name": "ラ",
-          "points": 4255
-        }
-      ]
-    }
+    "date": "",
+    "time": "18:00"
   },
   "rules": {
     "top": 8,
@@ -86,6 +14,16 @@
     "note": "オキバケはスタート10分前までのご連絡で対応致します。"
   },
   "items": [
+    {
+      "month": "2026-09",
+      "name": "じゅん",
+      "won": "2026-10-25",
+      "photo": "images/king/2026-09.webp",
+      "post": "",
+      "prize": "",
+      "entries": 0,
+      "comment": ""
+    },
     {
       "month": "2026-08",
       "name": "いたみ",
