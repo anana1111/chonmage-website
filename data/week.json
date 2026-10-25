@@ -6,34 +6,36 @@
     "日程や内容については変更する場合があります。"
   ],
   "promos": [
-    { "dates": ["2026-10-24", "2026-10-25"], "text": "10/24（土）・10/25（日）は来場者全員に THE DAILY 参加無料券プレゼント！", "badge": "THE DAILY 参加無料券" }
+    { "dates": ["2026-10-28"], "text": "10/28（水）は BEGINNER'S RING DAY！18:30から初心者講習を開催します。", "badge": "初心者 リングDAY" },
+    { "dates": ["2026-10-29", "2026-10-30", "2026-10-31"], "text": "10/29（木）〜10/31（土）はハロウィンイベント JACKPOT 開催！", "badge": "ハロウィン JACKPOT開催" },
+    { "dates": ["2026-10-31", "2026-11-01"], "text": "10/31（土）・11/1（日）は来場者全員に THE DAILY 参加無料券プレゼント！", "badge": "THE DAILY 参加無料券" }
   ],
   "days": [
-    { "date": "2026-10-19", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
+    { "date": "2026-10-26", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
       { "time": "18:00", "title": "THE DAILY", "entry": "¥1,500〜", "reentry": "¥2,000" }
     ] },
-    { "date": "2026-10-20", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
+    { "date": "2026-10-27", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
       { "time": "18:00", "title": "THE DAILY", "entry": "¥1,500〜", "reentry": "¥2,000" }
     ] },
-    { "date": "2026-10-21", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
+    { "date": "2026-10-28", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
+      { "time": "18:30", "title": "初心者講習" }
+    ] },
+    { "date": "2026-10-29", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
       { "time": "18:00", "title": "フリーロール", "entry": "無料", "reentry": "¥500" }
     ] },
-    { "date": "2026-10-22", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
-      { "time": "18:00", "title": "フリーロール", "entry": "無料", "reentry": "¥500" },
-      { "time": "19:10", "title": "PLOトーナメント", "entry": "¥3,000", "reentry": "¥3,000" }
-    ] },
-    { "date": "2026-10-23", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
+    { "date": "2026-10-30", "open": "17:00", "close": "23:30", "ringGame": true, "events": [
       { "time": "18:00", "title": "フリーロール", "entry": "無料", "reentry": "¥500" },
       { "time": "19:10", "title": "ふるまちdeトナメ", "entry": "¥2,500", "reentry": "¥2,500" }
     ] },
-    { "date": "2026-10-24", "open": "13:00", "close": "23:30", "ringGame": true, "events": [
+    { "date": "2026-10-31", "open": "13:00", "close": "23:30", "ringGame": true, "events": [
       { "time": "13:30", "title": "フリーロール", "entry": "無料", "reentry": "¥500" },
       { "time": "15:30", "title": "ふるまちdeトナメ(deep)", "entry": "¥3,500", "reentry": "¥3,500" },
       { "time": "20:00", "title": "ふるまちターボ", "entry": "¥1,500", "reentry": "¥1,500" }
     ] },
-    { "date": "2026-10-25", "open": "13:00", "close": "23:30", "ringGame": true, "events": [
+    { "date": "2026-11-01", "open": "13:00", "close": "23:30", "ringGame": true, "events": [
       { "time": "13:30", "title": "フリーロール", "entry": "無料", "reentry": "¥500" },
-      { "time": "18:00", "title": "9月ランキング王者決定戦" }
+      { "time": "15:30", "title": "超クレイジーパイナップル", "entry": "¥4,000", "reentry": "¥3,000" },
+      { "time": "20:00", "title": "ふるまちターボ", "entry": "¥1,500", "reentry": "¥1,500" }
     ] }
   ]
 }
