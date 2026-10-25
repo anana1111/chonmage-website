@@ -1,66 +1,49 @@
 {
   "version": 2,
-  "date": "2026-10-25",
+  "date": "2026-10-26",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2114190218001850827",
-  "updatedAt": "2026-10-25T23:47:03+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata",
+  "updatedAt": "2026-10-26T01:52:13+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2114190218001850827",
+    "url": "https://x.com/ChonmageNiigata",
     "mode": "auto"
   },
-  "open": "13:00",
+  "open": "17:00",
   "status": "open",
   "summary": [
-    "本日の開催情報です。",
+    "今週のスケジュールより。",
     "当日の変更は公式Xでお知らせします。"
   ],
   "ringGame": {
     "enabled": true,
-    "start": "13:00",
-    "title": "RING GAME",
-    "description": "リングゲームもOPENから参加者募集中🔥"
+    "start": "17:00",
+    "title": "NLHリングゲーム",
+    "description": "終日開催。"
   },
   "events": [
     {
-      "id": "event-1330",
-      "time": "13:30",
-      "type": "free",
-      "title": "フリーロール 🕑",
-      "heroTitle": "FREE ROLL",
-      "theme": "blue",
-      "tags": [
-        "1 DRINK"
-      ],
-      "description": "詳細は公式Xで確認してください。",
+      "id": "event-1800",
+      "time": "18:00",
+      "type": "tournament",
+      "title": "THE DAILY",
+      "heroTitle": "THE DAILY",
+      "theme": "orange",
+      "tags": [],
+      "description": "週間スケジュールより。当日の変更は公式Xでお知らせします。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "¥0"
+          "value": "¥1,500〜"
         },
         {
-          "label": "施設利用料",
-          "value": "500円"
+          "label": "RE-ENTRY",
+          "value": "¥2,000"
         }
       ],
       "link": {
-        "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2114190218001850827"
-      }
-    },
-    {
-      "id": "9-1800",
-      "time": "18:00",
-      "type": "event",
-      "title": "9月ランキング最強決定戦",
-      "heroTitle": "9月ランキング最強決定戦",
-      "theme": "orange",
-      "tags": [],
-      "description": "詳細は公式Xで確認してください。",
-      "facts": [],
-      "link": {
-        "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2114190218001850827"
+        "label": "週間スケジュール ↗",
+        "url": "https://x.com/ChonmageNiigata"
       }
     }
   ],
