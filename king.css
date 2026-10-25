@@ -115,7 +115,7 @@
 .king-next-facts dt { flex: none; width: 6.5rem; font-size: .75rem; font-weight: 800; letter-spacing: .06em; }
 .king-next-facts dd { margin: 0; font-weight: 900; }
 .king-next-note { margin: .8rem 0 0; font-size: .8rem; font-weight: 700; }
-@media (min-width: 720px) { .king-next-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 720px) { .king-next-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .king-next-facts div:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 
 /* Jump to the bottom */
 .king-jump { position: fixed; right: calc(1rem + env(safe-area-inset-right, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 20; display: grid; place-items: center; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--orange); color: var(--ink); font: 900 1.4rem/1 'Noto Sans JP', sans-serif; box-shadow: 0 0 0 2px #fff, 0 10px 24px -10px rgba(23, 24, 22, .6); cursor: pointer; transition: transform .2s ease, background .2s ease; }
