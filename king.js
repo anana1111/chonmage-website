@@ -327,7 +327,7 @@
       const row = node('div', 'is-date'); const value = node('dd');
       value.append(time(next.date, '', m + '月' + d + '日（' + week + '）'));
       row.append(node('dt', '', '次回開催'), value); facts.append(row);
-    } else fact('次回開催', '近日発表');
+    }
     if (next.time) fact('START', next.time + (rules.late ? '（レイトレジスト ' + rules.late + '）' : ''));
     fact('初期スタック', rules.stack.toLocaleString('ja-JP') + '点');
     if (rules.fee) fact('施設利用料', rules.fee.toLocaleString('ja-JP') + '円' + (rules.feeNote ? '（' + rules.feeNote + '）' : ''));
