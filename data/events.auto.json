@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "date": "2026-10-28",
+  "date": "2026-10-29",
   "latestXUrl": "https://x.com/ChonmageNiigata",
   "schedulePostUrl": "https://x.com/ChonmageNiigata",
-  "updatedAt": "2026-10-28T05:02:02+09:00",
+  "updatedAt": "2026-10-29T00:29:09+09:00",
   "source": {
     "type": "x",
     "url": "https://x.com/ChonmageNiigata",
@@ -23,15 +23,26 @@
   },
   "events": [
     {
-      "id": "event-1830",
-      "time": "18:30",
-      "type": "event",
-      "title": "初心者講習",
-      "heroTitle": "初心者講習",
-      "theme": "orange",
-      "tags": [],
+      "id": "freeroll-1800",
+      "time": "18:00",
+      "type": "free",
+      "title": "フリーロール",
+      "heroTitle": "FREE ROLL",
+      "theme": "blue",
+      "tags": [
+        "1 DRINK"
+      ],
       "description": "週間スケジュールより。当日の変更は公式Xでお知らせします。",
-      "facts": [],
+      "facts": [
+        {
+          "label": "ENTRY",
+          "value": "無料"
+        },
+        {
+          "label": "RE-ENTRY",
+          "value": "¥500"
+        }
+      ],
       "link": {
         "label": "週間スケジュール ↗",
         "url": "https://x.com/ChonmageNiigata"
