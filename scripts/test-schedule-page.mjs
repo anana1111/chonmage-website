@@ -44,6 +44,12 @@ ok(html.includes('"dateModified": "2026-10-16"'), 'dateModified is today');
 ok(html.includes('G-LW40HNQ1PL'), 'GA4 built in');
 ok((html.match(/<script\b/g) || []).length === 3, 'readable without JavaScript: only the GA4 tag and JSON-LD');
 
+// Week picture over (not entered any more): one official-X button instead of six unannounced days;
+// a newly entered week brings the day list back.
+const expired = pageHtml({ week, events: null, today: '2026-10-25' });
+ok(expired.includes('最新スケジュールは公式Xへ') && (expired.match(/まだ発表されていません/g) || []).length === 1, 'expired week: X button, only today unannounced');
+ok(!html.includes('最新スケジュールは公式Xへ'), 'current week: no X button');
+
 // Bad input is rejected; bad events.json falls back to the week picture.
 assert.throws(() => checkWeek(null)); checks++;
 assert.throws(() => checkWeek({ days: [{ date: '2026-10-16', open: '25:00' }] })); checks++;

@@ -251,6 +251,12 @@
 /* 今週のスケジュール (data/week.json) */
 .week[hidden] { display: none !important; }
 .week { margin-top: clamp(3rem, 7vw, 5.5rem); padding-top: 1rem; border-top: 1px solid var(--line); }
+.week-off[hidden] { display: none !important; }
+.week-off { margin-top: clamp(3rem, 7vw, 5.5rem); padding: 1.25rem 0 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 1.5rem; }
+.week-off p { margin: 0; font-size: .95rem; font-weight: 700; line-height: 1.7; }
+.week-off-link { display: inline-flex; align-items: center; gap: .45em; min-height: 48px; padding: 0 1.4rem; border-radius: 999px; background: var(--blue); color: var(--white); font-size: .92rem; font-weight: 800; text-decoration: none; transition: transform .16s var(--ease-out); }
+.week-off-link:active { transform: scale(.97); }
+.week-off-link:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 .week-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .5rem 1.5rem; }
 .week-head h3 { margin: 0; font-size: clamp(1.35rem, 2.6vw, 2rem); letter-spacing: -.03em; }
 .week-head h3 span { display: block; margin-bottom: .55rem; font-size: .66rem; font-weight: 800; letter-spacing: .15em; color: var(--orange); }

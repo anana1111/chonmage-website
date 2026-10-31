@@ -79,6 +79,8 @@ python3 -m http.server 8000
 
 分为 ホーム / 今日の予定 / 週間スケジュール / News / 予約公開 / 設定。「週間スケジュール」用日历查看和编辑一周（`data/week.json`），设置首页营业卡片几点到几点显示什么，也可以上传 X 的周日程图片让 Actions 读取。ホーム集中显示需要处理的事项（例如公开中的数据不是今天的）；事件用卡片列表加右侧编辑面板，常用字段在前、其余放在「詳細設定」里。“公開用ファイルを作成”只会生成并下载 `events.json`、`events.manual.json`、`news.json`，**不会自动上传**，需要在 GitHub 的 `data/` 上传并 commit 同名文件后才会公开。导出的 `events.json` 与 `scripts/merge-events.mjs` 的结果一致（同一份合并代码 `scripts/schedule-core.mjs`）。详见 [`admin/README.md`](admin/README.md)。
 
+`data/week.json` 的最后一天过去后（2026-11 起暂停每周录入），首页「今週のスケジュール」自动换成「最新スケジュールは公式Xへ」按钮，`/schedule/` 也只显示一个公式X按钮；顶部 THE DAILY 小横幅按 `data-promo-until` 自动隐藏。录入程序和格式都保留：重新录入新一周的 `week.json`（并更新横幅日期）后，日程区块会自动重新显示。
+
 ## 测试
 
 ```sh

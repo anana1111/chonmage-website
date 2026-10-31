@@ -192,7 +192,12 @@ export function pageHtml({ week, events, today }) {
   };
 
   const todayHtml = dayHtml(todayDay, today, promos);
-  const laterHtml = `
+  // No week picture for the coming days (it was not entered): one pointer to the official X
+  // instead of six 「まだ発表されていません」 rows. Entering the next week brings the days back.
+  const laterHtml = later.every((day) => day.unknown) ? `
+      <h2>${label(later[0].date)}〜${label(later[later.length - 1].date)}の予定</h2>
+      <p>最新のスケジュールは公式Xでお知らせしています。</p>
+      <p><a class="x-button" href="${X_URL}" target="_blank" rel="noopener noreferrer">最新スケジュールは公式Xへ <span aria-hidden="true">↗</span></a></p>` : `
       <h2>${label(later[0].date)}〜${label(later[later.length - 1].date)}の予定</h2>
 ${later.map((day) => dayHtml(day, today, promos)).join('\n')}`;
   const notesHtml = `
@@ -266,6 +271,7 @@ ${JSON.stringify(graph, null, 2).replaceAll('<', '\\u003c')}
     .guide thead th { font-size: .72rem; letter-spacing: .1em; opacity: .6; font-weight: 700; }
     .guide tbody th { width: 3.6rem; font-variant-numeric: tabular-nums; font-weight: 800; }
     .guide td:last-child { width: 36%; font-size: .88rem; white-space: nowrap; }
+    .guide .x-button { display: inline-flex; align-items: center; gap: .45em; min-height: 48px; padding: 0 1.4rem; border-radius: 999px; background: var(--blue); color: #fff; font-weight: 800; text-decoration: none; }
     .guide .note { padding: .8rem 1rem; margin: .8rem 0 0; border-left: 3px solid var(--blue); background: rgba(39, 56, 112, .05); font-size: .92rem; }
     .guide .notes { margin: 0 0 1rem; padding: .9rem 1rem .9rem 2rem; border-left: 3px solid var(--orange); background: rgba(239, 106, 59, .07); font-size: .92rem; }
     .guide .updated { font-size: .8rem; opacity: .65; }

@@ -465,6 +465,9 @@ function renderWeek(week) {
   if (signature === weekSignature) return;
   weekSignature = signature;
   section.hidden = !days.length;
+  // No day of the week picture left: point to the official X until the next week is entered.
+  const off = document.getElementById('week-off');
+  if (off) off.hidden = !!days.length;
   // 特典 (week.json promos): a badge on each promo day. The banner and top bar are in index.html.
   const promos = (Array.isArray(week?.promos) ? week.promos : []).filter((promo) => promo && typeof promo.text === 'string' && promo.text.trim() && Array.isArray(promo.dates));
   const list = section.querySelector('.week-list');
