@@ -180,7 +180,7 @@
     const card = node('article', 'home-king-card');
     card.setAttribute('aria-labelledby', 'home-king-name');
     const figure = photo(item.photo ? Object.assign({}, item, { card: '' }) : item, 'home-king-photo', false);
-    figure.append(node('span', 'home-king-badge', '最新の王者'));
+    figure.append(node('span', 'home-king-badge', '歴代王者'));
     const body = node('div', 'home-king-body');
     const month = node('p', 'home-king-title');
     month.append(crown('home-king-crown'), time(item.month, '', label(item)), node('span', '', ' KING'));
