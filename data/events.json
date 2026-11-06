@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "date": "2026-11-05",
+  "date": "2026-11-06",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2118236875580473761",
-  "updatedAt": "2026-11-05T18:31:55+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2118599261562495087",
+  "updatedAt": "2026-11-06T18:26:46+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2118236875580473761",
+    "url": "https://x.com/ChonmageNiigata/status/2118599261562495087",
     "mode": "auto"
   },
   "open": "17:00",
@@ -45,32 +45,33 @@
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2118236875580473761"
+        "url": "https://x.com/ChonmageNiigata/status/2118599261562495087"
       }
     },
     {
-      "id": "2-7-triple-draw-badugi-1910",
+      "id": "event-1910",
       "time": "19:10",
-      "type": "event",
-      "title": "2-7 Triple Draw&Badugi 🕠",
-      "heroTitle": "2-7 Triple Draw&Badugi \ud83d",
+      "type": "tournament",
+      "title": "ふるまちトーナメント 🕠",
+      "heroTitle": "ふるまちトーナメント 🕠",
       "theme": "orange",
       "tags": [],
       "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "¥3,000"
+          "value": "¥2,500"
         },
         {
           "label": "STARTING STACK",
-          "value": "30,000pt"
+          "value": "25,000pt"
         }
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2118236875580473761"
-      }
+        "url": "https://x.com/ChonmageNiigata/status/2118599261562495087"
+      },
+      "isMain": true
     }
   ],
   "close": "23:30"
