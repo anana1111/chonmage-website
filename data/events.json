@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "date": "2026-11-12",
+  "date": "2026-11-13",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2120773590337642861",
-  "updatedAt": "2026-11-12T18:52:14+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2121135978186433001",
+  "updatedAt": "2026-11-13T18:33:53+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2120773590337642861",
+    "url": "https://x.com/ChonmageNiigata/status/2121135978186433001",
     "mode": "auto"
   },
   "open": "17:00",
@@ -45,32 +45,33 @@
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2120773590337642861"
+        "url": "https://x.com/ChonmageNiigata/status/2121135978186433001"
       }
     },
     {
       "id": "event-1910",
       "time": "19:10",
-      "type": "event",
-      "title": "クレイジーパイナップル 🕠",
-      "heroTitle": "クレイジーパイナップル 🕠",
+      "type": "tournament",
+      "title": "ふるまちトーナメント 🕠",
+      "heroTitle": "ふるまちトーナメント 🕠",
       "theme": "orange",
       "tags": [],
       "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "¥3,000"
+          "value": "¥2,500"
         },
         {
           "label": "STARTING STACK",
-          "value": "30,000pt"
+          "value": "25,000pt"
         }
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2120773590337642861"
-      }
+        "url": "https://x.com/ChonmageNiigata/status/2121135978186433001"
+      },
+      "isMain": true
     }
   ],
   "close": "23:30"
