@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "date": "2026-11-15",
+  "date": "2026-11-16",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2121800362201940248",
-  "updatedAt": "2026-11-15T18:29:24+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2122223147818664153",
+  "updatedAt": "2026-11-16T18:47:14+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2121800362201940248",
+    "url": "https://x.com/ChonmageNiigata/status/2122223147818664153",
     "mode": "auto"
   },
-  "open": "13:00",
+  "open": "17:00",
   "status": "open",
   "summary": [
     "本日の開催情報です。",
@@ -17,55 +17,29 @@
   ],
   "ringGame": {
     "enabled": true,
-    "start": "13:00",
+    "start": "17:00",
     "title": "RING GAME",
     "description": "リングゲームもOPENから参加者募集中🔥"
   },
   "events": [
     {
-      "id": "event-1330",
-      "time": "13:30",
-      "type": "free",
-      "title": "フリーロール 🕑",
-      "heroTitle": "FREE ROLL",
-      "theme": "blue",
-      "tags": [
-        "1 DRINK"
-      ],
-      "description": "詳細は公式Xで確認してください。",
-      "facts": [
-        {
-          "label": "ENTRY",
-          "value": "¥0"
-        },
-        {
-          "label": "施設利用料",
-          "value": "500円"
-        }
-      ],
-      "link": {
-        "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2121800362201940248"
-      }
-    },
-    {
-      "id": "start-1700",
-      "time": "17:00",
+      "id": "the-daily-20-10-1800",
+      "time": "18:00",
       "type": "event",
-      "title": "START",
-      "heroTitle": "START",
+      "title": "THE DAILY 🕕 〜 レイト20:10",
+      "heroTitle": "THE DAILY 🕕 〜 レイト20:10",
       "theme": "orange",
       "tags": [],
       "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
-          "label": "ENTRY",
-          "value": "¥4,000"
+          "label": "STARTING STACK",
+          "value": "20,000pt"
         }
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2121800362201940248"
+        "url": "https://x.com/ChonmageNiigata/status/2122223147818664153"
       }
     }
   ],
