@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "date": "2026-11-25",
+  "date": "2026-11-26",
   "latestXUrl": "https://x.com/ChonmageNiigata",
-  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2125484631063425366",
-  "updatedAt": "2026-11-25T20:20:31+09:00",
+  "schedulePostUrl": "https://x.com/ChonmageNiigata/status/2125847026889793778",
+  "updatedAt": "2026-11-26T17:06:14+09:00",
   "source": {
     "type": "x",
-    "url": "https://x.com/ChonmageNiigata/status/2125484631063425366",
+    "url": "https://x.com/ChonmageNiigata/status/2125847026889793778",
     "mode": "auto"
   },
   "open": "17:00",
@@ -45,28 +45,33 @@
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2125484631063425366"
+        "url": "https://x.com/ChonmageNiigata/status/2125847026889793778"
       }
     },
     {
-      "id": "makai-1910",
+      "id": "event-1910",
       "time": "19:10",
-      "type": "event",
-      "title": "ー 魔界 MAKAI ー",
-      "heroTitle": "ー 魔界 MAKAI ー",
+      "type": "tournament",
+      "title": "ふるまちトーナメント 🕠",
+      "heroTitle": "ふるまちトーナメント 🕠",
       "theme": "orange",
       "tags": [],
       "description": "詳細は公式Xで確認してください。",
       "facts": [
         {
           "label": "ENTRY",
-          "value": "3,000円"
+          "value": "¥2,500"
+        },
+        {
+          "label": "STARTING STACK",
+          "value": "25,000pt"
         }
       ],
       "link": {
         "label": "最新情報 ↗",
-        "url": "https://x.com/ChonmageNiigata/status/2125484631063425366"
-      }
+        "url": "https://x.com/ChonmageNiigata/status/2125847026889793778"
+      },
+      "isMain": true
     }
   ],
   "close": "23:30"
